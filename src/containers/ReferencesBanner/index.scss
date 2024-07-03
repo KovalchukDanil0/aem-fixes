@@ -1,0 +1,18 @@
+div.referencesBanner {
+  display: flex;
+  flex-direction: column;
+  background-color: slategray;
+  padding: 6rem;
+
+  > a.referencesBannerLink {
+    width: fit-content;
+    font-weight: 500;
+    color: aqua;
+    text-decoration-line: none;
+
+    &:hover {
+      text-decoration-line: underline;
+      color: aquamarine;
+    }
+  }
+}

@@ -1,0 +1,22 @@
+a.findReplaceLink {
+  font-weight: 500;
+  color: #2563eb;
+  cursor: default;
+
+  &:hover {
+    text-decoration: underline;
+    cursor: pointer;
+  }
+}
+
+button.find-links {
+  background-color: cornflowerblue;
+}
+
+button.apply[data-ng-click="validateLinks()"] {
+  background-color: darkorange;
+}
+
+button.apply[data-ng-click="applyLinksReplace()"] {
+  background-color: lawngreen;
+}

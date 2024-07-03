@@ -1,0 +1,17 @@
+body {
+  width: 500px;
+  height: auto;
+  background-image: url(/src/assets/img/steampunk.jpg);
+  background-size: 500px;
+  background-position-x: 150px;
+  background-position-y: -20px;
+  background-repeat: no-repeat;
+  background-color: #53241a;
+  padding: 0.7rem;
+}
+
+input[type="checkbox"] {
+  vertical-align: middle;
+  position: relative;
+  bottom: 1px;
+}
