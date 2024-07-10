@@ -247,6 +247,11 @@ const webpackConfig: Configuration = {
         minimizer: [
           new TerserPlugin({
             extractComments: false,
+            terserOptions: {
+              format: {
+                comments: false,
+              },
+            },
           }),
         ],
       }

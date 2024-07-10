@@ -107,7 +107,22 @@ async function usefulLinks() {
   }
 }
 
+/* function openAllPagesButton()
+{
+ const buttonsContainer = document.querySelectorAll("body > div.wrapper-conf > div > div.content-conf.workflow-package-page > div.configSection > div > div:nth-child(2)")
+ 
+ const buttonOpenAllPages = el(
+  "button.openAllPages",
+  el("a", {
+    type: "button",
+    textContent: "OPEN ALL PAGES",
+  }),
+) as HTMLButtonElement;
+mount(buttonsContainer, buttonOpenAllPages);
+} */
+
 (function Main() {
   addWFID();
   usefulLinks();
+  // openAllPagesButton();
 })();
