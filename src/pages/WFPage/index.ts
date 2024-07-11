@@ -14,7 +14,7 @@ async function addBetaToLink(elm: HTMLAnchorElement) {
   elm.href = elm.href.replace(await regexDetermineBeta(), `$1/${touch}$2`);
 }
 
-async function addWFID() {
+async function addWorkflowId() {
   const sectionSelector = ".page.section > .configSection > div a";
 
   const getLinksInWF: NodeListOf<HTMLAnchorElement> =
@@ -107,22 +107,23 @@ async function usefulLinks() {
   }
 }
 
-/* function openAllPagesButton()
-{
- const buttonsContainer = document.querySelectorAll("body > div.wrapper-conf > div > div.content-conf.workflow-package-page > div.configSection > div > div:nth-child(2)")
- 
- const buttonOpenAllPages = el(
-  "button.openAllPages",
-  el("a", {
-    type: "button",
-    textContent: "OPEN ALL PAGES",
-  }),
-) as HTMLButtonElement;
-mount(buttonsContainer, buttonOpenAllPages);
-} */
+function openAllPagesButton() {
+  const buttonsContainer = document.querySelector(
+    "body > div.wrapper-conf > div > div.content-conf.workflow-package-page > div.configSection > div > div:nth-child(2)",
+  ) as HTMLDivElement;
+
+  const buttonOpenAllPages = el(
+    "button.openAllPages",
+    el("a", {
+      type: "button",
+      textContent: "OPEN ALL PAGES",
+    }),
+  ) as HTMLButtonElement;
+  mount(buttonsContainer, buttonOpenAllPages);
+}
 
 (function Main() {
-  addWFID();
+  addWorkflowId();
   usefulLinks();
-  // openAllPagesButton();
+  openAllPagesButton();
 })();
