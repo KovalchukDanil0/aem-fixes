@@ -4,7 +4,7 @@
 
 AEM Fixes is a modern Chrome Extension designed to eliminate repetitive everyday tasks in AEM Engine by automating them.
 
-![react](https://img.shields.io/badge/react-18.3-green) ![ts-node](https://img.shields.io/badge/ts_node-10.9-blue) ![typescript](https://img.shields.io/badge/typescript-5.5-aqua) ![sass](https://img.shields.io/badge/sass-1.77-pink) ![tailwindcss](https://img.shields.io/badge/tailwindcss-3.4-navy) ![daisyui](https://img.shields.io/badge/daisyui-4.12-yellow) ![webextension-polyfill](https://img.shields.io/badge/webextension_polyfill-0.10-red) ![webpack](https://img.shields.io/badge/webpack-5.92-azure) 
+![react](https://img.shields.io/badge/react-18.3-green) ![ts-node](https://img.shields.io/badge/ts_node-10.9-blue) ![typescript](https://img.shields.io/badge/typescript-5.5-aqua) ![sass](https://img.shields.io/badge/sass-1.77-pink) ![tailwindcss](https://img.shields.io/badge/tailwindcss-3.4-navy) ![daisyui](https://img.shields.io/badge/daisyui-4.12-yellow) ![webextension-polyfill](https://img.shields.io/badge/webextension_polyfill-0.10-red) ![webpack](https://img.shields.io/badge/webpack-5.93-azure) 
 
 ![Armageddon](src/assets/img/armageddon.png)
 
