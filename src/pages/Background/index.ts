@@ -332,8 +332,6 @@ const conditions: ConditionType[] = [
 async function onLoadingComplete(
   details: WebNavigation.OnCompletedDetailsType,
 ) {
-  console.log(details.url);
-
   if (!details.url) {
     return;
   }
@@ -350,8 +348,6 @@ async function onLoadingComplete(
   if (!conditionFound) {
     return;
   }
-
-  console.log(conditionFound);
 
   const [injectScript, allFrames]: ResultType = conditionFound.result();
 

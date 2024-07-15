@@ -11,6 +11,7 @@ import {
   EnvTypes,
   MessageAlert,
   MessageEnv,
+  SubjectTypes,
   classic,
   getCurrentTab,
   getFullAuthorPath,
@@ -351,7 +352,7 @@ async function buttonOnClick(event: React.MouseEvent<HTMLButtonElement>) {
     from: "popup",
     newTab: event.type !== "click",
     env: but.getAttribute("but-env") as EnvTypes,
-    subject: but.getAttribute("but-subject"),
+    subject: but.getAttribute("but-subject") as SubjectTypes,
     tabs,
   };
 
@@ -364,9 +365,7 @@ async function buttonOnClick(event: React.MouseEvent<HTMLButtonElement>) {
 
 async function openPropertiesTouchUI() {
   const tab: Tabs.Tab = await getCurrentTab();
-
   const fullAuthorPath = await getFullAuthorPath();
-
   const propertiesPath = await getPropertiesPath();
 
   const newUrl: string | undefined = tab.url?.replace(
@@ -383,8 +382,6 @@ async function openPropertiesTouchUI() {
 async function initVariables(): Promise<string | undefined> {
   const url = (await getCurrentTab()).url;
   await cacheVariables(url);
-
-  console.log(await Browser.storage.local.get());
 
   return url;
 }

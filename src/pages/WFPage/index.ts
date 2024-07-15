@@ -107,18 +107,24 @@ async function usefulLinks() {
   }
 }
 
+function openAllPagesFunction() {
+  const links = document.querySelectorAll<HTMLAnchorElement>(
+    "body > div.wrapper-conf > div > div > div > div > div.cq-element-filters > div.page.section > div > div > div > div.configValue > a",
+  );
+  links.forEach((link) => window.open(link.href));
+}
+
 function openAllPagesButton() {
   const buttonsContainer = document.querySelector(
     "body > div.wrapper-conf > div > div.content-conf.workflow-package-page > div.configSection > div > div:nth-child(2)",
   ) as HTMLDivElement;
 
-  const buttonOpenAllPages = el(
-    "button.openAllPages",
-    el("a", {
-      type: "button",
-      textContent: "OPEN ALL PAGES",
-    }),
-  ) as HTMLButtonElement;
+  const buttonOpenAllPages = el("button.openAllPages", {
+    type: "button",
+    textContent: "OPEN ALL PAGES",
+  }) as HTMLButtonElement;
+  buttonOpenAllPages.addEventListener("click", openAllPagesFunction);
+
   mount(buttonsContainer, buttonOpenAllPages);
 }
 

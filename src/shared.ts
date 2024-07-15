@@ -165,13 +165,21 @@ export type SavedSyncData = {
   enableFunErr?: boolean;
 };
 
+export type SubjectTypes =
+  | "checkReferences"
+  | "getRealUrl"
+  | "toEnvironment"
+  | "showMessage"
+  | "openInTree"
+  | "createWF"
+  | "checkMothersite";
 export type EnvTypes = "live" | "perf" | "prod" | "author";
 export type FromTypes = "popup" | "background" | "content";
 export type ColorProps = "info" | "success" | "warning" | "error";
 
 export type MessageCommon = {
   from: FromTypes;
-  subject: string | null;
+  subject: SubjectTypes | null;
   url?: string;
 };
 
@@ -278,6 +286,10 @@ export default class AEMLink {
         false,
         this.url.href.replace(this.regexAuthorCached, "$5"),
       );
+
+      // fix resource resolver not working if link not ending with html
+      this.url.hash = "";
+      this.url.search = "";
 
       this.isAuthor = true;
     } else {
@@ -405,11 +417,17 @@ export default class AEMLink {
       throw new Error("tab id is undefined");
     }
 
-    const realPerfUrl = await Browser.tabs.sendMessage(tab.id, {
+    const realPerfUrl: string | null = await Browser.tabs.sendMessage(tab.id, {
       from: "background",
       subject: "getRealUrl",
       html,
     } as MessageCommon);
+
+    console.log(realPerfUrl);
+    if (!realPerfUrl) {
+      throw new Error("realPerfUrl is undefined");
+    }
+
     this.urlPart = this.fixUrlPart(realPerfUrl);
 
     return this.urlPart;
@@ -490,7 +508,7 @@ export default class AEMLink {
 
   async makePerfProd(isPerf: boolean) {
     if (this.isAuthor && this.url) {
-      console.log(this.regexAuthorCached?.exec(this.url.toString()));
+      // mothersite to perf mothersite logic
     }
 
     if (this.market === "uk" || this.market === "gb") {
@@ -561,18 +579,18 @@ export default class AEMLink {
   }
 }
 
-export function waitForElm(
+export function waitForElm<T extends HTMLElement>(
   selector: string,
   doc: Document = document,
-): Promise<HTMLElement> {
+): Promise<T> {
   return new Promise((resolve) => {
     if (doc.querySelector(selector)) {
-      return resolve(doc.querySelector(selector) as HTMLElement);
+      return resolve(doc.querySelector(selector) as T);
     }
 
     const observer = new MutationObserver(() => {
       if (doc.querySelector(selector)) {
-        resolve(doc.querySelector(selector) as HTMLElement);
+        resolve(doc.querySelector(selector) as T);
         observer.disconnect();
       }
     });
