@@ -61,6 +61,17 @@ async function findAsyncSequential<T>(
   return undefined;
 }
 
+function aemLinkError(error: Error) {
+  const message: MessageAlert = {
+    from: "background",
+    subject: "showMessage",
+    color: "error",
+    message: `ERROR - ${error.message}`,
+  };
+
+  Browser.runtime.sendMessage(message);
+}
+
 function toEnvironment(
   tabs: Tabs.Tab[],
   newTab: boolean,
@@ -70,24 +81,14 @@ function toEnvironment(
   tabs.forEach(async (tab) => {
     const initUrl: string | undefined = url ?? tab.url;
 
-    let data: AEMLink | undefined;
-    try {
-      data = new AEMLink(initUrl);
-      await data?.initialize();
-    } catch (error) {
-      const message: MessageAlert = {
-        from: "background",
-        subject: "showMessage",
-        color: "error",
-        message: `ERROR - ${(error as Error).message}`,
-      };
+    const data = new AEMLink(initUrl);
+    await data.initialize();
 
-      Browser.runtime.sendMessage(message);
+    const newUrl = await data.determineEnv(env).catch(aemLinkError);
 
-      return;
+    if (!newUrl) {
+      throw new Error("newUrl is undefined");
     }
-
-    const newUrl = await data?.determineEnv(env);
 
     if (newTab) {
       Browser.tabs.create({ index: tab.index + 1, url: newUrl });
@@ -241,13 +242,9 @@ async function menusOnClick(
       break;
     }
     case "openInAEM": {
-      let linkUrl: string | undefined;
-      if (info.selectionText) {
-        linkUrl = `https://${fullAuthorPath}${info.selectionText}.html`;
-      } else {
-        linkUrl = info.linkUrl;
-      }
-
+      const linkUrl = info.selectionText
+        ? `https://${fullAuthorPath}${info.selectionText}.html`
+        : info.linkUrl;
       openInTree(linkUrl);
 
       break;

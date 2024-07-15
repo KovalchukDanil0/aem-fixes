@@ -34,8 +34,8 @@ async function getJiraFullPath(): Promise<string> {
   return data.secretSettings.jiraFullPath;
 }
 
-async function getRealPerfUrl(): Promise<string | undefined> {
-  return (await waitForElm<HTMLMetaElement>("head > meta[name='og:url']"))
+function getRealPerfUrl(): string | undefined {
+  return document.querySelector<HTMLMetaElement>("head > meta[name='og:url']")
     ?.content;
 }
 
@@ -127,17 +127,17 @@ async function checkReferences() {
 }
 
 Browser.runtime.onMessage.addListener(
-  async (
+  (
     msg: MessageCommon,
     _sender,
     _sendResponse,
-  ): Promise<string | undefined> => {
+  ): Promise<string | undefined> | undefined => {
     if (msg.from === "popup" && msg.subject === "checkReferences") {
       checkReferences();
     }
 
     if (msg.from === "background" && msg.subject === "getRealUrl") {
-      return Promise.resolve(await getRealPerfUrl());
+      return Promise.resolve(getRealPerfUrl());
     }
   },
 );

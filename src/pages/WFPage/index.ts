@@ -22,9 +22,9 @@ async function addWorkflowId() {
 
   const WFID = url.href.replace(await regexWorkflow(), "$4");
 
-  const form: HTMLFormElement = (await waitForElm(
+  const form: HTMLFormElement = await waitForElm<HTMLFormElement>(
     "#workflow-title-input",
-  )) as HTMLFormElement;
+  );
 
   const WorkflowID = WFID;
 

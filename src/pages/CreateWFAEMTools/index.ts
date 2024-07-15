@@ -22,9 +22,9 @@ async function createWF(WFTitle: string, WFName: string) {
   const createPageOverlay =
     "#CQ > div.x-window-plain.x-form-label-left > div > form > div.x-window.x-window-plain.x-resizable-pinned > div.x-window-bwrap > div.x-window-ml > div > div > div > div > div > div";
 
-  let form: HTMLFormElement = (await waitForElm(
+  let form: HTMLFormElement = await waitForElm<HTMLFormElement>(
     createPageOverlay + " > div:nth-child(1) > div.x-form-element > input",
-  )) as HTMLFormElement;
+  );
 
   form.value = WFTitle;
 
