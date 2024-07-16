@@ -1,6 +1,7 @@
 import axios from "axios";
 import { ReactElement } from "react";
 import { createRoot } from "react-dom/client";
+import { el, mount } from "redom";
 import Browser from "webextension-polyfill";
 import ReferencesBanner from "../../containers/ReferencesBanner";
 import WFShowTicket from "../../containers/WFShowTicket";
@@ -13,6 +14,7 @@ import {
   regexAuthor,
   waitForElm,
 } from "../../shared";
+import "./index.scss";
 
 const url =
   window.location !== window.parent.location
@@ -40,43 +42,35 @@ function getRealPerfUrl(): string | undefined {
 }
 
 async function catErrors() {
-  const savedData = await loadSavedData();
-  if (!savedData.enableFunErr) {
-    return;
+  let textContent = document.querySelector(
+    "body > header > title",
+  )?.textContent;
+  switch (textContent) {
+    case "AEM Permissions Required":
+      textContent = "404 ERROR - Not Found";
+      break;
+    case "Forbidden":
+      textContent = "403 ERROR - Forbidden";
+      break;
+    case "Bad Gateway":
+      textContent = "503 ERROR - Bad Gateway";
+      break;
+    default:
+      return;
   }
 
-  let errorText = document.querySelector("body > header > title");
-  const errorImage =
-    '<img style="display: block;-webkit-user-select: none; display: block; margin-left: auto; margin-right: auto; width: 50%;" src="https://cataas.com/cat/gif">';
-  const errorStyle = 'style="text-align: center; color: red; font-size: 50px;"';
-  if (errorText?.textContent === "AEM Permissions Required") {
-    document.body.innerHTML = "";
-    document.body.insertAdjacentHTML(
-      "afterbegin",
-      errorImage + `<p ${errorStyle}>404 ERROR - Not Found</p>`,
-    );
-    return;
-  }
+  const errorImage = el(
+    "div.errorMessage",
+    el("img", {
+      src: "https://cataas.com/cat/gif",
+    }),
+    el("p", {
+      textContent,
+    }),
+  );
 
-  errorText = document.querySelector("body > h1");
-  if (errorText) {
-    if (errorText.textContent === "Forbidden") {
-      document.body.innerHTML = "";
-      document.body.insertAdjacentHTML(
-        "afterbegin",
-        errorImage + `<p ${errorStyle}>403 ERROR - Forbidden</p>`,
-      );
-      return;
-    }
-    if (errorText.textContent === "Bad Gateway") {
-      document.body.innerHTML = "";
-      document.body.insertAdjacentHTML(
-        "afterbegin",
-        errorImage + `<p ${errorStyle}>503 ERROR - Bad Gateway</p>`,
-      );
-      return;
-    }
-  }
+  document.body.innerHTML = "";
+  mount(document.body, errorImage);
 }
 
 async function ticketFinder() {
@@ -116,11 +110,12 @@ async function checkReferences() {
     document.createElement("div"),
     document.body.firstChild,
   );
-  const root = createRoot(container);
 
   const referencesBanner: ReactElement = ReferencesBanner({
     pages: refConfig.pages,
   });
+
+  const root = createRoot(container);
   root.render(referencesBanner);
 
   refGot = true;
@@ -141,7 +136,6 @@ Browser.runtime.onMessage.addListener(
       if (realPerfLink) {
         return Promise.resolve(realPerfLink);
       }
-
     }
   },
 );

@@ -389,7 +389,7 @@ export default class AEMLink {
   }
 
   async getPerfRealUrl() {
-    let html = null;
+    let html: Document | null = null;
     const tabUrl = this.url?.href;
 
     if (!tabUrl) {
@@ -433,19 +433,19 @@ export default class AEMLink {
     return this.urlPart;
   }
 
-  async determineEnv(env: string): Promise<string | undefined> {
+  async determineEnv(env: string): Promise<string> {
     let newUrl: string | undefined;
 
     const regexFastAuthorCached = await regexFastAuthor();
 
-    if (this.isAuthor) {
+    if (this.isAuthor && this.url) {
       if (env === classic || env === touch) {
         const notContainsAuthor: boolean =
-          this.url?.href.replace(regexFastAuthorCached, "$2") !== "author";
+          this.url.href.replace(regexFastAuthorCached, "$2") !== "author";
         const notContainsHtml: boolean =
-          this.url?.href.replace(regexFastAuthorCached, "$6") !== "html";
+          this.url.href.replace(regexFastAuthorCached, "$6") !== "html";
 
-        newUrl = this.url?.href.replace(
+        newUrl = this.url.href.replace(
           regexFastAuthorCached,
           `$1${notContainsAuthor ? "author" : ""}$3${env + "/"}$5${
             notContainsHtml ? ".html" : ""

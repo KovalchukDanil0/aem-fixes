@@ -1,0 +1,19 @@
+div.errorMessage {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+
+  img {
+    width: 55%;
+  }
+
+  p {
+    position: absolute;
+    bottom: 0;
+    text-align: center;
+    color: red;
+    font-size: 3rem;
+  }
+}

@@ -21,6 +21,9 @@ const url: Location = window.location;
 let wizardConfig: HTMLElement;
 let wizardVehicleSelector: HTMLElement | null;
 
+let vehicleConfig: VehicleConfig;
+let lastVehicleIndex = -1;
+
 type VehicleConfig = {
   data: Data[];
 };
@@ -44,9 +47,6 @@ type CarProps = {
   wersCode: string;
   wersDerivCode: string;
 };
-
-let vehicleConfig: VehicleConfig;
-let lastVehicleIndex = -1;
 
 axiosRetry(axios, {
   retries: 3,
@@ -96,12 +96,8 @@ async function randomProgrammerMemes() {
   );
 }
 
-function generateRandom(maxLimit: number) {
-  let rand = Math.random() * maxLimit;
-  rand = Math.floor(rand);
-
-  return rand;
-}
+const generateRandom = (maxLimit: number) =>
+  Math.floor(Math.random() * maxLimit);
 
 async function checkMothersite(from: FromTypes) {
   if (url.href.replace(await regexAuthor(), "$4") === "mothersite") {
@@ -123,10 +119,18 @@ async function checkMothersite(from: FromTypes) {
 
   const message = `MOTHERSITE LINKS ON THIS PAGE - ${mothersiteLinks}`;
 
-  if (mothersiteLinks > 0 && from === "content") {
+  if (mothersiteLinks === 0 && from === "content") {
     const vehicleCodeElm: HTMLElement = el(
       "div.alertBanner",
-      el("h2.alertBannerHeadline", { textContent: message }),
+      el("h2", {
+        textContent: message,
+      }),
+      el("button", {
+        onclick(this: HTMLElement) {
+          this.parentElement?.remove();
+        },
+        textContent: "X",
+      }),
     );
 
     const firstChild = document.body.firstChild;
@@ -250,8 +254,6 @@ async function findVehicleCode(idx = 0) {
 }
 
 async function findShowroomCode() {
-  const showroom = await waitForElm("#acc-showroom");
-
   const showroomElm = await waitForElm("#acc-showroom > span");
 
   const config: string | null = showroomElm.getAttribute("data-bsl-url");
@@ -272,6 +274,9 @@ async function findShowroomCode() {
   });
 
   const div: HTMLElement = document.createElement("div");
+
+  const showroom = await waitForElm("#acc-showroom");
+
   const root = createRoot(showroom.appendChild(div));
   root.render(showroomCodes);
 }
