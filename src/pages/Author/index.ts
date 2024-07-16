@@ -137,7 +137,11 @@ Browser.runtime.onMessage.addListener(
     }
 
     if (msg.from === "background" && msg.subject === "getRealUrl") {
-      return Promise.resolve(getRealPerfUrl());
+      const realPerfLink = getRealPerfUrl();
+      if (realPerfLink) {
+        return Promise.resolve(realPerfLink);
+      }
+
     }
   },
 );

@@ -578,6 +578,7 @@ FodyWeavers.xsd
 # misc
 .DS_Store
 pnpm-lock.yaml
+package-lock.json
 
 # secrets
 template.secret.json
