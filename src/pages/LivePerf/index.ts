@@ -119,7 +119,7 @@ async function checkMothersite(from: FromTypes) {
 
   const message = `MOTHERSITE LINKS ON THIS PAGE - ${mothersiteLinks}`;
 
-  if (mothersiteLinks === 0 && from === "content") {
+  if (mothersiteLinks > 0 && from === "content") {
     const vehicleCodeElm: HTMLElement = el(
       "div.alertBanner",
       el("h2", {
