@@ -12,6 +12,7 @@ import {
   getLocalSavedData,
   loadSavedData,
   regexAuthor,
+  regexDetermineBeta,
   waitForElm,
 } from "../../shared";
 import "./index.scss";
@@ -113,6 +114,7 @@ async function checkReferences() {
 
   const referencesBanner: ReactElement = ReferencesBanner({
     pages: refConfig.pages,
+    regexDetermineBeta: await regexDetermineBeta(),
   });
 
   const root = createRoot(container);
@@ -122,11 +124,7 @@ async function checkReferences() {
 }
 
 Browser.runtime.onMessage.addListener(
-  (
-    msg: MessageCommon,
-    _sender,
-    _sendResponse,
-  ): Promise<string | undefined> | undefined => {
+  (msg: MessageCommon, _sender, _sendResponse): Promise<string> | undefined => {
     if (msg.from === "popup" && msg.subject === "checkReferences") {
       checkReferences();
     }

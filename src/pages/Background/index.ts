@@ -3,6 +3,7 @@ import AEMLink, {
   MessageAlert,
   MessageEnv,
   classic,
+  findAsyncSequential,
   getCurrentTab,
   getFullAuthorPath,
   getLocalSavedData,
@@ -48,18 +49,6 @@ const ifFindReplaceUrl = async (url: string) =>
   url.includes(await findReplaceUrl());
 
 const ifWorkflowUrl = async (url: string) => (await regexWorkflow()).test(url);
-
-async function findAsyncSequential<T>(
-  array: T[],
-  predicate: (t: T) => Promise<boolean>,
-): Promise<T | undefined> {
-  for (const t of array) {
-    if (await predicate(t)) {
-      return t;
-    }
-  }
-  return undefined;
-}
 
 function aemLinkError(error: Error) {
   const message: MessageAlert = {
@@ -298,7 +287,7 @@ type ConditionType = {
 const conditions: ConditionType[] = [
   {
     isTrue: (url: string) => ifLivePerf(url),
-    result: () => ["livePerf.bundle.js", false],
+    result: () => ["livePerf.bundle.js"],
   },
   {
     isTrue: (url: string) => ifAuthorNoEnv(url),
@@ -349,7 +338,11 @@ async function onLoadingComplete(
   const [injectScript, allFrames]: ResultType = conditionFound.result();
 
   Browser.scripting.executeScript({
-    target: { tabId, allFrames: allFrames ?? true },
+    target: {
+      tabId,
+      frameIds: [details.frameId],
+      allFrames: allFrames ?? false,
+    },
     files: [injectScript],
   });
 }

@@ -3,12 +3,14 @@ div.referencesBanner {
   flex-direction: column;
   background-color: slategray;
   padding: 6rem;
+  gap: 1rem;
 
-  > a.referencesBannerLink {
+  a {
     width: fit-content;
     font-weight: 500;
     color: aqua;
     text-decoration-line: none;
+    line-height: normal;
 
     &:hover {
       text-decoration-line: underline;

@@ -13,11 +13,13 @@ import {
   MessageEnv,
   SubjectTypes,
   classic,
+  findAsyncSequential,
   getCurrentTab,
   getFullAuthorPath,
   getLocalSavedData,
   ifAnyOfTheEnv,
   ifAuthor,
+  ifAuthorNoEnv,
   ifClassic,
   ifJira,
   ifLive,
@@ -335,7 +337,7 @@ async function buttonOnClick(event: React.MouseEvent<HTMLButtonElement>) {
 
   const sendAs: string | null = but.getAttribute("but-send-as");
   if (!sendAs) {
-    return;
+    throw new Error("but-send-as is undefined");
   }
 
   const tabs: Tabs.Tab[] = await Browser.tabs.query({
@@ -343,9 +345,20 @@ async function buttonOnClick(event: React.MouseEvent<HTMLButtonElement>) {
     currentWindow: true,
   });
 
-  const tabId = tabs[tabs.length - 1].id;
+  let tabId = tabs[tabs.length - 1].id;
   if (!tabId) {
     throw new Error(`tabId is ${tabId}`);
+  }
+
+  const frames = await Browser.webNavigation.getAllFrames({ tabId });
+  if (frames) {
+    const conditionFound = await findAsyncSequential(frames, (frame) =>
+      ifAuthorNoEnv(frame.url),
+    );
+
+    if (conditionFound?.tabId) {
+      tabId = conditionFound.tabId;
+    }
   }
 
   const message: MessageEnv = {
@@ -440,7 +453,7 @@ export default function Popup() {
       </div>
 
       <div className="my-3 hidden flex-wrap place-content-center gap-2 has-[button]:flex">
-        <hr id="separator" className="my-1 h-px w-full border-0 bg-gray-200" />
+        <hr className="my-1 h-px w-full border-0 bg-gray-200" />
 
         <ButtonCopyContent url={tabUrl} />
         <ButtonOpenPropertiesTouchUI />

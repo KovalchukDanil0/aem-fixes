@@ -423,7 +423,6 @@ export default class AEMLink {
       html,
     } as MessageCommon);
 
-    console.log(realPerfUrl);
     if (!realPerfUrl) {
       throw new Error("realPerfUrl is undefined");
     }
@@ -613,3 +612,15 @@ export const loadSavedData = async (): Promise<SavedSyncData> =>
 
 export const getCurrentTab = async (): Promise<Browser.Tabs.Tab> =>
   (await Browser.tabs.query({ active: true, currentWindow: true }))[0];
+
+export async function findAsyncSequential<T>(
+  array: T[],
+  predicate: (t: T) => Promise<boolean>,
+): Promise<T | undefined> {
+  for (const t of array) {
+    if (await predicate(t)) {
+      return t;
+    }
+  }
+  return undefined;
+}
