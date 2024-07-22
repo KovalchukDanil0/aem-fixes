@@ -128,8 +128,49 @@ function openAllPagesButton() {
   mount(buttonsContainer, buttonOpenAllPages);
 }
 
+async function checkNodes() {
+  // Select the node that will be observed for mutations
+  const targetNode = await waitForElm("div.cq-element-filters");
+
+  const dblclickEv = new Event("dblclick");
+
+  // Options for the observer (which mutations to observe)
+  const config: MutationObserverInit = { childList: true, subtree: true };
+
+  // Callback function to execute when mutations are observed
+  const callback = (
+    mutationList: MutationRecord[],
+    _observer: MutationObserver,
+  ) => {
+    for (const mutation of mutationList) {
+      if (mutation.type === "childList") {
+        const childElm = mutation.target as HTMLDivElement;
+
+        const linkElm = childElm.querySelector<HTMLAnchorElement>(
+          "div > div:nth-child(1) > div.configValue > a",
+        );
+        if (linkElm) {
+          addBetaToLink(linkElm);
+        }
+
+        const placeholderElm = childElm.querySelector("img");
+        if (placeholderElm) {
+          childElm.dispatchEvent(dblclickEv);
+        }
+      }
+    }
+  };
+
+  // Create an observer instance linked to the callback function
+  const observer = new MutationObserver(callback);
+
+  // Start observing the target node for configured mutations
+  observer.observe(targetNode, config);
+}
+
 (function Main() {
   addWorkflowId();
   usefulLinks();
   openAllPagesButton();
+  checkNodes();
 })();
