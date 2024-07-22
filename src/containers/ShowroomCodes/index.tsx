@@ -11,8 +11,8 @@ export default function ShowroomCodes({
         const dataElm = data[item as keyof typeof data];
         return (
           <div key={dataElm.code}>
-            <h2 className="showroomCodesHeadline">{dataElm.name}</h2>
-            <h3 className="showroomCodesHeadline">{dataElm.code}</h3>
+            <h2>{dataElm.name}</h2>
+            <h3>{dataElm.code}</h3>
           </div>
         );
       })}
