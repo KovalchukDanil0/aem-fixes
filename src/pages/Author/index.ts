@@ -99,13 +99,18 @@ async function checkReferences() {
   const pathToReferencesParams = await getPathToReferencesParams();
 
   const config = `https://${fullAuthorPath}/${pathToReferences}${encodedURL}${pathToReferencesParams}`;
-  const refConfig: ReferencesConfig = (
-    await axios.get(config, {
-      headers: {
-        Accept: "application/json",
-      },
-    })
-  ).data;
+  const refConfig = (
+    await axios
+      .get<ReferencesConfig>(config, {
+        headers: {
+          Accept: "application/json",
+        },
+      })
+      .catch(() => null)
+  )?.data;
+  if (!refConfig) {
+    throw new Error("cannot reach ref config page");
+  }
 
   const container = document.body.insertBefore(
     document.createElement("div"),

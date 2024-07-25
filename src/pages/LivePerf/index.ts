@@ -70,7 +70,8 @@ async function randomProgrammerMemes() {
   const githubPath =
     "https://raw.githubusercontent.com/deep5050/programming-memes/main/";
 
-  const data = (await axios.get(githubPath + "memes.json")).data;
+  const data = (await axios.get(githubPath + "memes.json").catch(() => null))
+    ?.data;
   const count = Object.keys(data).length;
 
   //Extracting data
@@ -261,13 +262,18 @@ async function findShowroomCode() {
     throw new Error("showroom config `data-bsl-url` is null");
   }
 
-  const showroomConfig: ShowroomCode = (
-    await axios.get(config, {
-      headers: {
-        Accept: "application/json",
-      },
-    })
-  ).data;
+  const showroomConfig: ShowroomCode | undefined = (
+    await axios
+      .get(config, {
+        headers: {
+          Accept: "application/json",
+        },
+      })
+      .catch(() => null)
+  )?.data;
+  if (!showroomConfig?.data) {
+    throw new Error("Cannot reach showroom config page");
+  }
 
   const showroomCodes: ReactElement = ShowroomCodes({
     data: showroomConfig.data,

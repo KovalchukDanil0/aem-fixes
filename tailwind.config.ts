@@ -1,6 +1,5 @@
 import daisyui from "daisyui";
 import { Config } from "tailwindcss";
-// @ts-ignore
 import tailwindcssAnimated from "tailwindcss-animated";
 
 const tailwind: Config = {

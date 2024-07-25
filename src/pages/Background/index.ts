@@ -1,5 +1,6 @@
 import Browser, { Menus, Tabs, WebNavigation } from "webextension-polyfill";
 import AEMLink, {
+  EnvTypesNoAuthor,
   MessageAlert,
   MessageEnv,
   classic,
@@ -64,7 +65,7 @@ function aemLinkError(error: Error) {
 function toEnvironment(
   tabs: Tabs.Tab[],
   newTab: boolean,
-  env: string,
+  env: EnvTypesNoAuthor,
   url?: string,
 ) {
   tabs.forEach(async (tab) => {
@@ -276,7 +277,33 @@ async function menusOnClick(
   }
 }
 
+type CommandEnvs = "toLive" | "toPerf" | "toProd" | "toAuthor";
+
 Browser.contextMenus.onClicked.addListener(menusOnClick);
+
+// @ts-expect-error
+Browser.commands.onCommand.addListener((command: CommandEnvs, tab) => {
+  if (!tab) {
+    return;
+  }
+
+  switch (command) {
+    case "toLive":
+      toEnvironment([tab], false, "live");
+      break;
+    case "toPerf":
+      toEnvironment([tab], false, "perf");
+      break;
+    case "toProd":
+      toEnvironment([tab], false, "prod");
+      break;
+    case "toAuthor":
+      toEnvironment([tab], false, "editor.html");
+      break;
+    default:
+      throw new Error(`command was not found ${command}`);
+  }
+});
 
 type ResultType = [injectScript: string, allFrames?: boolean];
 type ConditionType = {

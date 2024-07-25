@@ -174,6 +174,7 @@ export type SubjectTypes =
   | "createWF"
   | "checkMothersite";
 export type EnvTypes = "live" | "perf" | "prod" | "author";
+export type EnvTypesNoAuthor = EnvTypes | "editor.html" | "cf#";
 export type FromTypes = "popup" | "background" | "content";
 export type ColorProps = "info" | "success" | "warning" | "error";
 
@@ -401,8 +402,10 @@ export default class AEMLink {
       const toEnvUrl = tabUrl.replace(regexDeleteEnv, "");
 
       html = (
-        await axios.get(toEnvUrl, { headers: { "User-Agent": "request" } })
-      ).data;
+        await axios
+          .get(toEnvUrl, { headers: { "User-Agent": "request" } })
+          .catch(() => null)
+      )?.data;
     }
 
     if (!this.url) {
@@ -424,7 +427,9 @@ export default class AEMLink {
     } as MessageCommon);
 
     if (!realPerfUrl) {
-      throw new Error("realPerfUrl is undefined");
+      throw new Error(
+        "Cannot get the alias of the page, make sure you on TouchUI page or try to reload page",
+      );
     }
 
     this.urlPart = this.fixUrlPart(realPerfUrl);
@@ -432,7 +437,7 @@ export default class AEMLink {
     return this.urlPart;
   }
 
-  async determineEnv(env: string): Promise<string> {
+  async determineEnv(env: EnvTypesNoAuthor): Promise<string> {
     let newUrl: string | undefined;
 
     const regexFastAuthorCached = await regexFastAuthor();
@@ -551,16 +556,19 @@ export default class AEMLink {
     const fullAuthorPath = await getFullAuthorPath();
     const pathToResolver = await getPathToResolver();
 
-    const customResolverData: { map: { originalPath: string } } = (
-      await axios.get(
-        `https://${fullAuthorPath}/${pathToResolver}` + wrongLink,
-        {
-          headers: {
-            Accept: "application/json",
-          },
+    const resolver = await axios
+      .get(`https://${fullAuthorPath}/${pathToResolver}` + wrongLink, {
+        headers: {
+          Accept: "application/json",
         },
-      )
-    ).data;
+      })
+      .catch(() => null);
+
+    if (!resolver?.data) {
+      throw new Error("Failed to load resolver");
+    }
+
+    const customResolverData: { map: { originalPath: string } } = resolver.data;
 
     return this.makeRealAuthorLink(
       customResolverData.map.originalPath,

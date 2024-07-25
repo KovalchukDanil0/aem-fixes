@@ -30,5 +30,23 @@
     "scripting",
     "webNavigation"
   ],
-  "host_permissions": ["<all_urls>"]
+  "host_permissions": ["<all_urls>"],
+  "commands": {
+    "toLive": {
+      "suggested_key": "Alt+Z",
+      "description": "Moving page to live"
+    },
+    "toPerf": {
+      "suggested_key": "Alt+X",
+      "description": "Moving page to perf"
+    },
+    "toProd": {
+      "suggested_key": "Alt+C",
+      "description": "Moving page to prod"
+    },
+    "toAuthor": {
+      "suggested_key": "Alt+V",
+      "description": "Moving page to author"
+    }
+  }
 }
