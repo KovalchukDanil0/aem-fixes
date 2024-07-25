@@ -1,4 +1,5 @@
-import { el } from "redom";
+import { createElement } from "react";
+import { createRoot } from "react-dom/client";
 import Browser from "webextension-polyfill";
 import {
   MessageCommon,
@@ -19,15 +20,28 @@ function createWFButton() {
     "#stalker >* div.aui-toolbar2-primary",
   );
 
-  const butCreateWF: HTMLAnchorElement = el("a.aui-button", {
-    role: "button",
-    title: "Create WF",
-    resolved: null,
-    textContent: "Create WF",
-  }) as HTMLAnchorElement;
-  butCreateWF.addEventListener("click", aemToolsCreateWF);
+  if (!buttonsContainer) {
+    throw new Error("buttonsContainer is undefined");
+  }
 
-  buttonsContainer?.appendChild(butCreateWF);
+  const butCreateWF = createElement(
+    "a",
+    {
+      className: "aui-button",
+      role: "button",
+      title: "Create WF",
+      resolved: null,
+      onClick() {
+        aemToolsCreateWF();
+      },
+    },
+    "Create WF",
+  );
+
+  const root = createRoot(
+    buttonsContainer.appendChild(document.createElement("div")),
+  );
+  root.render(butCreateWF);
 }
 
 function selectorTextNoSpaces(selector: string): string | undefined {

@@ -48,7 +48,7 @@ export default function Options() {
       {Object.keys(savedData).map((data) => (
         <label key={data} className="w-2/3 text-white">
           <Checkbox
-            className="mr-2"
+            className="relative bottom-px mr-2 align-middle"
             id={data}
             onClick={saveOptions}
             defaultChecked={savedData[data as keyof typeof savedData]}

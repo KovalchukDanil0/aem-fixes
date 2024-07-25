@@ -1,5 +1,6 @@
 import "cirrus-ui";
-import { el, mount } from "redom";
+import { createElement } from "react";
+import { createRoot } from "react-dom/client";
 import AEMLink, {
   regexDetermineBeta,
   regexWorkflow,
@@ -94,16 +95,26 @@ async function usefulLinks() {
   }
 
   function addElem(path: string) {
-    const wfFixedLinks: HTMLDivElement = el(
-      "div.fixedLinksContainer",
-      el("a", {
-        href: `/cf#${path}.html`,
-        target: "_blank",
-        rel: "noreferrer",
-        textContent: path,
-      }),
-    ) as HTMLDivElement;
-    mount(container, wfFixedLinks);
+    const wfFixedLinks = createElement(
+      "div",
+      {
+        className: "fixedLinksContainer",
+      },
+      createElement(
+        "a",
+        {
+          href: `/cf#${path}.html`,
+          target: "_blank",
+          rel: "noreferrer",
+        },
+        path,
+      ),
+    );
+
+    const root = createRoot(
+      container.appendChild(document.createElement("div")),
+    );
+    root.render(wfFixedLinks);
   }
 }
 
@@ -119,13 +130,21 @@ function openAllPagesButton() {
     "body > div.wrapper-conf > div > div.content-conf.workflow-package-page > div.configSection > div > div:nth-child(2)",
   ) as HTMLDivElement;
 
-  const buttonOpenAllPages = el("button.openAllPages", {
-    type: "button",
-    textContent: "OPEN ALL PAGES",
-  }) as HTMLButtonElement;
-  buttonOpenAllPages.addEventListener("click", openAllPagesFunction);
+  const buttonOpenAllPages = createElement(
+    "button",
+    {
+      type: "button",
+      onClick() {
+        openAllPagesFunction();
+      },
+    },
+    "OPEN ALL PAGES",
+  );
 
-  mount(buttonsContainer, buttonOpenAllPages);
+  const root = createRoot(
+    buttonsContainer.appendChild(document.createElement("div")),
+  );
+  root.render(buttonOpenAllPages);
 }
 
 async function checkNodes() {

@@ -1,17 +1,16 @@
 import axios, { AxiosResponse } from "axios";
 import axiosRetry from "axios-retry";
-import { ReactElement } from "react";
+import { createElement, ReactElement } from "react";
 import { createRoot } from "react-dom/client";
-import { el, mount } from "redom";
 import Browser, { Runtime } from "webextension-polyfill";
 import ShowroomCodes from "../../containers/ShowroomCodes";
 import {
   FromTypes,
+  loadSavedData,
   MessageAlert,
   MessageCommon,
-  ShowroomCode,
-  loadSavedData,
   regexAuthor,
+  ShowroomCode,
   waitForElm,
 } from "../../shared";
 import "./index.scss";
@@ -121,25 +120,30 @@ async function checkMothersite(from: FromTypes) {
   const message = `MOTHERSITE LINKS ON THIS PAGE - ${mothersiteLinks}`;
 
   if (mothersiteLinks > 0 && from === "content") {
-    const vehicleCodeElm: HTMLElement = el(
-      "div.alertBanner",
-      el("h2", {
-        textContent: message,
-      }),
-      el("button", {
-        onclick(this: HTMLElement) {
-          this.parentElement?.remove();
+    const alertBannerElm = createElement(
+      "div",
+      {
+        className: "alertBanner",
+      },
+      createElement("h2", {}, message),
+      createElement(
+        "button",
+        {
+          onClick() {
+            document.querySelector(".alertBanner")?.remove();
+          },
         },
-        textContent: "X",
-      }),
+        "X",
+      ),
     );
 
-    const firstChild = document.body.firstChild;
-    if (!firstChild) {
-      throw new Error("Document has no children");
-    }
-
-    mount(document.body, vehicleCodeElm, firstChild);
+    const root = createRoot(
+      document.body.insertBefore(
+        document.createElement("div"),
+        document.body.firstChild,
+      ),
+    );
+    root.render(alertBannerElm);
   } else {
     Browser.runtime.sendMessage({
       message,
@@ -245,11 +249,17 @@ async function findVehicleCode(idx = 0) {
         fullCode += `-${versionCode}`;
       }
 
-      const vehicleCodeElm: HTMLElement = el("a.carCodeElm", {
-        href: "?vehicleCode=" + fullCode,
-        textContent: fullCode,
-      });
-      mount(car.parentElement, vehicleCodeElm);
+      const vehicleCodeElm = createElement(
+        "a",
+        {
+          className: "carCodeElm",
+          href: `?vehicleCode=${fullCode}`,
+        },
+        fullCode,
+      );
+
+      const root = createRoot(car.parentElement);
+      root.render(vehicleCodeElm);
     }
   });
 }

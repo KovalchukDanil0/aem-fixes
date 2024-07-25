@@ -1,16 +1,15 @@
 import axios from "axios";
-import { ReactElement } from "react";
+import { createElement, ReactElement } from "react";
 import { createRoot } from "react-dom/client";
-import { el, mount } from "redom";
 import Browser from "webextension-polyfill";
 import ReferencesBanner from "../../containers/ReferencesBanner";
 import WFShowTicket from "../../containers/WFShowTicket";
 import {
-  MessageCommon,
-  ReferencesConfig,
   getFullAuthorPath,
   getLocalSavedData,
   loadSavedData,
+  MessageCommon,
+  ReferencesConfig,
   regexAuthor,
   regexDetermineBeta,
   waitForElm,
@@ -60,18 +59,17 @@ async function catErrors() {
       return;
   }
 
-  const errorImage = el(
-    "div.errorMessage",
-    el("img", {
-      src: "https://cataas.com/cat/gif",
-    }),
-    el("p", {
-      textContent,
-    }),
+  const errorImage = createElement(
+    "div",
+    {
+      className: "errorMessage",
+    },
+    createElement("img", { src: "https://cataas.com/cat/gif" }),
+    createElement("p", {}, textContent),
   );
 
-  document.body.innerHTML = "";
-  mount(document.body, errorImage);
+  const root = createRoot(document.body);
+  root.render(errorImage);
 }
 
 async function ticketFinder() {

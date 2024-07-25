@@ -1,5 +1,6 @@
 import "cirrus-ui";
-import { el, mount } from "redom";
+import { createElement } from "react";
+import { createRoot } from "react-dom/client";
 import Browser from "webextension-polyfill";
 import { MessageCommon, waitForElm } from "../../shared";
 import "./index.scss";
@@ -24,14 +25,19 @@ async function fixOldLinks() {
       url,
     };
 
-    link.innerHTML = "";
+    const a = createElement(
+      "a",
+      {
+        className: "findReplaceLink",
+        onClick() {
+          Browser.runtime.sendMessage(message);
+        },
+      },
+      url,
+    );
 
-    const a = el("a.findReplaceLink", { textContent: url });
-    a.addEventListener("click", function () {
-      Browser.runtime.sendMessage(message);
-    });
-
-    mount(link, a);
+    const root = createRoot(link);
+    root.render(a);
   });
 }
 
