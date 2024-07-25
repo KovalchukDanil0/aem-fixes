@@ -39,7 +39,7 @@ function createWFButton() {
   );
 
   const root = createRoot(
-    buttonsContainer.appendChild(document.createElement("div")),
+    buttonsContainer.appendChild(document.createElement("p")),
   );
   root.render(butCreateWF);
 }
