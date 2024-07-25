@@ -609,6 +609,29 @@ export function waitForElm<T extends HTMLElement>(
   });
 }
 
+export function waitForElmAll<T extends NodeListOf<HTMLElement>>(
+  selector: string,
+  doc: Document = document,
+): Promise<T> {
+  return new Promise((resolve) => {
+    if (doc.querySelectorAll(selector)) {
+      return resolve(doc.querySelectorAll(selector) as T);
+    }
+
+    const observer = new MutationObserver(() => {
+      if (doc.querySelectorAll(selector)) {
+        resolve(doc.querySelectorAll(selector) as T);
+        observer.disconnect();
+      }
+    });
+
+    observer.observe(doc.body, {
+      childList: true,
+      subtree: true,
+    });
+  });
+}
+
 export const loadSavedData = async (): Promise<SavedSyncData> =>
   Browser.storage.sync.get({
     disCreateWF: false,

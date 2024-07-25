@@ -313,3 +313,11 @@ Browser.runtime.onMessage.addListener(
   vehicleCodeInit();
   findShowroomCode();
 })();
+
+/* const galleryImages = new Set(
+  [
+    ...(await waitForElmAll(
+      "#accelerator-page > div.content > div > div.box-content.cq-dd-image > div > div > div > div > div.carousel-slides.clearfix.slick-initialized.slick-slider > div > div > div > div > article > div > div > div > div > div",
+    )),
+  ].map((node) => node.textContent),
+); */
