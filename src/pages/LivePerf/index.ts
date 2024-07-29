@@ -120,11 +120,12 @@ async function checkMothersite(from: FromTypes) {
   const message = `MOTHERSITE LINKS ON THIS PAGE - ${mothersiteLinks}`;
 
   if (mothersiteLinks > 0 && from === "content") {
+    const rootDiv = document.createElement("div");
+    rootDiv.classList.add("alertBanner");
+
     const alertBannerElm = createElement(
       "div",
-      {
-        className: "alertBanner",
-      },
+      {},
       createElement("h2", {}, message),
       createElement(
         "button",
@@ -138,10 +139,7 @@ async function checkMothersite(from: FromTypes) {
     );
 
     const root = createRoot(
-      document.body.insertBefore(
-        document.createElement("div"),
-        document.body.firstChild,
-      ),
+      document.body.insertBefore(rootDiv, document.body.firstChild),
     );
     root.render(alertBannerElm);
   } else {
