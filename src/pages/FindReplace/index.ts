@@ -41,7 +41,7 @@ async function fixOldLinks() {
   });
 }
 
-(async function Main() {
+(async function () {
   const validateButton = await waitForElm(
     "#cq-gen4 > div.wrapper-conf > div > div.find-replace-links.ng-scope > div.content.first > div.root-path-selection > button:nth-child(4)",
   );

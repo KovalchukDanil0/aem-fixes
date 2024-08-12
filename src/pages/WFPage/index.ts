@@ -187,7 +187,7 @@ async function checkNodes() {
   observer.observe(targetNode, config);
 }
 
-(function Main() {
+(function () {
   addWorkflowId();
   usefulLinks();
   openAllPagesButton();

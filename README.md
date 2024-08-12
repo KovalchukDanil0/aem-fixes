@@ -29,8 +29,7 @@ You have to upload a JSON file to use this extension. If you want to have your o
 ### Author page
 
 * Open Touch properties in a new tab without page reload needed:![Open Touch Properties](tutorial/OpenTouchProperties.png)
-* Open author in AEM tree: ![smart](https://img.shields.io/badge/smart-green)  
-![Open In AEM Tree](tutorial/OpenInAEMTree.png)
+* Open author in AEM tree: ![smart](https://img.shields.io/badge/smart-green) ![Open In AEM Tree](tutorial/OpenInAEMTree.png)
 * Showing blocked ticket with link to its parent ticket on the yellow box at the top of the author page
 
 ### Live&Perf pages

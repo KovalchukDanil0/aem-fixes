@@ -41,7 +41,7 @@ async function createWF(WFTitle: string, WFName: string) {
   promotionButton.click();
 }
 
-(async function Main() {
+(async function () {
   const result = await Browser.storage.local.get({
     WFTitle: null,
     WFName: null,

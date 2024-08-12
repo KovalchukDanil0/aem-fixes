@@ -1,6 +1,8 @@
 import { writeFile } from "fs/promises";
-import { mdxToMd } from "mdx-to-md";
 import path from "path";
+
+// @ts-ignore
+import { mdxToMd } from "mdx-to-md";
 
 (async () => {
   const markdown = await mdxToMd(path.join(__dirname, "/../README.mdx"));

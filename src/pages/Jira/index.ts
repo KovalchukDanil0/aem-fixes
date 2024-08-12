@@ -271,7 +271,7 @@ Browser.runtime.onMessage.addListener(
   },
 );
 
-(async function Main() {
+(async function () {
   const savedData = await loadSavedData();
 
   if (!savedData.disCreateWF) {

@@ -27,6 +27,7 @@ export default function NMPBadges(): ReactElement {
         return (
           <>
             <img
+              style={{ color: "red" }}
               key={depProps.name}
               alt={depProps.name}
               src={`https://img.shields.io/badge/${encodeURIComponent(depProps.name).replace("-", "_")}-${pkgEntry.replace(regexFixVersion, "$1")}-${depProps.color}`}
