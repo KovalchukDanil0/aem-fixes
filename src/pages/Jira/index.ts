@@ -24,7 +24,7 @@ function createWFButton() {
     throw new Error("buttonsContainer is undefined");
   }
 
-  const rootDiv = document.createElement("div");
+  const rootDiv = document.createElement("span");
   rootDiv.classList.add("aui-buttons");
 
   const butCreateWF = createElement(

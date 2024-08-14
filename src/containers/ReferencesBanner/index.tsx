@@ -2,7 +2,9 @@ import React, { ReactElement } from "react";
 import { ReferencesConfig, touch } from "../../shared";
 import "./index.scss";
 
-type Props = ReferencesConfig & { regexDetermineBeta: RegExp };
+interface Props extends ReferencesConfig {
+  regexDetermineBeta: RegExp;
+}
 
 export default function ReferencesBanner({
   pages,

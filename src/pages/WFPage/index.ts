@@ -112,7 +112,7 @@ async function usefulLinks() {
     );
 
     const root = createRoot(
-      container.appendChild(document.createElement("div")),
+      container.appendChild(document.createElement("span")),
     );
     root.render(wfFixedLinks);
   }
@@ -142,7 +142,7 @@ function openAllPagesButton() {
   );
 
   const root = createRoot(
-    buttonsContainer.appendChild(document.createElement("div")),
+    buttonsContainer.appendChild(document.createElement("span")),
   );
   root.render(buttonOpenAllPages);
 }

@@ -111,7 +111,7 @@ async function checkReferences() {
   }
 
   const container = document.body.insertBefore(
-    document.createElement("div"),
+    document.createElement("span"),
     document.body.firstChild,
   );
 

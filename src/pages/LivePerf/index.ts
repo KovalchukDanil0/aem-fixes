@@ -120,27 +120,27 @@ async function checkMothersite(from: FromTypes) {
   const message = `MOTHERSITE LINKS ON THIS PAGE - ${mothersiteLinks}`;
 
   if (mothersiteLinks > 0 && from === "content") {
-    const rootDiv = document.createElement("div");
-    rootDiv.classList.add("alertBanner");
+    const rootDiv = document.createElement("span");
+
+    const root = createRoot(
+      document.body.insertBefore(rootDiv, document.body.firstChild),
+    );
 
     const alertBannerElm = createElement(
       "div",
-      {},
+      { className: "alertBanner" },
       createElement("h2", {}, message),
       createElement(
         "button",
         {
           onClick() {
-            document.querySelector(".alertBanner")?.remove();
+            root.unmount();
           },
         },
         "X",
       ),
     );
 
-    const root = createRoot(
-      document.body.insertBefore(rootDiv, document.body.firstChild),
-    );
     root.render(alertBannerElm);
   } else {
     Browser.runtime.sendMessage({
@@ -287,11 +287,11 @@ async function findShowroomCode() {
     data: showroomConfig.data,
   });
 
-  const div: HTMLElement = document.createElement("div");
+  const rootElm: HTMLElement = document.createElement("span");
 
   const showroom = await waitForElm("#acc-showroom");
 
-  const root = createRoot(showroom.appendChild(div));
+  const root = createRoot(showroom.appendChild(rootElm));
   root.render(showroomCodes);
 }
 
