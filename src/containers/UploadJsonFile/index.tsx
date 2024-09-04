@@ -1,11 +1,15 @@
 import React, { ReactElement } from "react";
 import { Button } from "react-daisyui";
-import Browser from "webextension-polyfill";
+import { useMediaQuery } from "react-responsive";
 
 export default function UploadJsonFile(): ReactElement {
+  const isDesktop = useMediaQuery({
+    query: "(min-width: 768px)",
+  });
+
   return (
-    <div>
-      <p>
+    <div className="mt-0 md:mt-auto">
+      <p className="text-sm md:text-lg">
         Please note that this extension wouldn't correctly work without correct
         Json file uploaded
       </p>
@@ -14,11 +18,12 @@ export default function UploadJsonFile(): ReactElement {
         target="_blank"
         rel="noreferrer"
         color="warning"
-        href={Browser.runtime.getURL("standalone.html")}
+        href="/src/pages/standalone/index.html"
+        size={isDesktop ? "lg" : "md"}
       >
         Upload json file here
       </Button>
-      <p>
+      <p className="text-xs md:text-base">
         <sub>if you need private file, please contact developer</sub>
       </p>
     </div>

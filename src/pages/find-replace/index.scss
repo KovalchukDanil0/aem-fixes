@@ -1,0 +1,24 @@
+@use "cirrus-ui/src/cirrus-core" as *;
+
+a.findReplaceLink {
+  font-weight: 500;
+  color: #2563eb;
+  cursor: default;
+
+  &:hover {
+    text-decoration: underline;
+    cursor: pointer;
+  }
+}
+
+button.find-links {
+  @extend .btn-info;
+}
+
+button.apply[data-ng-click="validateLinks()"] {
+  @extend .btn-warning;
+}
+
+button.apply[data-ng-click="applyLinksReplace()"] {
+  @extend .btn-success;
+}

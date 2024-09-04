@@ -1,0 +1,13 @@
+html {
+  @apply h-full;
+}
+
+body {
+  @apply min-h-full min-w-popup p-3 md:p-8;
+  background-image: url(/steampunk.jpg);
+  background-size: 100%;
+  background-position-x: 25vw;
+  background-position-y: -5vw;
+  background-repeat: no-repeat;
+  background-color: #53241a;
+}

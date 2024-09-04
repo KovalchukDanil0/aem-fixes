@@ -1,5 +1,5 @@
 import React, { ReactElement } from "react";
-import pkg from "../../../package.json";
+import { dependencies, devDependencies } from "../../../package.json";
 
 const regexFixVersion = /\^?(\d+\.\d+)\.\d+/;
 
@@ -19,10 +19,8 @@ export default function NMPBadges(): ReactElement {
     <div>
       {dependenciesWhitelist.map((depProps) => {
         const pkgEntry =
-          pkg.dependencies[depProps.name as keyof typeof pkg.dependencies] ??
-          pkg.devDependencies[
-            depProps.name as keyof typeof pkg.devDependencies
-          ];
+          dependencies[depProps.name as keyof typeof dependencies] ??
+          devDependencies[depProps.name as keyof typeof devDependencies];
 
         return (
           <>

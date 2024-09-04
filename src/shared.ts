@@ -1,11 +1,11 @@
 import axios from "axios";
-import Browser, { Tabs } from "webextension-polyfill";
+import { storage, tabs, Tabs } from "webextension-polyfill";
 
 export const touch = "editor.html";
 export const classic = "cf#";
 
 export const getLocalSavedData = async (): Promise<SavedLocalData> =>
-  Browser.storage.local.get() as Promise<SavedLocalData>;
+  storage.local.get() as Promise<SavedLocalData>;
 
 async function regexJira(): Promise<RegExp> {
   const data = await getLocalSavedData();
@@ -174,7 +174,7 @@ export type SubjectTypes =
   | "createWF"
   | "checkMothersite";
 export type EnvTypes = "live" | "perf" | "prod" | "author";
-export type EnvTypesNoAuthor = EnvTypes | "editor.html" | "cf#";
+export type EnvTypesExtended = EnvTypes | "editor.html" | "cf#";
 export type FromTypes = "popup" | "background" | "content";
 export type ColorProps = "info" | "success" | "warning" | "error";
 
@@ -211,18 +211,18 @@ export interface ReferencesConfig {
 }
 
 export default class AEMLink {
-  url?: URL;
+  readonly url?: URL;
 
-  market = "xx";
-  localLanguage = "xx";
-  urlPart = "/";
+  market: string | null = null;
+  localLanguage: string | null = null;
+  urlPart = "";
 
   beta = false;
   isAuthor = false;
 
   regexAuthorCached?: RegExp;
 
-  marketsInBeta: string[] = [
+  readonly marketsInBeta: string[] = [
     "uk",
     "de",
     "es",
@@ -236,7 +236,16 @@ export default class AEMLink {
     "dk",
   ];
 
-  marketsHomeNew: string[] = ["ie", "fi", "be", "cz", "hu", "gr", "ro", "lu"];
+  readonly marketsHomeNew: string[] = [
+    "ie",
+    "fi",
+    "be",
+    "cz",
+    "hu",
+    "gr",
+    "ro",
+    "lu",
+  ];
 
   constructor(url?: string) {
     if (!url) {
@@ -256,7 +265,7 @@ export default class AEMLink {
       return;
     }
 
-    const regexLiveCached: RegExp = await regexLive();
+    const regexLiveCached = await regexLive();
     const regexPerfProdCached = await regexPerfProd();
     this.regexAuthorCached = await regexAuthor();
 
@@ -305,15 +314,15 @@ export default class AEMLink {
       this.market = someMarket;
     }
 
-    this.beta = !!this.marketsInBeta.some((link): boolean =>
-      this.market.includes(link),
+    this.beta = !!this.marketsInBeta.some((link) =>
+      this.market?.includes(link),
     );
 
     return this.betaString();
   }
 
   isMarketHasHomeNew = (): boolean =>
-    !!this.marketsHomeNew.some((mar): boolean => this.market.includes(mar));
+    !!this.marketsHomeNew.some((mar) => this.market?.includes(mar));
 
   betaString = (): string => (this.beta ? "-beta" : "");
 
@@ -324,6 +333,10 @@ export default class AEMLink {
 
     const marketsFixAuthor = ["gb", "en", "gl"];
     const marketsFixPerf = ["uk", "uk", "mothersite"];
+
+    if (!this.market) {
+      throw new Error("market is undefined");
+    }
 
     let idx = marketsFixAuthor.indexOf(this.market);
     if (idx >= 0) {
@@ -374,7 +387,7 @@ export default class AEMLink {
     return this.localLanguage;
   }
 
-  fixUrlPart(someUrlPart?: string): string {
+  fixUrlPart(someUrlPart?: string | null): string {
     someUrlPart = someUrlPart ?? this.urlPart;
 
     const regexFixSWAuthor =
@@ -401,11 +414,10 @@ export default class AEMLink {
       const regexDeleteEnv = /\/(?:editor\.html|cf#)/gm;
       const toEnvUrl = tabUrl.replace(regexDeleteEnv, "");
 
-      html = (
-        await axios
-          .get(toEnvUrl, { headers: { "User-Agent": "request" } })
-          .catch(() => null)
-      )?.data;
+      const { data: htmlResponse } = await axios.get(toEnvUrl, {
+        headers: { "User-Agent": "request" },
+      });
+      html = htmlResponse;
     }
 
     if (!this.url) {
@@ -413,14 +425,14 @@ export default class AEMLink {
     }
 
     const tab: Tabs.Tab = (
-      await Browser.tabs.query({ url: this.url?.href, currentWindow: true })
+      await tabs.query({ url: this.url?.href, currentWindow: true })
     )[0];
 
     if (!tab.id) {
       throw new Error("tab id is undefined");
     }
 
-    const realPerfUrl: string | null = await Browser.tabs.sendMessage(tab.id, {
+    const realPerfUrl: string | null = await tabs.sendMessage(tab.id, {
       from: "background",
       subject: "getRealUrl",
       html,
@@ -437,7 +449,7 @@ export default class AEMLink {
     return this.urlPart;
   }
 
-  async determineEnv(env: EnvTypesNoAuthor): Promise<string> {
+  async determineEnv(env: EnvTypesExtended): Promise<string> {
     let newUrl: string | undefined;
 
     const regexFastAuthorCached = await regexFastAuthor();
@@ -556,25 +568,28 @@ export default class AEMLink {
     const fullAuthorPath = await getFullAuthorPath();
     const pathToResolver = await getPathToResolver();
 
-    const resolver = await axios
-      .get(`https://${fullAuthorPath}/${pathToResolver}` + wrongLink, {
+    type OriginalPathType = {
+      data: { map: { originalPath: string | undefined } };
+    };
+
+    const {
+      data: {
+        map: { originalPath },
+      },
+    }: OriginalPathType = await axios.get(
+      `https://${fullAuthorPath}/${pathToResolver}` + wrongLink,
+      {
         headers: {
           Accept: "application/json",
         },
-      })
-      .catch(() => null);
+      },
+    );
 
-    if (!resolver?.data) {
+    if (!originalPath) {
       throw new Error("Failed to load resolver");
     }
 
-    const customResolverData: { map: { originalPath: string } } = resolver.data;
-
-    return this.makeRealAuthorLink(
-      customResolverData.map.originalPath,
-      fullAuthorPath,
-      isTouch,
-    );
+    return this.makeRealAuthorLink(originalPath, fullAuthorPath, isTouch);
   }
 
   makeRealAuthorLink(
@@ -633,7 +648,7 @@ export function waitForElmAll<T extends NodeListOf<HTMLElement>>(
 }
 
 export const loadSavedData = async (): Promise<SavedSyncData> =>
-  Browser.storage.sync.get({
+  storage.sync.get({
     disCreateWF: false,
     disMothersiteCheck: false,
     enableFunErr: false,
@@ -641,8 +656,8 @@ export const loadSavedData = async (): Promise<SavedSyncData> =>
     enableAutoLogin: false,
   } as SavedSyncData);
 
-export const getCurrentTab = async (): Promise<Browser.Tabs.Tab> =>
-  (await Browser.tabs.query({ active: true, currentWindow: true }))[0];
+export const getCurrentTab = async (): Promise<Tabs.Tab> =>
+  (await tabs.query({ active: true, currentWindow: true }))[0];
 
 export async function findAsyncSequential<T>(
   array: T[],

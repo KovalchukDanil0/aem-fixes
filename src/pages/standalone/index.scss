@@ -1,0 +1,7 @@
+html {
+  @apply h-full;
+}
+
+body {
+  @apply min-h-full w-full bg-gradient-to-b from-black via-purple-500 to-black;
+}
