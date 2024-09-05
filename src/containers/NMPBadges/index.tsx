@@ -5,13 +5,12 @@ const regexFixVersion = /\^?(\d+\.\d+)\.\d+/;
 
 const dependenciesWhitelist = [
   { name: "react", color: "green" },
-  { name: "ts-node", color: "blue" },
   { name: "typescript", color: "aqua" },
   { name: "sass", color: "pink" },
   { name: "tailwindcss", color: "navy" },
   { name: "daisyui", color: "yellow" },
   { name: "webextension-polyfill", color: "red" },
-  { name: "webpack", color: "azure" },
+  { name: "vite", color: "azure" },
 ];
 
 export default function NMPBadges(): ReactElement {

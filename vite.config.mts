@@ -17,7 +17,7 @@ function viteMdxToMdPlugin(): Plugin {
     name: "vite-plugin-mdx-to-md",
     apply: "build",
 
-    async closeBundle() {
+    async generateBundle() {
       try {
         const markdown = await mdxToMd(join(__dirname, "README.mdx"));
 
@@ -25,7 +25,7 @@ function viteMdxToMdPlugin(): Plugin {
         const readme = `<!--- ${banner} --> \n\n${markdown}`;
         await writeFile(basename(join(__dirname, "README.md")), readme);
 
-        console.log("mdx was successfully transformed to md");
+        console.log("Mdx was successfully transformed to md");
       } catch (error) {
         console.error("Failed to transform mdx", error);
       }
