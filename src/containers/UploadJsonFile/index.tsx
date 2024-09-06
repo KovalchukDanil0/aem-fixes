@@ -9,7 +9,7 @@ export default function UploadJsonFile(): ReactElement {
 
   return (
     <div className="mt-0 md:mt-auto">
-      <p className="text-sm md:text-lg">
+      <p className="text-sm text-white md:text-lg">
         Please note that this extension wouldn't correctly work without correct
         Json file uploaded
       </p>
@@ -23,7 +23,7 @@ export default function UploadJsonFile(): ReactElement {
       >
         Upload json file here
       </Button>
-      <p className="text-xs md:text-base">
+      <p className="text-xs text-white md:text-base">
         <sub>if you need private file, please contact developer</sub>
       </p>
     </div>

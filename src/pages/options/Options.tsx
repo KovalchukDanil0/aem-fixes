@@ -39,6 +39,7 @@ export default function Options() {
                 className="w-fit cursor-pointer text-sm text-white md:text-4xl"
               >
                 <Checkbox
+                  color="warning"
                   className="relative bottom-px mr-2 size-5 align-middle md:size-8"
                   id={data}
                   onClick={saveOptions}

@@ -415,7 +415,7 @@ export default function Popup() {
 
             <div className="mt-10 flex place-content-between gap-2">
               <Button
-                color="secondary"
+                color="neutral"
                 tag="a"
                 href="/src/pages/options/index.html"
                 size="sm"
@@ -425,7 +425,7 @@ export default function Popup() {
               </Button>
 
               <Button
-                color="secondary"
+                color="neutral"
                 tag="a"
                 href="https://github.com/KovalchukDanil0/AEMFixes#features"
                 target="_blank"

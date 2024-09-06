@@ -43,7 +43,7 @@ export default function Standalone() {
   const { fileUploaded } = useStateUploaded();
 
   return (
-    <div className="flex h-auto flex-col items-center justify-center gap-3">
+    <div className="flex h-screen flex-col items-center justify-center gap-3">
       <FileInput
         size="lg"
         color="primary"

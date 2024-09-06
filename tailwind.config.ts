@@ -1,6 +1,5 @@
 import textShadow from "@designbycode/tailwindcss-text-shadow";
 import daisyui from "daisyui";
-import { dark } from "daisyui/src/theming/themes";
 import { Config } from "tailwindcss";
 import tailwindcssAnimated from "tailwindcss-animated";
 
@@ -16,17 +15,11 @@ export default {
   theme: {
     extend: { width: { popup }, minWidth: { popup } },
   },
+
   daisyui: {
-    themes: [
-      {
-        dark: {
-          ...dark,
-          secondary: "black",
-        },
-      },
-    ],
+    themes: ["dark"],
   },
-  darkMode: "class",
+  darkMode: "media",
   plugins: [
     daisyui,
     tailwindcssAnimated,
