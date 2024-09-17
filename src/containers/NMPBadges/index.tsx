@@ -16,18 +16,18 @@ const dependenciesWhitelist = [
 export default function NMPBadges(): ReactElement {
   return (
     <div>
-      {dependenciesWhitelist.map((depProps) => {
+      {dependenciesWhitelist.map(({ name, color }) => {
         const pkgEntry =
-          dependencies[depProps.name as keyof typeof dependencies] ??
-          devDependencies[depProps.name as keyof typeof devDependencies];
+          dependencies[name as keyof typeof dependencies] ??
+          devDependencies[name as keyof typeof devDependencies];
 
         return (
           <>
             <img
               style={{ color: "red" }}
-              key={depProps.name}
-              alt={depProps.name}
-              src={`https://img.shields.io/badge/${encodeURIComponent(depProps.name).replace("-", "_")}-${pkgEntry.replace(regexFixVersion, "$1")}-${depProps.color}`}
+              key={name}
+              alt={name}
+              src={`https://img.shields.io/badge/${encodeURIComponent(name).replace("-", "_")}-${pkgEntry.replace(regexFixVersion, "$1")}-${color}`}
             />{" "}
           </>
         );

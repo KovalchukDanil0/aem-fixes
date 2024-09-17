@@ -4,7 +4,10 @@ import "../../assets/scss/tailwind.scss";
 import "./index.scss";
 import Options from "./Options";
 
-const container = document.getElementById("app-container") as HTMLElement;
+const container = document.querySelector<HTMLElement>("#app-container");
+if (!container) {
+  throw new Error("CRITICAL ERROR - root is undefined");
+}
 
 const root = createRoot(container);
 root.render(<Options />);

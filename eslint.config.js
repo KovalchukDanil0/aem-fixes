@@ -1,11 +1,13 @@
 // @ts-check
 
+import esLint from "@eslint/js";
 import react from "eslint-plugin-react";
 import globals from "globals";
-import { config, configs as tsConfigs } from "typescript-eslint";
+import esLintTs from "typescript-eslint";
 
-export default config({
-  ...tsConfigs.recommended,
+export default esLintTs.config({
+  ...esLint.configs.recommended,
+  ...esLintTs.configs.recommended,
   files: ["src/**/*.{ts,tsx,mts}"],
   plugins: {
     react,

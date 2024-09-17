@@ -15,24 +15,24 @@ const useStateUploaded = create<{
     })),
 }));
 
-function handleFileSelect(event: ChangeEvent<HTMLInputElement>) {
-  if (!event.target.files) {
+function handleFileSelect({
+  target: { files },
+}: ChangeEvent<HTMLInputElement>) {
+  if (!files) {
     throw new Error("File cannot be read");
   }
 
   const reader = new FileReader();
   reader.onload = handleFileLoad;
-  reader.readAsText(event.target.files[0] as Blob);
+  reader.readAsText(files[0] as Blob);
 }
 
-async function handleFileLoad(event: ProgressEvent<FileReader>) {
-  if (!event.target?.result) {
+async function handleFileLoad({ target }: ProgressEvent<FileReader>) {
+  if (!target?.result) {
     throw new Error("event target result is undefined");
   }
 
-  const secretSettings: SavedSyncData = JSON.parse(
-    event.target.result as string,
-  );
+  const secretSettings: SavedSyncData = JSON.parse(target.result as string);
   storage.local.set({ secretSettings });
 
   useStateUploaded.setState({ fileUploaded: true });

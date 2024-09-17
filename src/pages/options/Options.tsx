@@ -13,10 +13,10 @@ const settingNames = {
   enableFunErr: "Enable funny errors",
 };
 
-async function saveOptions(event: MouseEvent<HTMLInputElement>) {
-  const elm = event.currentTarget;
-
-  const data: SavedSyncData = { [elm.id]: elm.checked };
+async function saveOptions({
+  currentTarget: { id, checked },
+}: MouseEvent<HTMLInputElement>) {
+  const data: SavedSyncData = { [id]: checked };
   storage.sync.set(data);
 }
 
@@ -33,20 +33,20 @@ export default function Options() {
       <Async.Fulfilled>
         {(savedData: SavedSyncData) => (
           <div className="flex flex-col gap-5">
-            {Object.keys(savedData).map((data) => (
+            {Object.keys(savedData).map((option) => (
               <label
-                key={data}
+                key={option}
                 className="w-fit cursor-pointer text-sm text-white md:text-4xl"
               >
                 <Checkbox
                   color="warning"
                   className="relative bottom-px mr-2 size-5 align-middle md:size-8"
-                  id={data}
+                  id={option}
                   onClick={saveOptions}
-                  defaultChecked={savedData[data as keyof typeof savedData]}
+                  defaultChecked={savedData[option as keyof typeof savedData]}
                 />
                 <p className="inline-block md:ml-3">
-                  {settingNames[data as keyof typeof settingNames]}
+                  {settingNames[option as keyof typeof settingNames]}
                 </p>
               </label>
             ))}

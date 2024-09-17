@@ -8,11 +8,8 @@ import AEMLink, {
 } from "../../shared";
 import "./index.scss";
 
-const url: Location = window.location;
-
-async function addBetaToLink(elm: HTMLAnchorElement) {
-  elm.href = elm.href.replace(await regexDetermineBeta(), `$1/${touch}$2`);
-}
+const addBetaToLink = async ({ href }: HTMLAnchorElement) =>
+  (href = href.replace(await regexDetermineBeta(), `$1/${touch}$2`));
 
 async function addWorkflowId() {
   const sectionSelector = ".page.section > .configSection > div a";
@@ -20,21 +17,19 @@ async function addWorkflowId() {
   const getLinksInWF: NodeListOf<HTMLAnchorElement> =
     document.querySelectorAll(sectionSelector);
 
-  const WFID = url.href.replace(await regexWorkflow(), "$4");
+  const WFID = location.href.replace(await regexWorkflow(), "$4");
 
-  const form: HTMLFormElement = await waitForElm<HTMLFormElement>(
-    "#workflow-title-input",
-  );
+  const form = await waitForElm<HTMLFormElement>("#workflow-title-input");
 
   const WorkflowID = WFID;
 
   form.value = WorkflowID;
   getLinksInWF.forEach((link) => addBetaToLink(link));
 
-  const requestButton: HTMLButtonElement = document.querySelector(
+  const requestButton = document.querySelector<HTMLButtonElement>(
     "#start-request-workflow",
-  ) as HTMLButtonElement;
-  requestButton.removeAttribute("disabled");
+  );
+  requestButton?.removeAttribute("disabled");
 }
 
 async function usefulLinks() {
@@ -42,29 +37,32 @@ async function usefulLinks() {
     "body > div.wrapper-conf > div > div.content-conf.workflow-package-page > div.configSection > div > div:nth-child(2)",
   );
 
-  const data = new AEMLink();
-  await data.initialize();
+  const AEMInstance = new AEMLink();
+  await AEMInstance.initialize();
 
-  data.market = data.fixMarket(
-    url.href.replace(await regexWorkflow(), "$1").toLowerCase(),
+  AEMInstance.market = AEMInstance.fixMarket(
+    location.href.replace(await regexWorkflow(), "$1").toLowerCase(),
   );
-  data.localLanguage = url.href
+  AEMInstance.localLanguage = location.href
     .replace(await regexWorkflow(), "$2$3")
     .toLowerCase();
 
   const wrongMarkets = ["da", "cs", "el"];
   const ifWrongMarket = !!wrongMarkets.some((mar) =>
-    data.market?.includes(mar),
+    AEMInstance.market?.includes(mar),
   );
 
   if (ifWrongMarket) {
-    [data.market, data.localLanguage] = [data.localLanguage, data.market];
+    [AEMInstance.market, AEMInstance.localLanguage] = [
+      AEMInstance.localLanguage,
+      AEMInstance.market,
+    ];
   }
 
-  data.isMarketInBeta();
+  AEMInstance.isMarketInBeta();
 
-  const marketPath = `/content/guxeu${data.betaString()}/${data.market}`;
-  const marketLocalLangPart = `/${data.fixLocalLanguage()}_${data.fixMarket()}`;
+  const marketPath = `/content/guxeu${AEMInstance.betaString()}/${AEMInstance.market}`;
+  const marketLocalLangPart = `/${AEMInstance.fixLocalLanguage()}_${AEMInstance.fixMarket()}`;
 
   function determineDisclosure(acc = false) {
     const disclosureLibrary = `/site-wide-content/${
@@ -77,14 +75,14 @@ async function usefulLinks() {
   let addDisclosure: string | null = null;
   let addAccDisclosure: string | null = null;
 
-  if (!data.beta) {
+  if (!AEMInstance.beta) {
     addDisclosure = determineDisclosure(true);
     addAccDisclosure = determineDisclosure(false);
   } else {
     let betaButAccBool = false;
 
     const betaButAcc = ["es", "it"];
-    if (betaButAcc.some((mar) => data.market?.includes(mar))) {
+    if (betaButAcc.some((mar) => AEMInstance.market?.includes(mar))) {
       betaButAccBool = true;
     }
 
@@ -146,13 +144,16 @@ function openAllPagesFunction() {
   const links = document.querySelectorAll<HTMLAnchorElement>(
     "body > div.wrapper-conf > div > div > div > div > div.cq-element-filters > div.page.section > div > div > div > div.configValue > a",
   );
-  links.forEach((link) => window.open(link.href));
+  links.forEach(({ href }) => window.open(href));
 }
 
 function openAllPagesButton() {
-  const buttonsContainer = document.querySelector(
+  const buttonsContainer = document.querySelector<HTMLDivElement>(
     "body > div.wrapper-conf > div > div.content-conf.workflow-package-page > div.configSection > div > div:nth-child(2)",
-  ) as HTMLDivElement;
+  );
+  if (!buttonsContainer) {
+    throw new Error("button container wasn't found");
+  }
 
   const buttonOpenAllPages = createElement(
     "button",
@@ -181,13 +182,13 @@ async function checkNodes() {
   const config: MutationObserverInit = { childList: true, subtree: true };
 
   // Callback function to execute when mutations are observed
-  const callback = (
+  const callback: MutationCallback = (
     mutationList: MutationRecord[],
     _observer: MutationObserver,
   ) => {
-    for (const mutation of mutationList) {
-      if (mutation.type === "childList") {
-        const childElm = mutation.target as HTMLDivElement;
+    for (const { type, target } of mutationList) {
+      if (type === "childList") {
+        const childElm = target as HTMLDivElement;
 
         const linkElm = childElm.querySelector<HTMLAnchorElement>(
           "div > div:nth-child(1) > div.configValue > a",

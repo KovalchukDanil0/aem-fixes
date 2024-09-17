@@ -15,8 +15,6 @@ import {
 } from "../../shared";
 import "./index.scss";
 
-const url = window.location.href;
-
 let vehicleConfig: VehicleConfig;
 let lastVehicleIndex = -1;
 
@@ -44,6 +42,25 @@ type CarProps = {
   wersDerivCode: string;
 };
 
+type DemoVehiclesType = {
+  DemoVehicleModels: DemoVehicleModel[];
+};
+
+type DemoVehicleModel = {
+  Segments: Segment[];
+};
+
+type Segment = {
+  Status: string;
+  VehicleCode: string;
+  NamePlateID: string;
+  NamePlate: string;
+};
+
+type MemeResponseType = {
+  [key: string]: { path: string };
+};
+
 axiosRetry(axios, {
   retries: 3,
 
@@ -52,9 +69,9 @@ axiosRetry(axios, {
     return retryCount * 2000;
   },
 
-  retryCondition: (error) => {
+  retryCondition: ({ response }) => {
     // if retry condition is not specified, by default idempotent requests are retried
-    return error.response?.status === 503;
+    return response?.status === 503;
   },
 });
 
@@ -66,28 +83,35 @@ async function randomProgrammerMemes() {
   const githubPath =
     "https://raw.githubusercontent.com/deep5050/programming-memes/main/";
 
-  const { data: memesData } = await axios.get(githubPath + "memes.json");
-  const count = Object.keys(memesData).length;
+  const { data: memesData } = await axios.get<MemeResponseType>(
+    githubPath + "memes.json",
+  );
+  const { length } = Object.keys(memesData);
 
   //Extracting data
-  const memeImage = memesData[generateRandom(count - 1)].path;
+  const memeImage = memesData[generateRandom(length - 1)].path;
 
-  const billboardContainer: HTMLElement | null = document.querySelector(
+  const billboardContainer = document.querySelector<HTMLElement>(
     "#accelerator-page > div.content > div > div.box-content.cq-dd-image > div > div.billboard.billboard-image-sets-height > div > div.billboard-inner," +
       "#global-ux > div.content.clearfix > div:nth-child(1) > div.billboard.section > div > div.billboard-inner",
   );
 
-  const billboardImages: HTMLElement | null | undefined =
-    billboardContainer?.querySelector("div > picture");
+  if (!billboardContainer) {
+    throw new Error("Cannot find Billboard parent div");
+  }
 
-  const billboardText: HTMLElement | null | undefined =
-    billboardContainer?.querySelector("div.billboard-paragraph");
+  const billboardImages =
+    billboardContainer.querySelector<HTMLElement>("div > picture");
+
+  const billboardText = billboardContainer.querySelector<HTMLElement>(
+    "div.billboard-paragraph",
+  );
 
   billboardText?.remove();
 
   (billboardImages?.childNodes as NodeListOf<HTMLSourceElement>).forEach(
-    (image) => {
-      image.srcset = githubPath + memeImage;
+    ({ srcset }) => {
+      srcset = githubPath + memeImage;
     },
   );
 }
@@ -96,7 +120,7 @@ const generateRandom = (maxLimit: number) =>
   Math.floor(Math.random() * maxLimit);
 
 async function checkMothersite(from: FromTypes) {
-  if (url.replace(await regexAuthor(), "$4") === "mothersite") {
+  if (location.href.replace(await regexAuthor(), "$4") === "mothersite") {
     return;
   }
 
@@ -104,10 +128,10 @@ async function checkMothersite(from: FromTypes) {
     document.querySelectorAll("[href]");
 
   let mothersiteLinks = 0;
-  links.forEach((element) => {
-    if (element.href.includes("mothersite")) {
-      element.style.backgroundColor = "blue";
-      element.style.filter = "invert(100%)";
+  links.forEach(({ href, style }) => {
+    if (href.includes("mothersite")) {
+      style.backgroundColor = "blue";
+      style.filter = "invert(100%)";
 
       mothersiteLinks += 1;
     }
@@ -140,25 +164,28 @@ async function checkMothersite(from: FromTypes) {
     root.render(alertBannerElm);
   } else {
     runtime.sendMessage({
-      message,
       from: "content",
       subject: "showMessage",
       color: mothersiteLinks === 0 ? "success" : "error",
+      message,
     } as MessageAlert);
   }
 }
 
-const getCarByName = (data: CarProps[], value: string | undefined): CarProps =>
-  data.filter((elm) => elm.desc === value)[0];
+const getCarByName = (data: CarProps[], value?: string): CarProps =>
+  data.filter(({ desc }) => desc === value)[0];
 
 async function vehicleCodeInit() {
-  const wizardWindow = "div.wizard.initialized-wizard.ng-scope > ";
-
-  const wizardConfig = await waitForElm(wizardWindow + "span.configuration");
+  const wizardWindowElm = document.querySelector<HTMLDivElement>(
+    "div.wizard.initialized-wizard.ng-scope",
+  );
+  if (!wizardWindowElm) {
+    throw new Error("wizard window element wasn't found");
+  }
 
   await waitForElm(
-    wizardWindow +
-      "div.ng-scope > div > div.steps-wrapper.full-view > div.wizard-vehicle-selector.ng-scope > div.vehicle-list > figure:nth-child(1)",
+    "div.ng-scope > div > div.steps-wrapper.full-view > div.wizard-vehicle-selector.ng-scope > div.vehicle-list > figure:nth-child(1)",
+    wizardWindowElm,
   );
 
   const wizardVehicleSelector = document.querySelector(
@@ -168,10 +195,11 @@ async function vehicleCodeInit() {
     return;
   }
 
-  const buttonContainer: HTMLElement | null =
-    wizardVehicleSelector.querySelector(
-      "div.category-buttons > div.category-buttons-container",
-    );
+  const buttonContainer = wizardVehicleSelector.querySelector<HTMLElement>(
+    "div.category-buttons > div.category-buttons-container",
+  );
+
+  const wizardConfig = await waitForElm("span.configuration", wizardWindowElm);
 
   const butContChildren = buttonContainer?.children;
   if (butContChildren) {
@@ -220,16 +248,16 @@ async function findVehicleCode(
       "div.vehicle-list > figure > div > figcaption > a:not(#carCode)",
     );
 
-  allCars.forEach((car) => {
-    const carName = car.textContent?.trim();
+  allCars.forEach(({ textContent, parentElement, id }) => {
+    const carName = textContent?.trim();
 
     const carObj: CarProps = getCarByName(
       vehicleConfig.data[idx].eventItem,
       carName,
     );
 
-    if (car.parentElement && carObj) {
-      car.id = "carCode";
+    if (parentElement && carObj) {
+      id = "carCode";
 
       let modelCode = carObj.wersCode;
       let versionCode: string;
@@ -256,7 +284,7 @@ async function findVehicleCode(
       );
 
       const div = document.createElement("div");
-      const root = createRoot(car.parentElement.appendChild(div));
+      const root = createRoot(parentElement.appendChild(div));
       root.render(vehicleCodeElm);
     }
   });
@@ -265,29 +293,29 @@ async function findVehicleCode(
 async function findShowroomCode() {
   const showroomElm = await waitForElm("#acc-showroom > span");
 
-  const config: string | null = showroomElm.getAttribute("data-bsl-url");
+  const config = showroomElm.getAttribute("data-bsl-url");
   if (!config) {
     throw new Error("showroom config `data-bsl-url` is null");
   }
 
-  const { data: configResponse } = await axios.get(config, {
+  const {
+    data: { showroomConfig },
+  } = await axios.get<ShowroomCode>(config, {
     headers: {
       Accept: "application/json",
     },
   });
 
-  const showroomConfig: ShowroomCode | undefined = configResponse;
-  if (!showroomConfig?.data) {
+  if (!showroomConfig) {
     throw new Error("Cannot reach showroom config page");
   }
 
   const showroomCodes: ReactElement = ShowroomCodes({
-    data: showroomConfig.data,
+    showroomConfig,
   });
 
-  const rootElm: HTMLElement = document.createElement("span");
-
   const showroom = await waitForElm("#acc-showroom");
+  const rootElm = document.createElement("span");
 
   const root = createRoot(showroom.appendChild(rootElm));
   root.render(showroomCodes);
@@ -295,35 +323,75 @@ async function findShowroomCode() {
 
 runtime.onMessage.addListener(
   (
-    msg: MessageCommon,
+    { from, subject }: MessageCommon,
     _sender: Runtime.MessageSender,
     _sendResponse: Function,
   ) => {
-    if (msg.from === "popup" && msg.subject === "checkMothersite") {
-      checkMothersite(msg.from);
+    if (from === "popup" && subject === "checkMothersite") {
+      checkMothersite(from);
     }
   },
 );
 
-(async function () {
-  const savedData = await loadSavedData();
+const getNextGenCarByName = (data: Segment[], value: string): Segment =>
+  data.filter(({ NamePlate }) => NamePlate === value)[0];
 
-  if (!savedData.disMothersiteCheck) {
+async function getNextGenCodes() {
+  const element = await waitForElm(".host-container.tdb-root");
+  const dataJson = element.getAttribute("data-json-path");
+  if (!dataJson) {
+    throw new Error("data is undefined, cannot get data-json-path attribute");
+  }
+
+  const { href: fullPath } = new URL(dataJson, origin);
+  const { data: appConfig } = await axios.get<{
+    ":items": {
+      root: { ":items": { endpoints: { getDemoVehicles: string } } };
+    };
+  }>(fullPath);
+
+  const {
+    data: { DemoVehicleModels },
+  } = await axios.get<DemoVehiclesType>(
+    appConfig[":items"].root[":items"].endpoints.getDemoVehicles,
+  );
+
+  const vehicleCardList = element.querySelector(".vehicle-card-list");
+  const carEntries = vehicleCardList?.querySelectorAll(
+    ".vehicle-card-container",
+  );
+
+  carEntries?.forEach((car) => {
+    const carName = car.querySelector("div.card-details > h3");
+
+    if (!carName?.textContent) {
+      throw new Error("car name is undefined");
+    }
+
+    const { VehicleCode, NamePlateID } = getNextGenCarByName(
+      DemoVehicleModels[0].Segments,
+      carName.textContent,
+    );
+
+    const elm = document.createElement("p");
+    elm.textContent = `?vehicleCode=${VehicleCode}&nameplateId=${NamePlateID}`;
+    vehicleCardList?.appendChild(elm);
+    elm.before(car);
+  });
+}
+
+(async function () {
+  const { disMothersiteCheck, enableFunErr } = await loadSavedData();
+
+  if (!disMothersiteCheck) {
     checkMothersite("content");
   }
 
-  if (savedData.enableFunErr) {
+  if (enableFunErr) {
     randomProgrammerMemes();
   }
 
   vehicleCodeInit();
   findShowroomCode();
+  getNextGenCodes();
 })();
-
-/* const galleryImages = new Set(
-  [
-    ...(await waitForElmAll(
-      "#accelerator-page > div.content > div > div.box-content.cq-dd-image > div > div > div > div > div.carousel-slides.clearfix.slick-initialized.slick-slider > div > div > div > div > article > div > div > div > div > div",
-    )),
-  ].map((node) => node.textContent),
-); */

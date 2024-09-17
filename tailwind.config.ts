@@ -7,7 +7,6 @@ const popup = "31.25rem";
 
 export default {
   content: [
-    "./index.html",
     "./src/**/*.{ts,tsx}",
     "node_modules/daisyui/dist/**/*.js",
     "node_modules/react-daisyui/dist/**/*.js",
@@ -15,7 +14,6 @@ export default {
   theme: {
     extend: { width: { popup }, minWidth: { popup } },
   },
-
   daisyui: {
     themes: ["dark"],
   },

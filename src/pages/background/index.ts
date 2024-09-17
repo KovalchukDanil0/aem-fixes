@@ -29,24 +29,32 @@ import AEMLink, {
   touch,
 } from "../../shared";
 
-async function regexImagePicker(): Promise<RegExp> {
-  const data = await getLocalSavedData();
-  return new RegExp(data.secretSettings.regexImagePicker);
+async function getRegexImagePicker(): Promise<RegExp> {
+  const {
+    secretSettings: { regexImagePicker },
+  } = await getLocalSavedData();
+  return new RegExp(regexImagePicker);
 }
 
-async function regexHTMLExist(): Promise<RegExp> {
-  const data = await getLocalSavedData();
-  return new RegExp(data.secretSettings.regexHTMLExist);
+async function getRegexHTMLExist(): Promise<RegExp> {
+  const {
+    secretSettings: { regexHTMLExist },
+  } = await getLocalSavedData();
+  return new RegExp(regexHTMLExist);
 }
 
-async function findReplaceUrl(): Promise<string> {
-  const data = await getLocalSavedData();
-  return data.secretSettings.findReplaceUrl;
+async function getFindReplaceUrl(): Promise<string> {
+  const {
+    secretSettings: { findReplaceUrl },
+  } = await getLocalSavedData();
+  return findReplaceUrl;
 }
 
-async function damTreeUrl(): Promise<string> {
-  const data = await getLocalSavedData();
-  return data.secretSettings.DAMTreeUrl;
+async function getDamTreeUrl(): Promise<string> {
+  const {
+    secretSettings: { DAMTreeUrl },
+  } = await getLocalSavedData();
+  return DAMTreeUrl;
 }
 
 const ifLivePerf = async (url: string): Promise<boolean> =>
@@ -55,19 +63,19 @@ const ifLivePerf = async (url: string): Promise<boolean> =>
 const ifAEMToolsUrl = async (url: string) =>
   url.includes(await getWorkflowPath());
 
-const ifDamUrl = async (url: string) => url.includes(await damTreeUrl());
+const ifDamUrl = async (url: string) => url.includes(await getDamTreeUrl());
 
 const ifFindReplaceUrl = async (url: string) =>
-  url.includes(await findReplaceUrl());
+  url.includes(await getFindReplaceUrl());
 
 const ifWorkflowUrl = async (url: string) => (await regexWorkflow()).test(url);
 
-function aemLinkError(error: Error) {
+function aemLinkError({ message: errorMessage }: Error) {
   const message: MessageAlert = {
     from: "background",
     subject: "showMessage",
     color: "error",
-    message: `ERROR - ${error.message}`,
+    message: `ERROR - ${errorMessage}`,
   };
 
   runtime.sendMessage(message);
@@ -79,8 +87,8 @@ function toEnvironment(
   env: EnvTypesExtended,
   url?: string,
 ) {
-  activeTabs.forEach(async (tab) => {
-    const initUrl: string | undefined = url ?? tab.url;
+  activeTabs.forEach(async ({ url: tabUrl, index, id }) => {
+    const initUrl: string | undefined = url ?? tabUrl;
 
     const data = new AEMLink(initUrl);
     await data.initialize();
@@ -92,9 +100,9 @@ function toEnvironment(
     }
 
     if (newTab) {
-      tabs.create({ index: tab.index + 1, url: newUrl });
+      tabs.create({ index: index + 1, url: newUrl });
     } else {
-      tabs.update(tab.id, {
+      tabs.update(id, {
         url: newUrl,
       });
     }
@@ -136,26 +144,31 @@ const changeContentInTab = async function (
   }
 };
 
-const openInTree = async function (authorUrl: string | undefined) {
+const openInTree = async function (authorUrl?: string) {
   authorUrl = authorUrl?.replace(await regexAuthor(), "$3");
 
   const fullAuthorPath = await getFullAuthorPath();
-
   changeContentInTab(authorUrl, `https://${fullAuthorPath}/siteadmin`);
 };
 
-runtime.onMessage.addListener((msg: MessageEnv, _sender, _sendResponse) => {
-  if (msg.from !== "background") {
-    if (msg.subject === "toEnvironment") {
-      toEnvironment(msg.tabs, msg.newTab, msg.env);
-    }
+runtime.onMessage.addListener(
+  (
+    { from, subject, env, newTab, tabs: msgTabs, url: msgUrl }: MessageEnv,
+    _sender,
+    _sendResponse,
+  ) => {
+    if (from !== "background") {
+      if (subject === "toEnvironment") {
+        toEnvironment(msgTabs, newTab, env);
+      }
 
-    if (msg.subject === "openInTree") {
-      const url = msg.url ?? msg.tabs?.[msg.tabs?.length - 1].url;
-      openInTree(url);
+      if (subject === "openInTree") {
+        const url = msgUrl ?? msgTabs?.[msgTabs?.length - 1].url;
+        openInTree(url);
+      }
     }
-  }
-});
+  },
+);
 
 runtime.onInstalled.addListener(function () {
   contextMenus.create({
@@ -176,7 +189,7 @@ runtime.onInstalled.addListener(function () {
     id: "openInTouchUI",
   });
 
-  const parent = contextMenus.create({
+  const parentId = contextMenus.create({
     title: "To Environment",
     contexts: ["link"],
     id: "toEnvironment",
@@ -185,41 +198,42 @@ runtime.onInstalled.addListener(function () {
   contextMenus.create({
     title: "To Live",
     contexts: ["link"],
-    parentId: parent,
     id: "toLive",
+    parentId,
   });
 
   contextMenus.create({
     title: "To Perf",
     contexts: ["link"],
-    parentId: parent,
     id: "toPerf",
+    parentId,
   });
 
   contextMenus.create({
     title: "To Prod",
     contexts: ["link"],
-    parentId: parent,
     id: "toProd",
+    parentId,
   });
 
   contextMenus.create({
     title: "To Touch",
     contexts: ["link"],
-    parentId: parent,
     id: "toTouch",
+    parentId,
   });
 
   contextMenus.create({
     title: "To Classic",
     contexts: ["link"],
-    parentId: parent,
     id: "toClassic",
+    parentId,
   });
 });
 
+contextMenus.onClicked.addListener(menusOnClick);
 async function menusOnClick(
-  info: Menus.OnClickData,
+  { menuItemId, srcUrl, selectionText, linkUrl }: Menus.OnClickData,
   patternTabs: Tabs.Tab | undefined,
 ) {
   if (!patternTabs) {
@@ -229,10 +243,10 @@ async function menusOnClick(
   const fullAuthorPath = await getFullAuthorPath();
 
   const tab: Tabs.Tab[] = [patternTabs];
-  switch (info.menuItemId) {
+  switch (menuItemId) {
     case "openInDAM": {
-      const imagePath: string | undefined = info.srcUrl?.replace(
-        await regexImagePicker(),
+      const imagePath: string | undefined = srcUrl?.replace(
+        await getRegexImagePicker(),
         "$1",
       );
 
@@ -241,20 +255,21 @@ async function menusOnClick(
       break;
     }
     case "openInAEM": {
-      const linkUrl = info.selectionText
-        ? `https://${fullAuthorPath}${info.selectionText}.html`
-        : info.linkUrl;
-      openInTree(linkUrl);
+      const newLinkUrl = selectionText
+        ? `https://${fullAuthorPath}${selectionText}.html`
+        : linkUrl;
+      openInTree(newLinkUrl);
 
       break;
     }
     case "openInTouchUI": {
-      let content: string | undefined = info.selectionText;
+      let content: string | undefined = selectionText;
       if (!content) {
         throw new Error("openInTouchUI content is undefined");
       }
 
-      if (!(await regexHTMLExist()).test(content)) {
+      const regexHTMLExistCached = await getRegexHTMLExist();
+      if (!regexHTMLExistCached.test(content)) {
         content += ".html";
       }
 
@@ -267,19 +282,19 @@ async function menusOnClick(
       break;
     }
     case "toLive":
-      toEnvironment(tab, true, "live", info.linkUrl);
+      toEnvironment(tab, true, "live", linkUrl);
       break;
     case "toPerf":
-      toEnvironment(tab, true, "perf", info.linkUrl);
+      toEnvironment(tab, true, "perf", linkUrl);
       break;
     case "toProd":
-      toEnvironment(tab, true, "prod", info.linkUrl);
+      toEnvironment(tab, true, "prod", linkUrl);
       break;
     case "toTouch":
-      toEnvironment(tab, true, touch, info.linkUrl);
+      toEnvironment(tab, true, touch, linkUrl);
       break;
     case "toClassic":
-      toEnvironment(tab, true, classic, info.linkUrl);
+      toEnvironment(tab, true, classic, linkUrl);
       break;
     default:
       break;
@@ -287,8 +302,6 @@ async function menusOnClick(
 }
 
 type CommandEnvs = "toLive" | "toPerf" | "toProd" | "toAuthor";
-
-contextMenus.onClicked.addListener(menusOnClick);
 
 commands.onCommand.addListener((command, tab) => {
   const typedCommand = command as CommandEnvs;
@@ -361,6 +374,7 @@ async function resolveModule(scriptPath: string) {
   }
 }
 
+webNavigation.onCompleted.addListener(onLoadingComplete);
 async function onLoadingComplete({
   url,
   tabId,
@@ -407,5 +421,3 @@ async function onLoadingComplete({
     console.warn("css resource not exist");
   }
 }
-
-webNavigation.onCompleted.addListener(onLoadingComplete);

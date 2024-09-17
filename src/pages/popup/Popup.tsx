@@ -33,14 +33,18 @@ import {
 
 const regexCopyContent = /\/content.+(?=\.html)/;
 
+let isFileUploaded = true;
+
 export async function getPropertiesPath(): Promise<string> {
-  const data = await getLocalSavedData();
-  return data.secretSettings.propertiesPath;
+  const {
+    secretSettings: { propertiesPath },
+  } = await getLocalSavedData();
+  return propertiesPath;
 }
 
 type AlertProps = {
-  text: string | undefined;
-  color: ColorProps | undefined;
+  text?: string;
+  color?: ColorProps;
 };
 
 const useStateAlert = create<{
@@ -48,15 +52,12 @@ const useStateAlert = create<{
   setAlertProps: (alertProps: AlertProps) => void;
 }>((set) => ({
   alertProps: null,
-  setAlertProps: (alertProps) =>
-    set(() => ({
-      alertProps: { text: alertProps.text, color: alertProps.color },
-    })),
+  setAlertProps: ({ text, color }) =>
+    set(() => ({ alertProps: { text, color } })),
 }));
 
 async function copyContent(url: string) {
   const content: string | undefined = regexCopyContent.exec(url)?.[0];
-
   if (!content) {
     throw new Error(`copied content is ${content}`);
   }
@@ -83,23 +84,19 @@ interface ButtonEnvType extends ComponentProps<typeof Button> {
   butSendAs?: "runtime" | "tab";
 }
 
-function ButtonEnv({
-  anyEnv,
-  customEnv,
-  children,
-  ...props
-}: Readonly<ButtonEnvType>) {
+function ButtonEnv({ anyEnv, customEnv, ...props }: Readonly<ButtonEnvType>) {
   if (!anyEnv || customEnv) {
     return false;
   }
 
-  return <Button {...props}>{children}</Button>;
+  return <Button {...props} />;
 }
 
-async function buttonOnClick(event: MouseEvent<HTMLButtonElement>) {
-  const but: HTMLButtonElement = event.currentTarget;
-
-  const sendAs: string | null = but.getAttribute("butsendas");
+async function buttonOnClick({
+  currentTarget: but,
+  type,
+}: MouseEvent<HTMLButtonElement>) {
+  const sendAs = but.getAttribute("butsendas");
   if (!sendAs) {
     throw new Error("butsendas is undefined");
   }
@@ -116,8 +113,8 @@ async function buttonOnClick(event: MouseEvent<HTMLButtonElement>) {
 
   const frames = await webNavigation.getAllFrames({ tabId });
   if (frames) {
-    const conditionFound = await findAsyncSequential(frames, (frame) =>
-      ifAuthorNoEnv(frame.url),
+    const conditionFound = await findAsyncSequential(frames, ({ url }) =>
+      ifAuthorNoEnv(url),
     );
 
     if (conditionFound?.tabId) {
@@ -127,7 +124,7 @@ async function buttonOnClick(event: MouseEvent<HTMLButtonElement>) {
 
   const message: MessageEnv = {
     from: "popup",
-    newTab: event.type !== "click",
+    newTab: type !== "click",
     env: but.getAttribute("butenv") as EnvTypes,
     subject: but.getAttribute("butsubject") as SubjectTypes,
     tabs: activeTabs,
@@ -141,18 +138,18 @@ async function buttonOnClick(event: MouseEvent<HTMLButtonElement>) {
 }
 
 async function openPropertiesTouchUI() {
-  const tab: Tabs.Tab = await getCurrentTab();
+  const { url, index }: Tabs.Tab = await getCurrentTab();
   const fullAuthorPath = await getFullAuthorPath();
   const propertiesPath = await getPropertiesPath();
 
-  const newUrl: string | undefined = tab.url?.replace(
+  const newUrl = url?.replace(
     await regexAuthor(),
     `https://${fullAuthorPath}/${propertiesPath}`,
   );
 
   tabs.create({
     url: newUrl,
-    index: tab.index + 1,
+    index: index + 1,
   });
 }
 
@@ -169,39 +166,29 @@ type InitVariablesType = {
   fileUploaded: boolean;
 };
 
+function setFileUploaded() {
+  isFileUploaded = false;
+  return false;
+}
+
 async function initVariables(): Promise<InitVariablesType> {
-  const { url } = await getCurrentTab();
-  if (!url) {
+  const { url: tabUrl } = await getCurrentTab();
+  if (!tabUrl) {
     throw new Error("url is undefined");
   }
 
-  let ifAnyOfTheEnvCache = false;
-  let ifAuthorCache = false;
-  let ifClassicCache = false;
-  let ifJiraCache = false;
-  let ifLiveCache = false;
-  let ifPerfCache = false;
-  let ifProdCache = false;
-  let ifTouchCache = false;
-
-  let fileUploaded = true;
-
-  try {
-    ifAnyOfTheEnvCache = await ifAnyOfTheEnv(url);
-    ifAuthorCache = await ifAuthor(url);
-    ifClassicCache = await ifClassic(url);
-    ifJiraCache = await ifJira(url);
-    ifLiveCache = await ifLive(url);
-    ifPerfCache = await ifPerf(url);
-    ifProdCache = await ifProd(url);
-    ifTouchCache = await ifTouch(url);
-  } catch (err) {
-    fileUploaded = false;
-  }
+  const ifAnyOfTheEnvCache = await ifAnyOfTheEnv(tabUrl).catch(setFileUploaded);
+  const ifAuthorCache = await ifAuthor(tabUrl).catch(setFileUploaded);
+  const ifClassicCache = await ifClassic(tabUrl).catch(setFileUploaded);
+  const ifJiraCache = await ifJira(tabUrl).catch(setFileUploaded);
+  const ifLiveCache = await ifLive(tabUrl).catch(setFileUploaded);
+  const ifPerfCache = await ifPerf(tabUrl).catch(setFileUploaded);
+  const ifProdCache = await ifProd(tabUrl).catch(setFileUploaded);
+  const ifTouchCache = await ifTouch(tabUrl).catch(setFileUploaded);
 
   return {
-    tabUrl: url,
-    fileUploaded,
+    fileUploaded: isFileUploaded,
+    tabUrl,
     ifAnyOfTheEnvCache,
     ifAuthorCache,
     ifClassicCache,
@@ -214,17 +201,17 @@ async function initVariables(): Promise<InitVariablesType> {
 }
 
 runtime.onMessage.addListener(function (
-  msg: MessageAlert,
+  { from, color, message: text, subject }: MessageAlert,
   _sender,
   _sendResponse,
 ) {
-  if (msg.from === "popup") {
+  if (from === "popup") {
     return;
   }
 
-  if (msg.subject === "showMessage") {
+  if (subject === "showMessage") {
     useStateAlert.setState({
-      alertProps: { text: msg.message, color: msg.color },
+      alertProps: { text, color },
     });
   }
 });

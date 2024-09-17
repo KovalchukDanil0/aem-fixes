@@ -22,18 +22,24 @@ const url =
     : window.location.href;
 
 async function getPathToReferences(): Promise<string> {
-  const data = await getLocalSavedData();
-  return data.secretSettings.pathToReferences;
+  const {
+    secretSettings: { pathToReferences },
+  } = await getLocalSavedData();
+  return pathToReferences;
 }
 
 async function getPathToReferencesParams(): Promise<string> {
-  const data = await getLocalSavedData();
-  return data.secretSettings.pathToReferencesParams;
+  const {
+    secretSettings: { pathToReferencesParams },
+  } = await getLocalSavedData();
+  return pathToReferencesParams;
 }
 
 async function getJiraFullPath(): Promise<string> {
-  const data = await getLocalSavedData();
-  return data.secretSettings.jiraFullPath;
+  const {
+    secretSettings: { jiraFullPath },
+  } = await getLocalSavedData();
+  return jiraFullPath;
 }
 
 function getRealPerfUrl(): string | undefined {
@@ -73,7 +79,7 @@ async function catErrors() {
 }
 
 async function ticketFinder() {
-  const blockingTicketElm: HTMLElement = await waitForElm(
+  const blockingTicketElm = await waitForElm<HTMLElement>(
     "div.workflows-warning-bar > i:nth-child(3)",
   );
   const root = createRoot(blockingTicketElm);
@@ -97,18 +103,17 @@ async function checkReferences() {
   const pathToReferencesParams = await getPathToReferencesParams();
 
   const config = `https://${fullAuthorPath}/${pathToReferences}${encodedURL}${pathToReferencesParams}`;
-  const refConfig = (
-    await axios
-      .get<ReferencesConfig>(config, {
-        headers: {
-          Accept: "application/json",
-        },
-      })
-      .catch(() => null)
-  )?.data;
-  if (!refConfig) {
-    throw new Error("cannot reach ref config page");
-  }
+  const {
+    data: { pages },
+  } = await axios
+    .get<ReferencesConfig>(config, {
+      headers: {
+        Accept: "application/json",
+      },
+    })
+    .catch(({ message }: Error) => {
+      throw new Error(`cannot reach ref config page - ${message}`);
+    });
 
   const container = document.body.insertBefore(
     document.createElement("span"),
@@ -116,7 +121,7 @@ async function checkReferences() {
   );
 
   const referencesBanner: ReactElement = ReferencesBanner({
-    pages: refConfig.pages,
+    pages,
     regexDetermineBeta: await regexDetermineBeta(),
   });
 
@@ -127,12 +132,16 @@ async function checkReferences() {
 }
 
 runtime.onMessage.addListener(
-  (msg: MessageCommon, _sender, _sendResponse): Promise<string> | undefined => {
-    if (msg.from === "popup" && msg.subject === "checkReferences") {
+  (
+    { from, subject }: MessageCommon,
+    _sender,
+    _sendResponse,
+  ): Promise<string> | undefined => {
+    if (from === "popup" && subject === "checkReferences") {
       checkReferences();
     }
 
-    if (msg.from === "background" && msg.subject === "getRealUrl") {
+    if (from === "background" && subject === "getRealUrl") {
       const realPerfLink = getRealPerfUrl();
       if (realPerfLink) {
         return Promise.resolve(realPerfLink);
@@ -142,9 +151,9 @@ runtime.onMessage.addListener(
 );
 
 (async function () {
-  const savedData = await loadSavedData();
+  const { enableFunErr } = await loadSavedData();
 
-  if (savedData.enableFunErr) {
+  if (enableFunErr) {
     catErrors();
   }
 

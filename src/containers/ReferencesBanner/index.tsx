@@ -13,20 +13,19 @@ export default function ReferencesBanner({
   return (
     <div className="referencesBanner">
       {pages
-        .toSorted((a, b) => a.path.localeCompare(b.path))
-        .map((page) => {
-          const linkBetaFix = page.path.replace(
-            regexDetermineBeta,
-            `$1/${touch}$2`,
-          );
+        .toSorted(({ path }, { path: pathToCheck }) =>
+          path.localeCompare(pathToCheck),
+        )
+        .map(({ path }) => {
+          const linkBetaFix = path.replace(regexDetermineBeta, `$1/${touch}$2`);
           return (
             <a
-              key={page.path}
+              key={path}
               href={linkBetaFix + ".html"}
               target="_blank"
               rel="noreferrer"
             >
-              {page.path}
+              {path}
             </a>
           );
         })}

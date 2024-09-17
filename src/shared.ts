@@ -8,37 +8,47 @@ export const getLocalSavedData = async (): Promise<SavedLocalData> =>
   storage.local.get() as Promise<SavedLocalData>;
 
 async function regexJira(): Promise<RegExp> {
-  const data = await getLocalSavedData();
-  return new RegExp(data.secretSettings.regexJira);
+  const {
+    secretSettings: { regexJira },
+  } = await getLocalSavedData();
+  return new RegExp(regexJira);
 }
 
 export const ifJira = async (url: string): Promise<boolean> =>
   (await regexJira()).test(url);
 
 export async function regexWorkflow(): Promise<RegExp> {
-  const data = await getLocalSavedData();
-  return new RegExp(data.secretSettings.regexWorkflow);
+  const {
+    secretSettings: { regexWorkflow },
+  } = await getLocalSavedData();
+  return new RegExp(regexWorkflow);
 }
 
 const ifWorkflow = async (url: string): Promise<boolean> =>
   (await regexWorkflow()).test(url);
 
 export async function regexDAMTree(): Promise<RegExp> {
-  const data = await getLocalSavedData();
-  return new RegExp(data.secretSettings.regexDAMTree);
+  const {
+    secretSettings: { regexDAMTree },
+  } = await getLocalSavedData();
+  return new RegExp(regexDAMTree);
 }
 
 export async function regexLive(): Promise<RegExp> {
-  const data = await getLocalSavedData();
-  return new RegExp(data.secretSettings.regexLive);
+  const {
+    secretSettings: { regexLive },
+  } = await getLocalSavedData();
+  return new RegExp(regexLive);
 }
 
 export const ifLive = async (url: string): Promise<boolean> =>
   (await regexLive()).test(url);
 
 async function regexPerfProd(): Promise<RegExp> {
-  const data = await getLocalSavedData();
-  return new RegExp(data.secretSettings.regexPerfProd);
+  const {
+    secretSettings: { regexPerfProd },
+  } = await getLocalSavedData();
+  return new RegExp(regexPerfProd);
 }
 
 export const ifPerfProd = async (url: string): Promise<boolean> =>
@@ -50,8 +60,10 @@ export const ifProd = async (url: string): Promise<boolean> =>
   url.replace(await regexPerfProd(), "$1") === "prod";
 
 export async function regexAuthor(): Promise<RegExp> {
-  const data = await getLocalSavedData();
-  return new RegExp(data.secretSettings.regexAuthor);
+  const {
+    secretSettings: { regexAuthor },
+  } = await getLocalSavedData();
+  return new RegExp(regexAuthor);
 }
 
 export const ifAuthor = async (url: string): Promise<boolean> =>
@@ -69,58 +81,80 @@ export const ifAnyOfTheEnv = async (url: string) =>
   (await regexAuthor()).test(url);
 
 export async function regexDetermineBeta(): Promise<RegExp> {
-  const data = await getLocalSavedData();
-  return new RegExp(data.secretSettings.regexDetermineBeta);
+  const {
+    secretSettings: { regexDetermineBeta },
+  } = await getLocalSavedData();
+  return new RegExp(regexDetermineBeta);
 }
 
 async function regexFastAuthor(): Promise<RegExp> {
-  const data = await getLocalSavedData();
-  return new RegExp(data.secretSettings.regexFastAuthor);
+  const {
+    secretSettings: { regexFastAuthor },
+  } = await getLocalSavedData();
+  return new RegExp(regexFastAuthor);
 }
 
 async function regexFixSiteWide(): Promise<RegExp> {
-  const data = await getLocalSavedData();
-  return new RegExp(data.secretSettings.regexFixSiteWide);
+  const {
+    secretSettings: { regexFixSiteWide },
+  } = await getLocalSavedData();
+  return new RegExp(regexFixSiteWide);
 }
 
 export async function regexWFTitle(): Promise<RegExp> {
-  const data = await getLocalSavedData();
-  return new RegExp(data.secretSettings.regexWFTitle);
+  const {
+    secretSettings: { regexWFTitle },
+  } = await getLocalSavedData();
+  return new RegExp(regexWFTitle);
 }
 
 async function getDomain(): Promise<string> {
-  const data = await getLocalSavedData();
-  return data.secretSettings.domain;
+  const {
+    secretSettings: { domain },
+  } = await getLocalSavedData();
+  return domain;
 }
 
 export async function getFullAuthorPath(): Promise<string> {
-  const data = await getLocalSavedData();
-  return data.secretSettings.fullAuthorPath;
+  const {
+    secretSettings: { fullAuthorPath },
+  } = await getLocalSavedData();
+  return fullAuthorPath;
 }
 
 async function getPathToResolver(): Promise<string> {
-  const data = await getLocalSavedData();
-  return data.secretSettings.pathToResolver;
+  const {
+    secretSettings: { pathToResolver },
+  } = await getLocalSavedData();
+  return pathToResolver;
 }
 
 async function getTopLevelDomain(): Promise<string> {
-  const data = await getLocalSavedData();
-  return data.secretSettings.topLevelDomain;
+  const {
+    secretSettings: { topLevelDomain },
+  } = await getLocalSavedData();
+  return topLevelDomain;
 }
 
 async function getDomainPerf(): Promise<string> {
-  const data = await getLocalSavedData();
-  return data.secretSettings.domainPerf;
+  const {
+    secretSettings: { domainPerf },
+  } = await getLocalSavedData();
+  return domainPerf;
 }
 
 async function getDomainProd(): Promise<string> {
-  const data = await getLocalSavedData();
-  return data.secretSettings.domainProd;
+  const {
+    secretSettings: { domainProd },
+  } = await getLocalSavedData();
+  return domainProd;
 }
 
 export async function getWorkflowPath(): Promise<string> {
-  const data = await getLocalSavedData();
-  return data.secretSettings.workflowPath;
+  const {
+    secretSettings: { workflowPath },
+  } = await getLocalSavedData();
+  return workflowPath;
 }
 
 export type ConfigurationModeType = "production" | "development" | "none";
@@ -196,7 +230,7 @@ export type MessageAlert = {
 } & MessageCommon;
 
 export interface ShowroomCode {
-  data: {
+  showroomConfig: {
     [key: string]: {
       code: string;
       name: string;
@@ -331,12 +365,12 @@ export default class AEMLink {
       this.market = someMarket;
     }
 
-    const marketsFixAuthor = ["gb", "en", "gl"];
-    const marketsFixPerf = ["uk", "uk", "mothersite"];
-
     if (!this.market) {
       throw new Error("market is undefined");
     }
+
+    const marketsFixAuthor = ["gb", "en", "gl"];
+    const marketsFixPerf = ["uk", "uk", "mothersite"];
 
     let idx = marketsFixAuthor.indexOf(this.market);
     if (idx >= 0) {
@@ -387,7 +421,7 @@ export default class AEMLink {
     return this.localLanguage;
   }
 
-  fixUrlPart(someUrlPart?: string | null): string {
+  fixUrlPart(someUrlPart?: string): string {
     someUrlPart = someUrlPart ?? this.urlPart;
 
     const regexFixSWAuthor =
@@ -568,15 +602,8 @@ export default class AEMLink {
     const fullAuthorPath = await getFullAuthorPath();
     const pathToResolver = await getPathToResolver();
 
-    type OriginalPathType = {
-      data: { map: { originalPath: string | undefined } };
-    };
-
-    const {
-      data: {
-        map: { originalPath },
-      },
-    }: OriginalPathType = await axios.get(
+    type OriginalPathType = { map?: { originalPath?: string } };
+    const { data: response } = await axios.get<OriginalPathType>(
       `https://${fullAuthorPath}/${pathToResolver}` + wrongLink,
       {
         headers: {
@@ -585,8 +612,9 @@ export default class AEMLink {
       },
     );
 
+    const originalPath = response?.map?.originalPath;
     if (!originalPath) {
-      throw new Error("Failed to load resolver");
+      throw new Error("Please logIn to your AEM account");
     }
 
     return this.makeRealAuthorLink(originalPath, fullAuthorPath, isTouch);
@@ -603,21 +631,21 @@ export default class AEMLink {
 
 export function waitForElm<T extends HTMLElement>(
   selector: string,
-  doc: Document = document,
+  elm: Element = document.body,
 ): Promise<T> {
   return new Promise((resolve) => {
-    if (doc.querySelector(selector)) {
-      return resolve(doc.querySelector(selector) as T);
+    if (elm.querySelector(selector)) {
+      return resolve(elm.querySelector(selector) as T);
     }
 
     const observer = new MutationObserver(() => {
-      if (doc.querySelector(selector)) {
-        resolve(doc.querySelector(selector) as T);
+      if (elm.querySelector(selector)) {
+        resolve(elm.querySelector(selector) as T);
         observer.disconnect();
       }
     });
 
-    observer.observe(doc.body, {
+    observer.observe(elm, {
       childList: true,
       subtree: true,
     });
@@ -654,7 +682,7 @@ export const loadSavedData = async (): Promise<SavedSyncData> =>
     enableFunErr: false,
     enableFilterFix: false,
     enableAutoLogin: false,
-  } as SavedSyncData);
+  });
 
 export const getCurrentTab = async (): Promise<Tabs.Tab> =>
   (await tabs.query({ active: true, currentWindow: true }))[0];

@@ -1,4 +1,4 @@
-@use "cirrus-ui/src/cirrus-core" as *;
+@use "cirrus-ui/src/cirrus-all" as *;
 
 a.findReplaceLink {
   font-weight: 500;
@@ -21,4 +21,21 @@ button.apply[data-ng-click="validateLinks()"] {
 
 button.apply[data-ng-click="applyLinksReplace()"] {
   @extend .btn-success;
+}
+
+div.one-link {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  justify-content: flex-start;
+  align-items: baseline;
+
+  > span.ng-binding {
+    margin-right: 1ch;
+  }
+
+  > input.link-to-input {
+    width: 90% !important;
+  }
 }

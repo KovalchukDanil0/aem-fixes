@@ -1,57 +1,67 @@
 import { storage } from "webextension-polyfill";
 import { waitForElm } from "../../shared";
 
-async function createWF(WFTitle: string, WFName: string) {
-  if (!WFTitle || !WFName) {
-    throw new Error("WFTitle or WFName is undefined");
+type WFProps = { WFTitle: string | null; WFName: string | null };
+
+async function createWF({ WFName, WFTitle }: WFProps) {
+  if (WFTitle == null || WFName == null) {
+    return;
   }
 
-  const panelContent = "#cq-miscadmin-grid > div";
+  storage.local.set({ WFTitle: null });
+  storage.local.set({ WFName: null });
+
+  const panelContentElm = document.querySelector("#cq-miscadmin-grid > div");
+
+  if (!panelContentElm) {
+    throw new Error("panel content element wasn't found");
+  }
 
   await waitForElm(
-    panelContent +
-      " > div.x-panel-body.x-panel-body-noheader > div > div.x-grid3-viewport > div.x-grid3-scroller > div > div.x-grid3-row.x-grid3-row-first > table > tbody > tr > td.x-grid3-col.x-grid3-cell.x-grid3-td-title > div",
+    "div.x-panel-body.x-panel-body-noheader > div > div.x-grid3-viewport > div.x-grid3-scroller > div > div.x-grid3-row.x-grid3-row-first > table > tbody > tr > td.x-grid3-col.x-grid3-cell.x-grid3-td-title > div",
+    panelContentElm,
   );
 
-  const button: HTMLButtonElement = document.querySelector(
-    panelContent +
-      " > div.x-panel-tbar.x-panel-tbar-noheader > div > table > tbody > tr > td.x-toolbar-left > table > tbody > tr > td:nth-child(3) > table > tbody > tr:nth-child(2) > td.x-btn-mc > em > button",
-  ) as HTMLButtonElement;
-  button.click();
+  const button = panelContentElm.querySelector<HTMLButtonElement>(
+    "div.x-panel-tbar.x-panel-tbar-noheader > div > table > tbody > tr > td.x-toolbar-left > table > tbody > tr > td:nth-child(3) > table > tbody > tr:nth-child(2) > td.x-btn-mc > em > button",
+  );
+  button?.click();
 
-  const createPageOverlay =
-    "#CQ > div.x-window-plain.x-form-label-left > div > form > div.x-window.x-window-plain.x-resizable-pinned > div.x-window-bwrap > div.x-window-ml > div > div > div > div > div > div";
+  const createPageOverlayElm = document.querySelector(
+    "#CQ > div.x-window-plain.x-form-label-left > div > form > div.x-window.x-window-plain.x-resizable-pinned > div.x-window-bwrap > div.x-window-ml > div > div > div > div > div > div",
+  );
+  if (!createPageOverlayElm) {
+    throw new Error("create page overlay element not found");
+  }
 
-  const formWFTitle: HTMLFormElement = await waitForElm<HTMLFormElement>(
-    createPageOverlay + " > div:nth-child(1) > div.x-form-element > input",
+  const formWFTitle = await waitForElm<HTMLFormElement>(
+    "div:nth-child(1) > div.x-form-element > input",
+    createPageOverlayElm,
   );
 
   formWFTitle.value = WFTitle;
 
-  const formWFName = document.querySelector(
-    createPageOverlay + " > div:nth-child(2) > div.x-form-element > input",
-  ) as HTMLFormElement;
+  const formWFName = createPageOverlayElm.querySelector<HTMLFormElement>(
+    "div:nth-child(2) > div.x-form-element > input",
+  );
+  if (!formWFName) {
+    throw new Error("form in WF AEM tools wasn't found");
+  }
   formWFName.value = WFName;
 
   const promotionButton = await waitForElm(
-    createPageOverlay +
-      " > div.x-panel.cq-template-view.x-panel-noborder > div > div > div > div.template-item:nth-child(3)",
+    "div.x-panel.cq-template-view.x-panel-noborder > div > div > div > div.template-item:nth-child(3)",
+    createPageOverlayElm,
   );
 
   promotionButton.click();
 }
 
 (async function () {
-  const result = await storage.local.get({
+  const { WFTitle, WFName } = (await storage.local.get({
     WFTitle: null,
     WFName: null,
-  });
+  })) as WFProps;
 
-  const WFTitle = result["WFTitle"];
-  const WFName = result["WFName"];
-
-  createWF(WFTitle, WFName);
-
-  storage.local.set({ WFTitle: null });
-  storage.local.set({ WFName: null });
+  createWF({ WFName, WFTitle });
 })();

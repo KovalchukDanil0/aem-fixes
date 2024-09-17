@@ -11,12 +11,14 @@ import {
 } from "../../shared";
 
 async function getSecretWord(): Promise<string> {
-  const data = await getLocalSavedData();
-  return data.secretSettings.secretWord;
+  const {
+    secretSettings: { secretWord },
+  } = await getLocalSavedData();
+  return secretWord;
 }
 
 function createWFButton() {
-  const buttonsContainer: HTMLDivElement | null = document.querySelector(
+  const buttonsContainer = document.querySelector<HTMLDivElement>(
     "#stalker >* div.aui-toolbar2-primary",
   );
 
@@ -46,19 +48,13 @@ function createWFButton() {
 }
 
 function selectorTextNoSpaces(selector: string): string | undefined {
-  try {
-    return document.querySelector(selector)?.textContent?.trim();
-  } catch (err) {
-    throw new Error(
-      `element with selector "${selector}" was not found\nfull error - ${err}`,
-    );
-  }
+  return document.querySelector(selector)?.textContent?.trim();
 }
 
 async function textToWFPath(
-  market: string | undefined,
-  localLanguage: string | undefined,
-  title: string | undefined,
+  market?: string,
+  localLanguage?: string,
+  title?: string,
 ): Promise<string> {
   let fullPath = "";
 
@@ -200,17 +196,17 @@ function ticketNumber(ticketNumElm: HTMLElement): string {
   const labels: NodeListOf<HTMLSpanElement> = document.querySelectorAll(
     "#wrap-labels > div > ul > li > a > span",
   );
-  labels.forEach((label: HTMLSpanElement) => {
-    if (label.textContent?.includes("embargo")) {
+  labels.forEach(({ textContent: labelText }: HTMLSpanElement) => {
+    if (labelText?.includes("embargo")) {
       embargo = "-EMBARGO";
     }
   });
 
   let fix = "";
-  const ticketStatus: string | null = (
-    document.querySelector("#opsbar-transitions_more > span") as HTMLSpanElement
-  ).textContent;
-  if (ticketStatus?.includes("deployment")) {
+  const ticketStatus = document.querySelector<HTMLElement>(
+    "#opsbar-transitions_more > span",
+  );
+  if (ticketStatus?.textContent?.includes("deployment")) {
     fix = "-FIX";
   }
 
@@ -218,10 +214,10 @@ function ticketNumber(ticketNumElm: HTMLElement): string {
 }
 
 async function aemToolsCreateWF() {
-  const ticketNumElm: HTMLElement = document.querySelector(
+  const ticketNumElm = document.querySelector<HTMLElement>(
     "#parent_issue_summary",
-  ) as HTMLElement;
-  if (!ticketNumElm) {
+  );
+  if (!ticketNumElm?.textContent) {
     throw new Error("This is not children ticket page");
   }
 
@@ -231,17 +227,17 @@ async function aemToolsCreateWF() {
   const ticketLocalLanguage: string | undefined = selectorTextNoSpaces(
     "#customfield_15000-val",
   );
-  const ticketTitle: string | undefined = selectorTextNoSpaces("#summary-val");
+  const WFTitle = selectorTextNoSpaces("#summary-val");
 
   storage.local.set({
-    WFTitle: ticketTitle,
+    WFTitle,
     WFName: ticketNumber(ticketNumElm),
   });
 
   const WFPath: string = await textToWFPath(
     ticketMarket,
     ticketLocalLanguage,
-    ticketTitle,
+    WFTitle,
   );
 
   const fullAuthorPath = await getFullAuthorPath();
@@ -251,31 +247,33 @@ async function aemToolsCreateWF() {
 }
 
 function fixSorting() {
-  const sortByDate: HTMLAnchorElement | null = document.querySelector(
+  const sortByDate = document.querySelector<HTMLAnchorElement>(
     '#attachment-sorting-options > li:nth-child(2) > a:not([class*="aui-checked"])',
   );
   sortByDate?.click();
 
-  const descending: HTMLAnchorElement | null = document.querySelector(
+  const descending = document.querySelector<HTMLAnchorElement>(
     '#attachment-sorting-order-options > li:nth-child(2) > a:not([class*="aui-checked"])',
   );
   descending?.click();
 }
 
-runtime.onMessage.addListener((msg: MessageCommon, _sender, _sendResponse) => {
-  if (msg.from === "popup" && msg.subject === "createWF") {
-    aemToolsCreateWF();
-  }
-});
+runtime.onMessage.addListener(
+  ({ from, subject }: MessageCommon, _sender, _sendResponse) => {
+    if (from === "popup" && subject === "createWF") {
+      aemToolsCreateWF();
+    }
+  },
+);
 
 (async function () {
-  const savedData = await loadSavedData();
+  const { disCreateWF, enableFilterFix } = await loadSavedData();
 
-  if (!savedData.disCreateWF) {
+  if (!disCreateWF) {
     createWFButton();
   }
 
-  if (savedData.enableFilterFix) {
+  if (enableFilterFix) {
     fixSorting();
   }
 })();
