@@ -1,5 +1,5 @@
-import React, { ReactElement } from "react";
-import { dependencies, devDependencies } from "../../../package.json";
+import { ReactElement } from "react";
+import { dependencies, devDependencies } from "~/package.json";
 
 const regexFixVersion = /\^?(\d+\.\d+)\.\d+/;
 

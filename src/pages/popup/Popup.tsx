@@ -1,11 +1,9 @@
-import React, { ComponentProps, MouseEvent } from "react";
+import { ComponentProps, MouseEvent } from "react";
 import { Async } from "react-async";
 import { Alert, Button, Loading } from "react-daisyui";
 import { FaGithub } from "react-icons/fa";
 import { IoSettingsOutline } from "react-icons/io5";
-import { runtime, tabs, Tabs, webNavigation } from "webextension-polyfill";
-import { create } from "zustand";
-import UploadJsonFile from "../../containers/UploadJsonFile";
+import UploadJsonFile from "src/containers/UploadJsonFile";
 import {
   classic,
   ColorProps,
@@ -15,6 +13,7 @@ import {
   getCurrentTab,
   getFullAuthorPath,
   getLocalSavedData,
+  getRegexAuthor,
   ifAnyOfTheEnv,
   ifAuthor,
   ifAuthorNoEnv,
@@ -26,10 +25,11 @@ import {
   ifTouch,
   MessageAlert,
   MessageEnv,
-  regexAuthor,
   SubjectTypes,
   touch,
-} from "../../shared";
+} from "src/shared";
+import { runtime, tabs, Tabs, webNavigation } from "webextension-polyfill";
+import { create } from "zustand";
 
 const regexCopyContent = /\/content.+(?=\.html)/;
 
@@ -143,7 +143,7 @@ async function openPropertiesTouchUI() {
   const propertiesPath = await getPropertiesPath();
 
   const newUrl = url?.replace(
-    await regexAuthor(),
+    await getRegexAuthor(),
     `https://${fullAuthorPath}/${propertiesPath}`,
   );
 
@@ -163,7 +163,6 @@ type InitVariablesType = {
   ifPerfCache: boolean;
   ifProdCache: boolean;
   ifTouchCache: boolean;
-  fileUploaded: boolean;
 };
 
 function setFileUploaded() {
@@ -187,7 +186,6 @@ async function initVariables(): Promise<InitVariablesType> {
   const ifTouchCache = await ifTouch(tabUrl).catch(setFileUploaded);
 
   return {
-    fileUploaded: isFileUploaded,
     tabUrl,
     ifAnyOfTheEnvCache,
     ifAuthorCache,
@@ -229,7 +227,6 @@ export default function Popup() {
       <Async.Fulfilled>
         {({
           tabUrl,
-          fileUploaded,
           ifAnyOfTheEnvCache,
           ifJiraCache,
           ifLiveCache,
@@ -240,7 +237,7 @@ export default function Popup() {
           ifAuthorCache,
         }: InitVariablesType) => (
           <div>
-            {fileUploaded ? (
+            {isFileUploaded ? (
               <>
                 <div className="mb-3 hidden place-content-center gap-2 has-[button]:flex">
                   <ButtonEnv

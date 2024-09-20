@@ -7,7 +7,7 @@ export const classic = "cf#";
 export const getLocalSavedData = async (): Promise<SavedLocalData> =>
   storage.local.get() as Promise<SavedLocalData>;
 
-async function regexJira(): Promise<RegExp> {
+async function getRegexJira(): Promise<RegExp> {
   const {
     secretSettings: { regexJira },
   } = await getLocalSavedData();
@@ -15,9 +15,9 @@ async function regexJira(): Promise<RegExp> {
 }
 
 export const ifJira = async (url: string): Promise<boolean> =>
-  (await regexJira()).test(url);
+  (await getRegexJira()).test(url);
 
-export async function regexWorkflow(): Promise<RegExp> {
+export async function getRegexWorkflow(): Promise<RegExp> {
   const {
     secretSettings: { regexWorkflow },
   } = await getLocalSavedData();
@@ -25,16 +25,16 @@ export async function regexWorkflow(): Promise<RegExp> {
 }
 
 const ifWorkflow = async (url: string): Promise<boolean> =>
-  (await regexWorkflow()).test(url);
+  (await getRegexWorkflow()).test(url);
 
-export async function regexDAMTree(): Promise<RegExp> {
+export async function getRegexDAMTree(): Promise<RegExp> {
   const {
     secretSettings: { regexDAMTree },
   } = await getLocalSavedData();
   return new RegExp(regexDAMTree);
 }
 
-export async function regexLive(): Promise<RegExp> {
+export async function getRegexLive(): Promise<RegExp> {
   const {
     secretSettings: { regexLive },
   } = await getLocalSavedData();
@@ -42,9 +42,9 @@ export async function regexLive(): Promise<RegExp> {
 }
 
 export const ifLive = async (url: string): Promise<boolean> =>
-  (await regexLive()).test(url);
+  (await getRegexLive()).test(url);
 
-async function regexPerfProd(): Promise<RegExp> {
+async function getRegexPerfProd(): Promise<RegExp> {
   const {
     secretSettings: { regexPerfProd },
   } = await getLocalSavedData();
@@ -52,14 +52,14 @@ async function regexPerfProd(): Promise<RegExp> {
 }
 
 export const ifPerfProd = async (url: string): Promise<boolean> =>
-  (await regexPerfProd()).test(url);
+  (await getRegexPerfProd()).test(url);
 
 export const ifPerf = async (url: string): Promise<boolean> =>
-  url.replace(await regexPerfProd(), "$1") === "perf";
+  url.replace(await getRegexPerfProd(), "$1") === "perf";
 export const ifProd = async (url: string): Promise<boolean> =>
-  url.replace(await regexPerfProd(), "$1") === "prod";
+  url.replace(await getRegexPerfProd(), "$1") === "prod";
 
-export async function regexAuthor(): Promise<RegExp> {
+export async function getRegexAuthor(): Promise<RegExp> {
   const {
     secretSettings: { regexAuthor },
   } = await getLocalSavedData();
@@ -67,41 +67,41 @@ export async function regexAuthor(): Promise<RegExp> {
 }
 
 export const ifAuthor = async (url: string): Promise<boolean> =>
-  (await regexAuthor()).test(url);
+  (await getRegexAuthor()).test(url);
 export const ifAuthorNoEnv = async (url: string): Promise<boolean> =>
-  url.replace(await regexAuthor(), "$2") === "";
+  url.replace(await getRegexAuthor(), "$2") === "";
 export const ifClassic = async (url: string): Promise<boolean> =>
-  url.replace(await regexAuthor(), "$2") === classic;
+  url.replace(await getRegexAuthor(), "$2") === classic;
 export const ifTouch = async (url: string): Promise<boolean> =>
-  url.replace(await regexAuthor(), "$2") === touch;
+  url.replace(await getRegexAuthor(), "$2") === touch;
 
 export const ifAnyOfTheEnv = async (url: string) =>
-  (await regexLive()).test(url) ||
-  (await regexPerfProd()).test(url) ||
-  (await regexAuthor()).test(url);
+  (await getRegexLive()).test(url) ||
+  (await getRegexPerfProd()).test(url) ||
+  (await getRegexAuthor()).test(url);
 
-export async function regexDetermineBeta(): Promise<RegExp> {
+export async function getRegexDetermineBeta(): Promise<RegExp> {
   const {
     secretSettings: { regexDetermineBeta },
   } = await getLocalSavedData();
   return new RegExp(regexDetermineBeta);
 }
 
-async function regexFastAuthor(): Promise<RegExp> {
+async function getRegexFastAuthor(): Promise<RegExp> {
   const {
     secretSettings: { regexFastAuthor },
   } = await getLocalSavedData();
   return new RegExp(regexFastAuthor);
 }
 
-async function regexFixSiteWide(): Promise<RegExp> {
+async function getRegexFixSiteWide(): Promise<RegExp> {
   const {
     secretSettings: { regexFixSiteWide },
   } = await getLocalSavedData();
   return new RegExp(regexFixSiteWide);
 }
 
-export async function regexWFTitle(): Promise<RegExp> {
+export async function getRegexWFTitle(): Promise<RegExp> {
   const {
     secretSettings: { regexWFTitle },
   } = await getLocalSavedData();
@@ -206,7 +206,8 @@ export type SubjectTypes =
   | "showMessage"
   | "openInTree"
   | "createWF"
-  | "checkMothersite";
+  | "checkMothersite"
+  | "getCookie";
 export type EnvTypes = "live" | "perf" | "prod" | "author";
 export type EnvTypesExtended = EnvTypes | "editor.html" | "cf#";
 export type FromTypes = "popup" | "background" | "content";
@@ -215,7 +216,6 @@ export type ColorProps = "info" | "success" | "warning" | "error";
 export type MessageCommon = {
   from: FromTypes;
   subject: SubjectTypes | null;
-  url?: string;
 };
 
 export type MessageEnv = {
@@ -299,9 +299,9 @@ export default class AEMLink {
       return;
     }
 
-    const regexLiveCached = await regexLive();
-    const regexPerfProdCached = await regexPerfProd();
-    this.regexAuthorCached = await regexAuthor();
+    const regexLiveCached = await getRegexLive();
+    const regexPerfProdCached = await getRegexPerfProd();
+    this.regexAuthorCached = await getRegexAuthor();
 
     // Live
     if (regexLiveCached.test(this.url.href)) {
@@ -459,7 +459,7 @@ export default class AEMLink {
     }
 
     const tab: Tabs.Tab = (
-      await tabs.query({ url: this.url?.href, currentWindow: true })
+      await tabs.query({ url: this.url.href, currentWindow: true })
     )[0];
 
     if (!tab.id) {
@@ -486,7 +486,7 @@ export default class AEMLink {
   async determineEnv(env: EnvTypesExtended): Promise<string> {
     let newUrl: string | undefined;
 
-    const regexFastAuthorCached = await regexFastAuthor();
+    const regexFastAuthorCached = await getRegexFastAuthor();
 
     if (this.isAuthor && this.url) {
       if (env === classic || env === touch) {
@@ -590,7 +590,7 @@ export default class AEMLink {
       this.isMarketHasHomeNew() && !this.urlPart ? "home-new" : "home"
     }${this.urlPart}`;
 
-    const regexFixSiteWideCached = await regexFixSiteWide();
+    const regexFixSiteWideCached = await getRegexFixSiteWide();
 
     if (wrongLink.replace(regexFixSiteWideCached, "$3") === "content") {
       wrongLink = wrongLink.replace(
@@ -612,7 +612,7 @@ export default class AEMLink {
       },
     );
 
-    const originalPath = response?.map?.originalPath;
+    const originalPath = response.map?.originalPath;
     if (!originalPath) {
       throw new Error("Please logIn to your AEM account");
     }

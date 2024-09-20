@@ -1,8 +1,8 @@
-import React, { ChangeEvent } from "react";
+import { ChangeEvent } from "react";
 import { FileInput } from "react-daisyui";
+import { SavedSyncData } from "src/shared";
 import { storage } from "webextension-polyfill";
 import { create } from "zustand";
-import { SavedSyncData } from "../../shared";
 
 const useStateUploaded = create<{
   fileUploaded: boolean;

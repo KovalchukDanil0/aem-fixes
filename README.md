@@ -4,7 +4,7 @@
 
 AEM Fixes is a modern Chrome Extension designed to eliminate repetitive everyday tasks in AEM Engine by automating them.
 
-![react](https://img.shields.io/badge/react-18.3-green) ![typescript](https://img.shields.io/badge/typescript-5.6-aqua) ![sass](https://img.shields.io/badge/sass-1.78-pink) ![tailwindcss](https://img.shields.io/badge/tailwindcss-3.4-navy) ![daisyui](https://img.shields.io/badge/daisyui-4.12-yellow) ![webextension-polyfill](https://img.shields.io/badge/webextension_polyfill-0.10-red) ![vite](https://img.shields.io/badge/vite-5.4-azure) 
+![react](https://img.shields.io/badge/react-18.3-green) ![typescript](https://img.shields.io/badge/typescript-5.6-aqua) ![sass](https://img.shields.io/badge/sass-1.79-pink) ![tailwindcss](https://img.shields.io/badge/tailwindcss-3.4-navy) ![daisyui](https://img.shields.io/badge/daisyui-4.12-yellow) ![webextension-polyfill](https://img.shields.io/badge/webextension_polyfill-0.10-red) ![vite](https://img.shields.io/badge/vite-5.4-azure) 
 
 ![Armageddon](public/armageddon.png)
 

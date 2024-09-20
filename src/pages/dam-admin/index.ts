@@ -1,8 +1,8 @@
-import { getFullAuthorPath, regexDAMTree, touch } from "../../shared";
+import { getFullAuthorPath, getRegexDAMTree, touch } from "src/shared";
 
 window.addEventListener("hashchange", hasChange, false);
 async function hasChange() {
-  const regexDamTreeCached = await regexDAMTree();
+  const regexDamTreeCached = await getRegexDAMTree();
 
   const url: string = window.location.href;
   const mav: string = url.replace(regexDamTreeCached, "$2");

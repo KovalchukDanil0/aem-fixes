@@ -1,14 +1,14 @@
 import { createElement } from "react";
 import { createRoot } from "react-dom/client";
-import { runtime, storage } from "webextension-polyfill";
 import {
   MessageCommon,
   getFullAuthorPath,
   getLocalSavedData,
+  getRegexWFTitle,
   getWorkflowPath,
   loadSavedData,
-  regexWFTitle,
-} from "../../shared";
+} from "src/shared";
+import { runtime, storage } from "webextension-polyfill";
 
 async function getSecretWord(): Promise<string> {
   const {
@@ -167,7 +167,7 @@ async function textToWFPath(
       return;
     }
 
-    const regexWFTitleCached = await regexWFTitle();
+    const regexWFTitleCached = await getRegexWFTitle();
 
     market = title?.replace(regexWFTitleCached, "$1");
     if (!market) {

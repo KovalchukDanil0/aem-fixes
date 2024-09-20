@@ -26,6 +26,7 @@ export default defineManifest({
     "contextMenus",
     "scripting",
     "webNavigation",
+    "cookies",
   ],
   host_permissions: ["<all_urls>"],
   commands: {

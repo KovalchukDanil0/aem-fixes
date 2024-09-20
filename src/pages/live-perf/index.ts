@@ -1,21 +1,19 @@
 import axios from "axios";
-import axiosRetry from "axios-retry";
 import { createElement, ReactElement } from "react";
 import { createRoot } from "react-dom/client";
-import { Runtime, runtime } from "webextension-polyfill";
-import ShowroomCodes from "../../containers/ShowroomCodes";
+import ShowroomCodes from "src/containers/ShowroomCodes";
 import {
   FromTypes,
+  getRegexAuthor,
   loadSavedData,
   MessageAlert,
   MessageCommon,
-  regexAuthor,
   ShowroomCode,
   waitForElm,
-} from "../../shared";
+} from "src/shared";
+import { runtime } from "webextension-polyfill";
 import "./index.scss";
 
-let vehicleConfig: VehicleConfig;
 let lastVehicleIndex = -1;
 
 type VehicleConfig = {
@@ -61,20 +59,6 @@ type MemeResponseType = {
   [key: string]: { path: string };
 };
 
-axiosRetry(axios, {
-  retries: 3,
-
-  retryDelay: (retryCount) => {
-    console.log(`retry attempt: ${retryCount}`);
-    return retryCount * 2000;
-  },
-
-  retryCondition: ({ response }) => {
-    // if retry condition is not specified, by default idempotent requests are retried
-    return response?.status === 503;
-  },
-});
-
 async function randomProgrammerMemes() {
   if (document.title !== "404") {
     return;
@@ -110,8 +94,8 @@ async function randomProgrammerMemes() {
   billboardText?.remove();
 
   (billboardImages?.childNodes as NodeListOf<HTMLSourceElement>).forEach(
-    ({ srcset }) => {
-      srcset = githubPath + memeImage;
+    (image) => {
+      image.srcset = githubPath + memeImage;
     },
   );
 }
@@ -120,7 +104,7 @@ const generateRandom = (maxLimit: number) =>
   Math.floor(Math.random() * maxLimit);
 
 async function checkMothersite(from: FromTypes) {
-  if (location.href.replace(await regexAuthor(), "$4") === "mothersite") {
+  if (location.href.replace(await getRegexAuthor(), "$4") === "mothersite") {
     return;
   }
 
@@ -180,7 +164,7 @@ async function vehicleCodeInit() {
     "div.wizard.initialized-wizard.ng-scope",
   );
   if (!wizardWindowElm) {
-    throw new Error("wizard window element wasn't found");
+    return;
   }
 
   await waitForElm(
@@ -191,32 +175,52 @@ async function vehicleCodeInit() {
   const wizardVehicleSelector = document.querySelector(
     ".wizard-vehicle-selector",
   );
-  if (!wizardVehicleSelector) {
-    return;
-  }
 
-  const buttonContainer = wizardVehicleSelector.querySelector<HTMLElement>(
+  const buttonContainer = wizardVehicleSelector?.querySelector<HTMLElement>(
     "div.category-buttons > div.category-buttons-container",
   );
 
   const wizardConfig = await waitForElm("span.configuration", wizardWindowElm);
+
+  const config = `${wizardConfig.getAttribute(
+    "data-nameplate-service",
+  )}/${wizardConfig.getAttribute(
+    "data-campaign-code",
+  )}/${wizardConfig.getAttribute("data-site-id")}/${wizardConfig.getAttribute(
+    "data-event-type",
+  )}?locale=${wizardConfig.getAttribute("data-culture-code")}`;
+
+  const cookieValue: string | null = await runtime.sendMessage({
+    from: "content",
+    subject: "getCookie",
+  } as MessageCommon);
+
+  const { data: vehicleConfigResponse } = await axios.get<VehicleConfig>(
+    config,
+    {
+      headers: {
+        Accept: "application/json",
+        Authorizationtemp: `Bearer ${cookieValue}`,
+      },
+    },
+  );
 
   const butContChildren = buttonContainer?.children;
   if (butContChildren) {
     for (let index = 0; index < butContChildren.length; index++) {
       const but = butContChildren[index];
       but.addEventListener("click", () =>
-        findVehicleCode(wizardConfig, wizardVehicleSelector, index),
+        findVehicleCode(vehicleConfigResponse, wizardVehicleSelector, index),
       );
     }
   }
 
-  findVehicleCode(wizardConfig, wizardVehicleSelector);
+  findVehicleCode(vehicleConfigResponse, wizardVehicleSelector);
 }
 
 async function findVehicleCode(
-  wizardConfig: HTMLElement,
-  wizardVehicleSelector: Element,
+  vehicleConfig: VehicleConfig,
+  wizardVehicleSelector: Element | null,
   idx = 0,
 ) {
   if (lastVehicleIndex === idx) {
@@ -225,39 +229,20 @@ async function findVehicleCode(
 
   lastVehicleIndex = idx;
 
-  if (!vehicleConfig) {
-    const config = `${wizardConfig.getAttribute(
-      "data-nameplate-service",
-    )}/${wizardConfig.getAttribute(
-      "data-campaign-code",
-    )}/${wizardConfig.getAttribute("data-site-id")}/${wizardConfig.getAttribute(
-      "data-event-type",
-    )}?locale=${wizardConfig.getAttribute("data-culture-code")}`;
+  const allCars = wizardVehicleSelector?.querySelectorAll(
+    "div.vehicle-list > figure > div > figcaption > a:not(#carCode)",
+  );
 
-    const { data: vehicleConfigResponse } = await axios.get(config, {
-      headers: {
-        Accept: "application/json",
-      },
-    });
-
-    vehicleConfig = vehicleConfigResponse;
-  }
-
-  const allCars: NodeListOf<HTMLElement> =
-    wizardVehicleSelector.querySelectorAll(
-      "div.vehicle-list > figure > div > figcaption > a:not(#carCode)",
-    );
-
-  allCars.forEach(({ textContent, parentElement, id }) => {
-    const carName = textContent?.trim();
+  allCars?.forEach((carElm) => {
+    const carName = carElm.textContent?.trim();
 
     const carObj: CarProps = getCarByName(
       vehicleConfig.data[idx].eventItem,
       carName,
     );
 
-    if (parentElement && carObj) {
-      id = "carCode";
+    if (carElm.parentElement && carObj) {
+      carElm.id = "carCode";
 
       let modelCode = carObj.wersCode;
       let versionCode: string;
@@ -284,7 +269,7 @@ async function findVehicleCode(
       );
 
       const div = document.createElement("div");
-      const root = createRoot(parentElement.appendChild(div));
+      const root = createRoot(carElm.parentElement.appendChild(div));
       root.render(vehicleCodeElm);
     }
   });
@@ -322,11 +307,7 @@ async function findShowroomCode() {
 }
 
 runtime.onMessage.addListener(
-  (
-    { from, subject }: MessageCommon,
-    _sender: Runtime.MessageSender,
-    _sendResponse: Function,
-  ) => {
+  ({ from, subject }: MessageCommon, _sender, _sendResponse) => {
     if (from === "popup" && subject === "checkMothersite") {
       checkMothersite(from);
     }
@@ -336,7 +317,7 @@ runtime.onMessage.addListener(
 const getNextGenCarByName = (data: Segment[], value: string): Segment =>
   data.filter(({ NamePlate }) => NamePlate === value)[0];
 
-async function getNextGenCodes() {
+async function nextGenCodes() {
   const element = await waitForElm(".host-container.tdb-root");
   const dataJson = element.getAttribute("data-json-path");
   if (!dataJson) {
@@ -393,5 +374,5 @@ async function getNextGenCodes() {
 
   vehicleCodeInit();
   findShowroomCode();
-  getNextGenCodes();
+  nextGenCodes();
 })();

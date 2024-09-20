@@ -1,19 +1,19 @@
 import axios from "axios";
 import { createElement, ReactElement } from "react";
 import { createRoot } from "react-dom/client";
-import { runtime } from "webextension-polyfill";
-import ReferencesBanner from "../../containers/ReferencesBanner";
-import WFShowTicket from "../../containers/WFShowTicket";
+import ReferencesBanner from "src/containers/ReferencesBanner";
+import WFShowTicket from "src/containers/WFShowTicket";
 import {
   getFullAuthorPath,
   getLocalSavedData,
+  getRegexAuthor,
+  getRegexDetermineBeta,
   loadSavedData,
   MessageCommon,
   ReferencesConfig,
-  regexAuthor,
-  regexDetermineBeta,
   waitForElm,
-} from "../../shared";
+} from "src/shared";
+import { runtime } from "webextension-polyfill";
 import "./index.scss";
 
 const url =
@@ -98,7 +98,9 @@ async function checkReferences() {
   }
 
   const fullAuthorPath = await getFullAuthorPath();
-  const encodedURL = encodeURIComponent(url.replace(await regexAuthor(), "$3"));
+  const encodedURL = encodeURIComponent(
+    url.replace(await getRegexAuthor(), "$3"),
+  );
   const pathToReferences = await getPathToReferences();
   const pathToReferencesParams = await getPathToReferencesParams();
 
@@ -122,7 +124,7 @@ async function checkReferences() {
 
   const referencesBanner: ReactElement = ReferencesBanner({
     pages,
-    regexDetermineBeta: await regexDetermineBeta(),
+    regexDetermineBeta: await getRegexDetermineBeta(),
   });
 
   const root = createRoot(container);
@@ -132,20 +134,13 @@ async function checkReferences() {
 }
 
 runtime.onMessage.addListener(
-  (
-    { from, subject }: MessageCommon,
-    _sender,
-    _sendResponse,
-  ): Promise<string> | undefined => {
+  ({ from, subject }: MessageCommon, _sender, _sendResponse) => {
     if (from === "popup" && subject === "checkReferences") {
       checkReferences();
     }
 
     if (from === "background" && subject === "getRealUrl") {
-      const realPerfLink = getRealPerfUrl();
-      if (realPerfLink) {
-        return Promise.resolve(realPerfLink);
-      }
+      return Promise.resolve(getRealPerfUrl());
     }
   },
 );

@@ -1,20 +1,21 @@
-import React, { ReactElement } from "react";
-import { ReferencesConfig, touch } from "../../shared";
+import { ComponentProps, ReactElement } from "react";
+import { ReferencesConfig, touch } from "src/shared";
 import "./index.scss";
 
-interface Props extends ReferencesConfig {
+interface Props extends ReferencesConfig, ComponentProps<"div"> {
   regexDetermineBeta: RegExp;
 }
 
 export default function ReferencesBanner({
   pages,
   regexDetermineBeta,
+  ...props
 }: Readonly<Props>): ReactElement {
   return (
-    <div className="referencesBanner">
+    <div {...props} className="referencesBanner">
       {pages
-        .toSorted(({ path }, { path: pathToCheck }) =>
-          path.localeCompare(pathToCheck),
+        .toSorted(({ path }, { path: pathToCompare }) =>
+          path.localeCompare(pathToCompare),
         )
         .map(({ path }) => {
           const linkBetaFix = path.replace(regexDetermineBeta, `$1/${touch}$2`);

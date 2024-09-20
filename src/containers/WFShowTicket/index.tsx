@@ -1,27 +1,29 @@
-import React, { ReactElement } from "react";
+import { ComponentProps, ReactElement } from "react";
 import "./index.scss";
 
 const regexRemoveCommas = /.+(ESM-\d\d\d\d\d\d?).+/;
 
-type Params = {
+interface Props extends ComponentProps<"a"> {
   blockingTicket: string | null;
   jiraPath: string;
-};
+}
 
 export default function WFShowTicket({
   blockingTicket,
   jiraPath,
-}: Readonly<Params>): ReactElement {
+  ...props
+}: Readonly<Props>): ReactElement {
   if (!blockingTicket) {
     throw new Error("blocking ticket is null");
   }
 
-  const blockingTicketReplaced: string | undefined = blockingTicket?.replace(
+  const blockingTicketReplaced = blockingTicket.replace(
     regexRemoveCommas,
     "$1",
   );
   return (
     <a
+      {...props}
       className="showTicket"
       href={`https://${jiraPath}${blockingTicketReplaced}#view-subtasks`}
       target="_blank"

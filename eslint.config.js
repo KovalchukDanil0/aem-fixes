@@ -1,9 +1,11 @@
 // @ts-check
 
 import esLint from "@eslint/js";
-import react from "eslint-plugin-react";
 import globals from "globals";
 import esLintTs from "typescript-eslint";
+
+// @ts-ignore
+import react from "eslint-plugin-react";
 
 export default esLintTs.config({
   ...esLint.configs.recommended,

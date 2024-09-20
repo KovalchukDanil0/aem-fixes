@@ -1,5 +1,5 @@
+import { waitForElm } from "src/shared";
 import { storage } from "webextension-polyfill";
-import { waitForElm } from "../../shared";
 
 type WFProps = { WFTitle: string | null; WFName: string | null };
 
@@ -11,7 +11,9 @@ async function createWF({ WFName, WFTitle }: WFProps) {
   storage.local.set({ WFTitle: null });
   storage.local.set({ WFName: null });
 
-  const panelContentElm = document.querySelector("#cq-miscadmin-grid > div");
+  const panelContentElm = await waitForElm<HTMLElement>(
+    "#cq-miscadmin-grid > div",
+  );
 
   if (!panelContentElm) {
     throw new Error("panel content element wasn't found");

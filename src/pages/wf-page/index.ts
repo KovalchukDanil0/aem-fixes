@@ -1,15 +1,18 @@
 import { createElement } from "react";
 import { createRoot } from "react-dom/client";
 import AEMLink, {
-  regexDetermineBeta,
-  regexWorkflow,
+  getRegexDetermineBeta,
+  getRegexWorkflow,
   touch,
   waitForElm,
-} from "../../shared";
+} from "src/shared";
 import "./index.scss";
 
-const addBetaToLink = async ({ href }: HTMLAnchorElement) =>
-  (href = href.replace(await regexDetermineBeta(), `$1/${touch}$2`));
+const addBetaToLink = async (link: HTMLAnchorElement) =>
+  (link.href = link.href.replace(
+    await getRegexDetermineBeta(),
+    `$1/${touch}$2`,
+  ));
 
 async function addWorkflowId() {
   const sectionSelector = ".page.section > .configSection > div a";
@@ -17,7 +20,7 @@ async function addWorkflowId() {
   const getLinksInWF: NodeListOf<HTMLAnchorElement> =
     document.querySelectorAll(sectionSelector);
 
-  const WFID = location.href.replace(await regexWorkflow(), "$4");
+  const WFID = location.href.replace(await getRegexWorkflow(), "$4");
 
   const form = await waitForElm<HTMLFormElement>("#workflow-title-input");
 
@@ -41,10 +44,10 @@ async function usefulLinks() {
   await AEMInstance.initialize();
 
   AEMInstance.market = AEMInstance.fixMarket(
-    location.href.replace(await regexWorkflow(), "$1").toLowerCase(),
+    location.href.replace(await getRegexWorkflow(), "$1").toLowerCase(),
   );
   AEMInstance.localLanguage = location.href
-    .replace(await regexWorkflow(), "$2$3")
+    .replace(await getRegexWorkflow(), "$2$3")
     .toLowerCase();
 
   const wrongMarkets = ["da", "cs", "el"];

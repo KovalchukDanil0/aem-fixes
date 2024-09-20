@@ -1,4 +1,4 @@
-import React, { ReactElement } from "react";
+import { ReactElement } from "react";
 import { Button } from "react-daisyui";
 import { useMediaQuery } from "react-responsive";
 

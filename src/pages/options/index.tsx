@@ -1,6 +1,5 @@
-import React from "react";
 import { createRoot } from "react-dom/client";
-import "../../assets/scss/tailwind.scss";
+import "src/assets/scss/tailwind.scss";
 import "./index.scss";
 import Options from "./Options";
 

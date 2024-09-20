@@ -6,6 +6,7 @@ import { basename, join, resolve } from "path";
 import { defineConfig, Plugin, ResolvedConfig } from "vite";
 import { ViteImageOptimizer } from "vite-plugin-image-optimizer";
 import zipPack from "vite-plugin-zip-pack";
+import tsconfigPaths from "vite-tsconfig-paths";
 import manifest from "./manifest.config";
 import { name, version } from "./package.json";
 import rollupOptions from "./rollup.config";
@@ -74,15 +75,17 @@ function fixManifest({
 
 export default defineConfig({
   plugins: [
-    !isWatch && [
-      react(),
+    react(),
+    tsconfigPaths(),
 
+    !isWatch && [
       crx({
         manifest,
         contentScripts: {
           injectCss: true,
         },
       }),
+
       fixManifest({
         property: "web_accessible_resources",
         object: [
@@ -100,6 +103,7 @@ export default defineConfig({
   ],
   build: {
     minify: "esbuild",
+    target: "esnext",
     emptyOutDir: true,
     rollupOptions,
   },

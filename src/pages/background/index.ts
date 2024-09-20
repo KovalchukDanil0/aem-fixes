@@ -1,15 +1,4 @@
 import axios from "axios";
-import {
-  Menus,
-  Tabs,
-  WebNavigation,
-  commands,
-  contextMenus,
-  runtime,
-  scripting,
-  tabs,
-  webNavigation,
-} from "webextension-polyfill";
 import AEMLink, {
   EnvTypesExtended,
   MessageAlert,
@@ -19,15 +8,26 @@ import AEMLink, {
   getCurrentTab,
   getFullAuthorPath,
   getLocalSavedData,
+  getRegexAuthor,
+  getRegexWorkflow,
   getWorkflowPath,
   ifAuthorNoEnv,
   ifJira,
   ifLive,
   ifPerfProd,
-  regexAuthor,
-  regexWorkflow,
   touch,
-} from "../../shared";
+} from "src/shared";
+import {
+  Tabs,
+  WebNavigation,
+  commands,
+  contextMenus,
+  cookies,
+  runtime,
+  scripting,
+  tabs,
+  webNavigation,
+} from "webextension-polyfill";
 
 async function getRegexImagePicker(): Promise<RegExp> {
   const {
@@ -68,7 +68,8 @@ const ifDamUrl = async (url: string) => url.includes(await getDamTreeUrl());
 const ifFindReplaceUrl = async (url: string) =>
   url.includes(await getFindReplaceUrl());
 
-const ifWorkflowUrl = async (url: string) => (await regexWorkflow()).test(url);
+const ifWorkflowUrl = async (url: string) =>
+  (await getRegexWorkflow()).test(url);
 
 function aemLinkError({ message: errorMessage }: Error) {
   const message: MessageAlert = {
@@ -88,9 +89,9 @@ function toEnvironment(
   url?: string,
 ) {
   activeTabs.forEach(async ({ url: tabUrl, index, id }) => {
-    const initUrl: string | undefined = url ?? tabUrl;
+    tabUrl ??= url;
 
-    const data = new AEMLink(initUrl);
+    const data = new AEMLink(tabUrl);
     await data.initialize();
 
     const newUrl = await data.determineEnv(env).catch(aemLinkError);
@@ -145,32 +146,50 @@ const changeContentInTab = async function (
 };
 
 const openInTree = async function (authorUrl?: string) {
-  authorUrl = authorUrl?.replace(await regexAuthor(), "$3");
+  authorUrl = authorUrl?.replace(await getRegexAuthor(), "$3");
 
   const fullAuthorPath = await getFullAuthorPath();
   changeContentInTab(authorUrl, `https://${fullAuthorPath}/siteadmin`);
 };
 
 runtime.onMessage.addListener(
-  (
-    { from, subject, env, newTab, tabs: msgTabs, url: msgUrl }: MessageEnv,
-    _sender,
+  async (
+    { from, subject, env, newTab, tabs: msgTabs }: MessageEnv,
+    sender,
     _sendResponse,
   ) => {
-    if (from !== "background") {
-      if (subject === "toEnvironment") {
+    if (from === "background") {
+      return;
+    }
+
+    switch (subject) {
+      case "toEnvironment":
         toEnvironment(msgTabs, newTab, env);
+        break;
+
+      case "openInTree": {
+        const url = sender.url ?? msgTabs[msgTabs.length - 1].url;
+        openInTree(url);
+
+        break;
       }
 
-      if (subject === "openInTree") {
-        const url = msgUrl ?? msgTabs?.[msgTabs?.length - 1].url;
-        openInTree(url);
-      }
+      case "getCookie":
+        if (sender.tab?.url) {
+          const cookie = await cookies.get({
+            name: "ADFS-credential",
+            url: sender.tab?.url,
+          });
+
+          return Promise.resolve(cookie?.value);
+        }
+
+        break;
     }
   },
 );
 
-runtime.onInstalled.addListener(function () {
+runtime.onInstalled.addListener(() => {
   contextMenus.create({
     title: "Open content in DAM",
     contexts: ["image"],
@@ -231,75 +250,69 @@ runtime.onInstalled.addListener(function () {
   });
 });
 
-contextMenus.onClicked.addListener(menusOnClick);
-async function menusOnClick(
-  { menuItemId, srcUrl, selectionText, linkUrl }: Menus.OnClickData,
-  patternTabs: Tabs.Tab | undefined,
-) {
-  if (!patternTabs) {
-    throw new Error("tabs in menus are undefined");
-  }
-
-  const fullAuthorPath = await getFullAuthorPath();
-
-  const tab: Tabs.Tab[] = [patternTabs];
-  switch (menuItemId) {
-    case "openInDAM": {
-      const imagePath: string | undefined = srcUrl?.replace(
-        await getRegexImagePicker(),
-        "$1",
-      );
-
-      changeContentInTab(imagePath, `https://${fullAuthorPath}/damadmin`);
-
-      break;
+contextMenus.onClicked.addListener(
+  async ({ menuItemId, srcUrl, selectionText, linkUrl }, patternTab) => {
+    if (!patternTab) {
+      throw new Error("tabs in menus are undefined");
     }
-    case "openInAEM": {
-      const newLinkUrl = selectionText
-        ? `https://${fullAuthorPath}${selectionText}.html`
-        : linkUrl;
-      openInTree(newLinkUrl);
 
-      break;
-    }
-    case "openInTouchUI": {
-      let content: string | undefined = selectionText;
-      if (!content) {
-        throw new Error("openInTouchUI content is undefined");
+    const fullAuthorPath = await getFullAuthorPath();
+
+    switch (menuItemId) {
+      case "openInDAM": {
+        const imagePath = srcUrl?.replace(await getRegexImagePicker(), "$1");
+
+        changeContentInTab(imagePath, `https://${fullAuthorPath}/damadmin`);
+
+        break;
       }
+      case "openInAEM": {
+        const newLinkUrl = selectionText
+          ? `https://${fullAuthorPath}${selectionText}.html`
+          : linkUrl;
+        openInTree(newLinkUrl);
 
-      const regexHTMLExistCached = await getRegexHTMLExist();
-      if (!regexHTMLExistCached.test(content)) {
-        content += ".html";
+        break;
       }
+      case "openInTouchUI": {
+        let content: string | undefined = selectionText;
+        if (!content) {
+          throw new Error("openInTouchUI content is undefined");
+        }
 
-      const newUrl = `https://${fullAuthorPath}/editor.html${content}`;
-      tabs.create({
-        url: newUrl,
-        index: tab[tab.length - 1].index + 1,
-      });
+        const regexHTMLExistCached = await getRegexHTMLExist();
+        if (!regexHTMLExistCached.test(content)) {
+          content += ".html";
+        }
 
-      break;
+        const newUrl = `https://${fullAuthorPath}/editor.html${content}`;
+        tabs.create({
+          url: newUrl,
+          index: patternTab.index + 1,
+        });
+
+        break;
+      }
+      case "toLive":
+        toEnvironment([patternTab], true, "live", linkUrl);
+        break;
+      case "toPerf":
+        toEnvironment([patternTab], true, "perf", linkUrl);
+        break;
+      case "toProd":
+        toEnvironment([patternTab], true, "prod", linkUrl);
+        break;
+      case "toTouch":
+        toEnvironment([patternTab], true, touch, linkUrl);
+        break;
+      case "toClassic":
+        toEnvironment([patternTab], true, classic, linkUrl);
+        break;
+      default:
+        break;
     }
-    case "toLive":
-      toEnvironment(tab, true, "live", linkUrl);
-      break;
-    case "toPerf":
-      toEnvironment(tab, true, "perf", linkUrl);
-      break;
-    case "toProd":
-      toEnvironment(tab, true, "prod", linkUrl);
-      break;
-    case "toTouch":
-      toEnvironment(tab, true, touch, linkUrl);
-      break;
-    case "toClassic":
-      toEnvironment(tab, true, classic, linkUrl);
-      break;
-    default:
-      break;
-  }
-}
+  },
+);
 
 type CommandEnvs = "toLive" | "toPerf" | "toProd" | "toAuthor";
 
@@ -407,17 +420,15 @@ async function onLoadingComplete({
     args: [`${scriptPath}.js`],
   });
 
-  try {
-    const cssResource = `${injectScript}.css`;
-    const { status } = await axios.request({ url: cssResource });
+  const cssResource = `${injectScript}.css`;
+  const { status } = await axios.request({ url: cssResource }).catch(() => {
+    throw new Error("css resource not exist");
+  });
 
-    if (status === 200) {
-      scripting.insertCSS({
-        target,
-        files: [cssResource],
-      });
-    }
-  } catch (err) {
-    console.warn("css resource not exist");
+  if (status === 200) {
+    scripting.insertCSS({
+      target,
+      files: [cssResource],
+    });
   }
 }

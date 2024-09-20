@@ -1,9 +1,9 @@
-import React, { MouseEvent } from "react";
+import { MouseEvent } from "react";
 import { Async } from "react-async";
 import { Checkbox, Loading } from "react-daisyui";
+import UploadJsonFile from "src/containers/UploadJsonFile";
+import { SavedSyncData, loadSavedData } from "src/shared";
 import { storage } from "webextension-polyfill";
-import UploadJsonFile from "../../containers/UploadJsonFile";
-import { SavedSyncData, loadSavedData } from "../../shared";
 
 const settingNames = {
   disCreateWF: "Disable create WF button",

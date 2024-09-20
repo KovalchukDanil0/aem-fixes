@@ -1,12 +1,15 @@
-import React, { ReactElement } from "react";
-import { ShowroomCode } from "../../shared";
+import { ComponentProps, ReactElement } from "react";
+import { ShowroomCode } from "src/shared";
 import "./index.scss";
+
+type Props = ShowroomCode & ComponentProps<"div">;
 
 export default function ShowroomCodes({
   showroomConfig,
-}: Readonly<ShowroomCode>): ReactElement {
+  ...props
+}: Readonly<Props>): ReactElement {
   return (
-    <div className="showroomCodes">
+    <div {...props} className="showroomCodes">
       {Object.keys(showroomConfig).map((item) => {
         const { code, name } =
           showroomConfig[item as keyof typeof showroomConfig];

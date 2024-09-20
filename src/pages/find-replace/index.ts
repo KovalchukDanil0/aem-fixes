@@ -1,7 +1,7 @@
 import { createElement } from "react";
 import { createRoot } from "react-dom/client";
+import { MessageCommon, waitForElm } from "src/shared";
 import { runtime } from "webextension-polyfill";
-import { MessageCommon, waitForElm } from "../../shared";
 import "./index.scss";
 
 async function fixOldLinks() {
@@ -40,7 +40,6 @@ async function fixOldLinks() {
     const message: MessageCommon = {
       from: "content",
       subject: "openInTree",
-      url,
     };
 
     const a = createElement(
