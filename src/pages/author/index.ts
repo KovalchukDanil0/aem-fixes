@@ -1,18 +1,17 @@
 import axios from "axios";
 import { createElement, ReactElement } from "react";
 import { createRoot } from "react-dom/client";
-import ReferencesBanner from "src/containers/ReferencesBanner";
-import WFShowTicket from "src/containers/WFShowTicket";
+import ReferencesBanner from "src/components/ReferencesBanner";
+import WFShowTicket from "src/components/WFShowTicket";
 import {
   getFullAuthorPath,
   getLocalSavedData,
   getRegexAuthor,
   getRegexDetermineBeta,
   loadSavedData,
-  MessageCommon,
-  ReferencesConfig,
-  waitForElm,
-} from "src/shared";
+} from "src/lib/storage";
+import { waitForElm } from "src/lib/tools";
+import { MessageCommon, ReferencesConfig } from "src/lib/types";
 import { runtime } from "webextension-polyfill";
 import "./index.scss";
 
@@ -47,7 +46,7 @@ function getRealPerfUrl(): string | undefined {
     ?.content;
 }
 
-async function catErrors() {
+async function catErrors(): Promise<void> {
   let textContent = document.querySelector(
     "body > header > title",
   )?.textContent;
@@ -78,7 +77,7 @@ async function catErrors() {
   root.render(errorImage);
 }
 
-async function ticketFinder() {
+async function ticketFinder(): Promise<void> {
   const blockingTicketElm = await waitForElm<HTMLElement>(
     "div.workflows-warning-bar > i:nth-child(3)",
   );
@@ -92,7 +91,7 @@ async function ticketFinder() {
 }
 
 let refGot = false;
-async function checkReferences() {
+async function checkReferences(): Promise<void> {
   if (refGot) {
     return;
   }
@@ -134,7 +133,7 @@ async function checkReferences() {
 }
 
 runtime.onMessage.addListener(
-  ({ from, subject }: MessageCommon, _sender, _sendResponse) => {
+  ({ from, subject }: MessageCommon): Promise<string | undefined> => {
     if (from === "popup" && subject === "checkReferences") {
       checkReferences();
     }
@@ -142,6 +141,8 @@ runtime.onMessage.addListener(
     if (from === "background" && subject === "getRealUrl") {
       return Promise.resolve(getRealPerfUrl());
     }
+
+    return Promise.resolve(undefined);
   },
 );
 

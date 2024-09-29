@@ -1,16 +1,15 @@
 import axios from "axios";
 import { createElement, ReactElement } from "react";
 import { createRoot } from "react-dom/client";
-import ShowroomCodes from "src/containers/ShowroomCodes";
+import ShowroomCodes from "src/components/ShowroomCodes";
+import { getRegexAuthor, loadSavedData } from "src/lib/storage";
+import { waitForElm } from "src/lib/tools";
 import {
   FromTypes,
-  getRegexAuthor,
-  loadSavedData,
   MessageAlert,
   MessageCommon,
   ShowroomCode,
-  waitForElm,
-} from "src/shared";
+} from "src/lib/types";
 import { runtime } from "webextension-polyfill";
 import "./index.scss";
 
@@ -59,7 +58,7 @@ type MemeResponseType = {
   [key: string]: { path: string };
 };
 
-async function randomProgrammerMemes() {
+async function randomProgrammerMemes(): Promise<void> {
   if (document.title !== "404") {
     return;
   }
@@ -100,10 +99,10 @@ async function randomProgrammerMemes() {
   );
 }
 
-const generateRandom = (maxLimit: number) =>
+const generateRandom = (maxLimit: number): number =>
   Math.floor(Math.random() * maxLimit);
 
-async function checkMothersite(from: FromTypes) {
+async function checkMothersite(from: FromTypes): Promise<void> {
   if (location.href.replace(await getRegexAuthor(), "$4") === "mothersite") {
     return;
   }
@@ -159,7 +158,7 @@ async function checkMothersite(from: FromTypes) {
 const getCarByName = (data: CarProps[], value?: string): CarProps =>
   data.filter(({ desc }) => desc === value)[0];
 
-async function vehicleCodeInit() {
+async function vehicleCodeInit(): Promise<void> {
   const wizardWindowElm = document.querySelector<HTMLDivElement>(
     "div.wizard.initialized-wizard.ng-scope",
   );
@@ -222,7 +221,7 @@ async function findVehicleCode(
   vehicleConfig: VehicleConfig,
   wizardVehicleSelector: Element | null,
   idx = 0,
-) {
+): Promise<void> {
   if (lastVehicleIndex === idx) {
     return;
   }
@@ -275,7 +274,7 @@ async function findVehicleCode(
   });
 }
 
-async function findShowroomCode() {
+async function findShowroomCode(): Promise<void> {
   const showroomElm = await waitForElm("#acc-showroom > span");
 
   const config = showroomElm.getAttribute("data-bsl-url");
@@ -306,18 +305,16 @@ async function findShowroomCode() {
   root.render(showroomCodes);
 }
 
-runtime.onMessage.addListener(
-  ({ from, subject }: MessageCommon, _sender, _sendResponse) => {
-    if (from === "popup" && subject === "checkMothersite") {
-      checkMothersite(from);
-    }
-  },
-);
+runtime.onMessage.addListener(({ from, subject }: MessageCommon): void => {
+  if (from === "popup" && subject === "checkMothersite") {
+    checkMothersite(from);
+  }
+});
 
 const getNextGenCarByName = (data: Segment[], value: string): Segment =>
   data.filter(({ NamePlate }) => NamePlate === value)[0];
 
-async function nextGenCodes() {
+async function nextGenCodes(): Promise<void> {
   const element = await waitForElm(".host-container.tdb-root");
   const dataJson = element.getAttribute("data-json-path");
   if (!dataJson) {
@@ -337,8 +334,13 @@ async function nextGenCodes() {
     appConfig[":items"].root[":items"].endpoints.getDemoVehicles,
   );
 
-  const vehicleCardList = element.querySelector(".vehicle-card-list");
-  const carEntries = vehicleCardList?.querySelectorAll(
+  const vehicleCardList =
+    element.querySelector<HTMLElement>(".vehicle-card-list");
+  if (!vehicleCardList) {
+    throw new Error("TBD root doesn't have vehicle-card-list element");
+  }
+
+  const carEntries = vehicleCardList.querySelectorAll<HTMLElement>(
     ".vehicle-card-container",
   );
 
@@ -354,10 +356,21 @@ async function nextGenCodes() {
       carName.textContent,
     );
 
-    const elm = document.createElement("p");
-    elm.textContent = `?vehicleCode=${VehicleCode}&nameplateId=${NamePlateID}`;
-    vehicleCardList?.appendChild(elm);
-    elm.before(car);
+    const fullCode = `?vehicleCode=${VehicleCode}&nameplateId=${NamePlateID}`;
+    const vehicleCodeElm = createElement(
+      "a",
+      {
+        href: fullCode,
+      },
+      fullCode,
+    );
+
+    const rootDiv = document.createElement("span");
+
+    const root = createRoot(
+      vehicleCardList.insertBefore(rootDiv, car.nextSibling),
+    );
+    root.render(vehicleCodeElm);
   });
 }
 

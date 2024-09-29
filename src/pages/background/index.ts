@@ -1,11 +1,6 @@
 import axios from "axios";
-import AEMLink, {
-  EnvTypesExtended,
-  MessageAlert,
-  MessageEnv,
-  classic,
-  findAsyncSequential,
-  getCurrentTab,
+import { convertLink } from "src/lib/convertLink";
+import {
   getFullAuthorPath,
   getLocalSavedData,
   getRegexAuthor,
@@ -15,8 +10,9 @@ import AEMLink, {
   ifJira,
   ifLive,
   ifPerfProd,
-  touch,
-} from "src/shared";
+} from "src/lib/storage";
+import { findAsyncSequential, getCurrentTab } from "src/lib/tools";
+import { EnvTypesExtended, MessageAlert, MessageEnv } from "src/lib/types";
 import {
   Tabs,
   WebNavigation,
@@ -60,44 +56,46 @@ async function getDamTreeUrl(): Promise<string> {
 const ifLivePerf = async (url: string): Promise<boolean> =>
   (await ifPerfProd(url)) || ifLive(url);
 
-const ifAEMToolsUrl = async (url: string) =>
+const ifAEMToolsUrl = async (url: string): Promise<boolean> =>
   url.includes(await getWorkflowPath());
 
-const ifDamUrl = async (url: string) => url.includes(await getDamTreeUrl());
+const ifDamUrl = async (url: string): Promise<boolean> =>
+  url.includes(await getDamTreeUrl());
 
-const ifFindReplaceUrl = async (url: string) =>
+const ifFindReplaceUrl = async (url: string): Promise<boolean> =>
   url.includes(await getFindReplaceUrl());
 
-const ifWorkflowUrl = async (url: string) =>
+const ifWorkflowUrl = async (url: string): Promise<boolean> =>
   (await getRegexWorkflow()).test(url);
-
-function aemLinkError({ message: errorMessage }: Error) {
-  const message: MessageAlert = {
-    from: "background",
-    subject: "showMessage",
-    color: "error",
-    message: `ERROR - ${errorMessage}`,
-  };
-
-  runtime.sendMessage(message);
-}
 
 function toEnvironment(
   activeTabs: Tabs.Tab[],
   newTab: boolean,
   env: EnvTypesExtended,
   url?: string,
-) {
+): void {
   activeTabs.forEach(async ({ url: tabUrl, index, id }) => {
-    tabUrl ??= url;
+    tabUrl = url ?? tabUrl;
+    if (!tabUrl) {
+      throw new Error("url is undefined");
+    }
 
-    const data = new AEMLink(tabUrl);
-    await data.initialize();
+    let newUrl: string;
 
-    const newUrl = await data.determineEnv(env).catch(aemLinkError);
+    try {
+      newUrl = await convertLink(env, new URL(tabUrl));
+    } catch (error) {
+      const errorMessage = (error as Error).message;
 
-    if (!newUrl) {
-      throw new Error("newUrl is undefined");
+      const message: MessageAlert = {
+        from: "background",
+        subject: "showMessage",
+        color: "error",
+        message: `ERROR - ${errorMessage}`,
+      };
+      runtime.sendMessage(message);
+
+      throw new Error(errorMessage);
     }
 
     if (newTab) {
@@ -120,7 +118,7 @@ function toEnvironment(
 const changeContentInTab = async function (
   content: string | undefined,
   urlPattern: string,
-) {
+): Promise<void> {
   if (!content) {
     throw new Error("Tab content is undefined");
   }
@@ -145,7 +143,7 @@ const changeContentInTab = async function (
   }
 };
 
-const openInTree = async function (authorUrl?: string) {
+const openInTree = async function (authorUrl?: string): Promise<void> {
   authorUrl = authorUrl?.replace(await getRegexAuthor(), "$3");
 
   const fullAuthorPath = await getFullAuthorPath();
@@ -154,10 +152,9 @@ const openInTree = async function (authorUrl?: string) {
 
 runtime.onMessage.addListener(
   async (
-    { from, subject, env, newTab, tabs: msgTabs }: MessageEnv,
+    { from, subject, env, newTab, tabs: msgTabs, url }: MessageEnv,
     sender,
-    _sendResponse,
-  ) => {
+  ): Promise<string | undefined> => {
     if (from === "background") {
       return;
     }
@@ -168,8 +165,8 @@ runtime.onMessage.addListener(
         break;
 
       case "openInTree": {
-        const url = sender.url ?? msgTabs[msgTabs.length - 1].url;
-        openInTree(url);
+        const urlToOpen = url ?? msgTabs[msgTabs.length - 1].url;
+        openInTree(urlToOpen);
 
         break;
       }
@@ -185,11 +182,14 @@ runtime.onMessage.addListener(
         }
 
         break;
+
+      default:
+        break;
     }
   },
 );
 
-runtime.onInstalled.addListener(() => {
+runtime.onInstalled.addListener((): void => {
   contextMenus.create({
     title: "Open content in DAM",
     contexts: ["image"],
@@ -251,9 +251,12 @@ runtime.onInstalled.addListener(() => {
 });
 
 contextMenus.onClicked.addListener(
-  async ({ menuItemId, srcUrl, selectionText, linkUrl }, patternTab) => {
+  async (
+    { menuItemId, srcUrl, selectionText, linkUrl },
+    patternTab,
+  ): Promise<void> => {
     if (!patternTab) {
-      throw new Error("tabs in menus are undefined");
+      throw new Error("tab in menus is undefined");
     }
 
     const fullAuthorPath = await getFullAuthorPath();
@@ -303,10 +306,10 @@ contextMenus.onClicked.addListener(
         toEnvironment([patternTab], true, "prod", linkUrl);
         break;
       case "toTouch":
-        toEnvironment([patternTab], true, touch, linkUrl);
+        toEnvironment([patternTab], true, "editor.html", linkUrl);
         break;
       case "toClassic":
-        toEnvironment([patternTab], true, classic, linkUrl);
+        toEnvironment([patternTab], true, "cf#", linkUrl);
         break;
       default:
         break;
@@ -316,7 +319,7 @@ contextMenus.onClicked.addListener(
 
 type CommandEnvs = "toLive" | "toPerf" | "toProd" | "toAuthor";
 
-commands.onCommand.addListener((command, tab) => {
+commands.onCommand.addListener((command, tab): void => {
   const typedCommand = command as CommandEnvs;
 
   if (!tab) {
@@ -378,7 +381,7 @@ const conditions: ConditionType[] = [
   },
 ];
 
-async function resolveModule(scriptPath: string) {
+async function resolveModule(scriptPath: string): Promise<void> {
   try {
     const script = await import(scriptPath);
     script();
@@ -392,7 +395,7 @@ async function onLoadingComplete({
   url,
   tabId,
   frameId,
-}: WebNavigation.OnCompletedDetailsType) {
+}: WebNavigation.OnCompletedDetailsType): Promise<void> {
   if (!url || !tabId) {
     return;
   }
@@ -422,7 +425,7 @@ async function onLoadingComplete({
 
   const cssResource = `${injectScript}.css`;
   const { status } = await axios.request({ url: cssResource }).catch(() => {
-    throw new Error("css resource not exist");
+    return { status: null };
   });
 
   if (status === 200) {

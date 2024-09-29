@@ -1,5 +1,5 @@
 import { ComponentProps, ReactElement } from "react";
-import { ReferencesConfig, touch } from "src/shared";
+import { ReferencesConfig } from "src/lib/types";
 import "./index.scss";
 
 interface Props extends ReferencesConfig, ComponentProps<"div"> {
@@ -18,7 +18,10 @@ export default function ReferencesBanner({
           path.localeCompare(pathToCompare),
         )
         .map(({ path }) => {
-          const linkBetaFix = path.replace(regexDetermineBeta, `$1/${touch}$2`);
+          const linkBetaFix = path.replace(
+            regexDetermineBeta,
+            `$1/${"editor.html"}$2`,
+          );
           return (
             <a
               key={path}

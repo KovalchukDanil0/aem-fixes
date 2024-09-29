@@ -1,6 +1,5 @@
 import { createRoot } from "react-dom/client";
-import "src/assets/scss/tailwind.scss";
-import "./index.scss";
+import "src/styles/tailwind.scss";
 import Options from "./Options";
 
 const container = document.querySelector<HTMLElement>("#app-container");

@@ -22,7 +22,7 @@ export default {
     daisyui,
     tailwindcssAnimated,
 
-    // @ts-ignore
+    // @ts-expect-error module have no type definition
     textShadow,
   ],
 } satisfies Config;

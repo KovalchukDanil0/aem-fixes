@@ -1,9 +1,9 @@
-import { waitForElm } from "src/shared";
+import { waitForElm } from "src/lib/tools";
 import { storage } from "webextension-polyfill";
 
 type WFProps = { WFTitle: string | null; WFName: string | null };
 
-async function createWF({ WFName, WFTitle }: WFProps) {
+async function createWF({ WFName, WFTitle }: WFProps): Promise<void> {
   if (WFTitle == null || WFName == null) {
     return;
   }

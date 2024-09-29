@@ -1,9 +1,11 @@
-import { MouseEvent } from "react";
+import { MouseEvent, ReactElement } from "react";
 import { Async } from "react-async";
 import { Checkbox, Loading } from "react-daisyui";
-import UploadJsonFile from "src/containers/UploadJsonFile";
-import { SavedSyncData, loadSavedData } from "src/shared";
+import UploadJsonFile from "src/components/UploadJsonFile";
+import { loadSavedData } from "src/lib/storage";
+import { SavedSyncData } from "src/lib/types";
 import { storage } from "webextension-polyfill";
+import "./index.scss";
 
 const settingNames = {
   disCreateWF: "Disable create WF button",
@@ -15,14 +17,14 @@ const settingNames = {
 
 async function saveOptions({
   currentTarget: { id, checked },
-}: MouseEvent<HTMLInputElement>) {
+}: MouseEvent<HTMLInputElement>): Promise<void> {
   const data: SavedSyncData = { [id]: checked };
   storage.sync.set(data);
 }
 
 const initVariables = async (): Promise<SavedSyncData> => loadSavedData();
 
-export default function Options() {
+export default function Options(): ReactElement {
   return (
     <Async promiseFn={initVariables}>
       <Async.Pending>

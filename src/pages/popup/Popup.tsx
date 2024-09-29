@@ -1,16 +1,9 @@
-import { ComponentProps, MouseEvent } from "react";
+import { ComponentProps, MouseEvent, ReactElement } from "react";
 import { Async } from "react-async";
 import { Alert, Button, Loading } from "react-daisyui";
-import { FaGithub } from "react-icons/fa";
-import { IoSettingsOutline } from "react-icons/io5";
-import UploadJsonFile from "src/containers/UploadJsonFile";
+import { FaCog, FaGithub } from "react-icons/fa";
+import UploadJsonFile from "src/components/UploadJsonFile";
 import {
-  classic,
-  ColorProps,
-  EnvTypes,
-  EnvTypesExtended,
-  findAsyncSequential,
-  getCurrentTab,
   getFullAuthorPath,
   getLocalSavedData,
   getRegexAuthor,
@@ -23,51 +16,27 @@ import {
   ifPerf,
   ifProd,
   ifTouch,
+} from "src/lib/storage";
+import { findAsyncSequential, getCurrentTab } from "src/lib/tools";
+import {
+  ColorProps,
+  EnvTypesExtended,
   MessageAlert,
   MessageEnv,
   SubjectTypes,
-  touch,
-} from "src/shared";
+} from "src/lib/types";
 import { runtime, tabs, Tabs, webNavigation } from "webextension-polyfill";
 import { create } from "zustand";
+import "./index.scss";
 
 const regexCopyContent = /\/content.+(?=\.html)/;
 
 let isFileUploaded = true;
 
-export async function getPropertiesPath(): Promise<string> {
-  const {
-    secretSettings: { propertiesPath },
-  } = await getLocalSavedData();
-  return propertiesPath;
-}
-
 type AlertProps = {
   text?: string;
   color?: ColorProps;
 };
-
-const useStateAlert = create<{
-  alertProps: AlertProps | null;
-  setAlertProps: (alertProps: AlertProps) => void;
-}>((set) => ({
-  alertProps: null,
-  setAlertProps: ({ text, color }) =>
-    set(() => ({ alertProps: { text, color } })),
-}));
-
-async function copyContent(url: string) {
-  const content: string | undefined = regexCopyContent.exec(url)?.[0];
-  if (!content) {
-    throw new Error(`copied content is ${content}`);
-  }
-
-  navigator.clipboard.writeText(content);
-
-  useStateAlert.setState({
-    alertProps: { text: `${content} copied to clipboard`, color: "info" },
-  });
-}
 
 type BtnSubjectType =
   | "toEnvironment"
@@ -84,19 +53,64 @@ interface ButtonEnvType extends ComponentProps<typeof Button> {
   butSendAs?: "runtime" | "tab";
 }
 
-function ButtonEnv({ anyEnv, customEnv, ...props }: Readonly<ButtonEnvType>) {
+async function getPropertiesPath(): Promise<string> {
+  const {
+    secretSettings: { propertiesPath },
+  } = await getLocalSavedData();
+  return propertiesPath;
+}
+
+type InitVariablesType = {
+  tabUrl: string;
+  ifAnyOfTheEnvCache: boolean;
+  ifAuthorCache: boolean;
+  ifClassicCache: boolean;
+  ifJiraCache: boolean;
+  ifLiveCache: boolean;
+  ifPerfCache: boolean;
+  ifProdCache: boolean;
+  ifTouchCache: boolean;
+};
+
+const useStateAlert = create<{
+  alertProps: AlertProps | null;
+  setAlertProps: (alertProps: AlertProps) => void;
+}>((set) => ({
+  alertProps: null,
+  setAlertProps: ({ text, color }) =>
+    set(() => ({ alertProps: { text, color } })),
+}));
+
+async function copyContent(url: string): Promise<void> {
+  const content: string | undefined = regexCopyContent.exec(url)?.[0];
+  if (!content) {
+    throw new Error(`copied content is ${content}`);
+  }
+
+  navigator.clipboard.writeText(content);
+
+  useStateAlert.setState({
+    alertProps: { text: `${content} copied to clipboard`, color: "info" },
+  });
+}
+
+function ButtonEnv({
+  anyEnv,
+  customEnv,
+  ...props
+}: Readonly<ButtonEnvType>): ReactElement {
   if (!anyEnv || customEnv) {
-    return false;
+    return <></>;
   }
 
   return <Button {...props} />;
 }
 
 async function buttonOnClick({
-  currentTarget: but,
+  currentTarget,
   type,
-}: MouseEvent<HTMLButtonElement>) {
-  const sendAs = but.getAttribute("butsendas");
+}: MouseEvent<HTMLButtonElement>): Promise<void> {
+  const sendAs = currentTarget.getAttribute("butsendas");
   if (!sendAs) {
     throw new Error("butsendas is undefined");
   }
@@ -125,8 +139,8 @@ async function buttonOnClick({
   const message: MessageEnv = {
     from: "popup",
     newTab: type !== "click",
-    env: but.getAttribute("butenv") as EnvTypes,
-    subject: but.getAttribute("butsubject") as SubjectTypes,
+    env: currentTarget.getAttribute("butenv") as EnvTypesExtended,
+    subject: currentTarget.getAttribute("butsubject") as SubjectTypes,
     tabs: activeTabs,
   };
 
@@ -137,7 +151,7 @@ async function buttonOnClick({
   }
 }
 
-async function openPropertiesTouchUI() {
+async function openPropertiesTouchUI(): Promise<void> {
   const { url, index }: Tabs.Tab = await getCurrentTab();
   const fullAuthorPath = await getFullAuthorPath();
   const propertiesPath = await getPropertiesPath();
@@ -153,21 +167,9 @@ async function openPropertiesTouchUI() {
   });
 }
 
-type InitVariablesType = {
-  tabUrl: string;
-  ifAnyOfTheEnvCache: boolean;
-  ifAuthorCache: boolean;
-  ifClassicCache: boolean;
-  ifJiraCache: boolean;
-  ifLiveCache: boolean;
-  ifPerfCache: boolean;
-  ifProdCache: boolean;
-  ifTouchCache: boolean;
-};
-
-function setFileUploaded() {
+function setFileUploaded(): boolean {
   isFileUploaded = false;
-  return false;
+  return isFileUploaded;
 }
 
 async function initVariables(): Promise<InitVariablesType> {
@@ -198,11 +200,12 @@ async function initVariables(): Promise<InitVariablesType> {
   };
 }
 
-runtime.onMessage.addListener(function (
-  { from, color, message: text, subject }: MessageAlert,
-  _sender,
-  _sendResponse,
-) {
+runtime.onMessage.addListener(function ({
+  from,
+  color,
+  message: text,
+  subject,
+}: MessageAlert): void {
   if (from === "popup") {
     return;
   }
@@ -214,7 +217,7 @@ runtime.onMessage.addListener(function (
   }
 });
 
-export default function Popup() {
+export default function Popup(): ReactElement {
   const { alertProps } = useStateAlert();
 
   return (
@@ -236,10 +239,10 @@ export default function Popup() {
           ifClassicCache,
           ifAuthorCache,
         }: InitVariablesType) => (
-          <div>
+          <div className="flex flex-col gap-5">
             {isFileUploaded ? (
               <>
-                <div className="mb-3 hidden place-content-center gap-2 has-[button]:flex">
+                <div className="hidden place-content-center has-[button]:flex">
                   <ButtonEnv
                     anyEnv={true}
                     customEnv={!ifJiraCache}
@@ -253,7 +256,7 @@ export default function Popup() {
                   </ButtonEnv>
                 </div>
 
-                <div className="my-3 hidden place-content-center gap-2 has-[button]:flex">
+                <div className="hidden place-content-center gap-2 has-[button]:flex">
                   <ButtonEnv
                     anyEnv={ifAnyOfTheEnvCache}
                     customEnv={ifLiveCache}
@@ -299,7 +302,7 @@ export default function Popup() {
                   <ButtonEnv
                     anyEnv={ifAnyOfTheEnvCache}
                     customEnv={ifTouchCache}
-                    butEnv={touch}
+                    butEnv={"editor.html"}
                     butSubject="toEnvironment"
                     butSendAs="runtime"
                     size="md"
@@ -313,7 +316,7 @@ export default function Popup() {
                   <ButtonEnv
                     anyEnv={ifAnyOfTheEnvCache}
                     customEnv={ifClassicCache}
-                    butEnv={classic}
+                    butEnv={"cf#"}
                     butSubject="toEnvironment"
                     butSendAs="runtime"
                     size="md"
@@ -325,7 +328,7 @@ export default function Popup() {
                   </ButtonEnv>
                 </div>
 
-                <div className="my-3 hidden flex-wrap place-content-center gap-2 has-[button]:flex">
+                <div className="hidden flex-wrap place-content-center gap-2 has-[button]:flex">
                   <hr className="my-1 h-px w-full border-0 bg-gray-200" />
                   <ButtonEnv
                     anyEnv={ifAnyOfTheEnvCache}
@@ -397,14 +400,14 @@ export default function Popup() {
               <UploadJsonFile />
             )}
 
-            <div className="mt-10 flex place-content-between gap-2">
+            <div className="mt-auto flex place-content-between gap-2">
               <Button
                 color="neutral"
                 tag="a"
                 href="/src/pages/options/index.html"
                 size="sm"
               >
-                <IoSettingsOutline className="mr-2 h-5 w-5" />
+                <FaCog className="mr-2 h-5 w-5" />
                 Options
               </Button>
 

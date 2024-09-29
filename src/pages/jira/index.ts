@@ -1,13 +1,13 @@
 import { createElement } from "react";
 import { createRoot } from "react-dom/client";
 import {
-  MessageCommon,
   getFullAuthorPath,
   getLocalSavedData,
   getRegexWFTitle,
   getWorkflowPath,
   loadSavedData,
-} from "src/shared";
+} from "src/lib/storage";
+import { MessageCommon } from "src/lib/types";
 import { runtime, storage } from "webextension-polyfill";
 
 async function getSecretWord(): Promise<string> {
@@ -17,7 +17,7 @@ async function getSecretWord(): Promise<string> {
   return secretWord;
 }
 
-function createWFButton() {
+function createWFButton(): void {
   const buttonsContainer = document.querySelector<HTMLDivElement>(
     "#stalker >* div.aui-toolbar2-primary",
   );
@@ -51,43 +51,84 @@ function selectorTextNoSpaces(selector: string): string | undefined {
   return document.querySelector(selector)?.textContent?.trim();
 }
 
+async function belgium(
+  localLanguage: string,
+  title: string,
+): Promise<string | undefined> {
+  let fullPath: string | undefined = "BE";
+
+  switch (localLanguage) {
+    case "Dutch":
+      fullPath += `/${fullPath}NL`;
+      break;
+    case "French":
+      fullPath += `/${fullPath}FR`;
+      break;
+    default:
+      fullPath = await wfPathFromTitle(title);
+      break;
+  }
+
+  return fullPath;
+}
+
+async function switzerland(
+  localLanguage: string,
+  title: string,
+): Promise<string | undefined> {
+  let fullPath: string | undefined = "CH";
+
+  switch (localLanguage) {
+    case "German":
+      fullPath += `/${fullPath}DE`;
+      break;
+    case "French":
+      fullPath += `/${fullPath}FR`;
+      break;
+    case "Italian":
+      fullPath += `/${fullPath}IT`;
+      break;
+    default:
+      fullPath = await wfPathFromTitle(title);
+      break;
+  }
+
+  return fullPath;
+}
+
+async function wfPathFromTitle(title: string): Promise<string | undefined> {
+  const response = confirm(
+    "Market was not determined, can we take path from title?",
+  );
+  if (!response) {
+    return;
+  }
+
+  const regexWFTitleCached = await getRegexWFTitle();
+
+  const market = title?.replace(regexWFTitleCached, "$1");
+  if (!market) {
+    throw new Error("market from title is undefined");
+  }
+
+  const localLanguage = title?.replace(regexWFTitleCached, "$2");
+
+  let fullPath: string;
+  if (!localLanguage) {
+    fullPath = market + market;
+  } else {
+    fullPath = `${market}/${market}${localLanguage}`;
+  }
+
+  return fullPath;
+}
+
 async function textToWFPath(
-  market?: string,
-  localLanguage?: string,
-  title?: string,
-): Promise<string> {
-  let fullPath = "";
-
-  function belgium() {
-    switch (localLanguage) {
-      case "Dutch":
-        fullPath += `/${fullPath}NL`;
-        break;
-      case "French":
-        fullPath += `/${fullPath}FR`;
-        break;
-      default:
-        wfPathFromTitle();
-        break;
-    }
-  }
-
-  function switzerland() {
-    switch (localLanguage) {
-      case "German":
-        fullPath += `/${fullPath}DE`;
-        break;
-      case "French":
-        fullPath += `/${fullPath}FR`;
-        break;
-      case "Italian":
-        fullPath += `/${fullPath}IT`;
-        break;
-      default:
-        wfPathFromTitle();
-        break;
-    }
-  }
+  market: string,
+  localLanguage: string,
+  title: string,
+): Promise<string | undefined> {
+  let fullPath: string | undefined;
 
   const secretWord = await getSecretWord();
 
@@ -135,8 +176,7 @@ async function textToWFPath(
       fullPath = "CSCZ";
       break;
     case `${secretWord} Belgium`:
-      fullPath = "BE";
-      belgium();
+      fullPath = await belgium(localLanguage, title);
       break;
     case `${secretWord} Hungary`:
       fullPath = "HUHU";
@@ -145,8 +185,7 @@ async function textToWFPath(
       fullPath = "ELGR";
       break;
     case `${secretWord} Switzerland`:
-      fullPath = "CH";
-      switzerland();
+      fullPath = await switzerland(localLanguage, title);
       break;
     case `${secretWord} Romania`:
       fullPath = "RORO";
@@ -155,32 +194,8 @@ async function textToWFPath(
       fullPath = "LULU";
       break;
     default:
-      wfPathFromTitle();
+      wfPathFromTitle(title);
       break;
-  }
-
-  async function wfPathFromTitle() {
-    const response = confirm(
-      "Market was not determined, can we take path from title?",
-    );
-    if (!response) {
-      return;
-    }
-
-    const regexWFTitleCached = await getRegexWFTitle();
-
-    market = title?.replace(regexWFTitleCached, "$1");
-    if (!market) {
-      throw new Error("market from title is undefined");
-    }
-
-    localLanguage = title?.replace(regexWFTitleCached, "$2");
-
-    if (!localLanguage) {
-      fullPath = market + market;
-    } else {
-      fullPath = `${market}/${market}${localLanguage}`;
-    }
   }
 
   return fullPath;
@@ -221,24 +236,22 @@ async function aemToolsCreateWF() {
     throw new Error("This is not children ticket page");
   }
 
-  const ticketMarket: string | undefined = selectorTextNoSpaces(
-    "#customfield_13300-val",
-  );
-  const ticketLocalLanguage: string | undefined = selectorTextNoSpaces(
-    "#customfield_15000-val",
-  );
+  const ticketMarket = selectorTextNoSpaces("#customfield_13300-val");
+  const ticketLocalLanguage = selectorTextNoSpaces("#customfield_15000-val");
   const WFTitle = selectorTextNoSpaces("#summary-val");
+
+  if (!ticketMarket || !ticketLocalLanguage || !WFTitle) {
+    throw new Error(
+      `ticketMarket = ${ticketMarket} or ticketLocalLanguage = ${ticketLocalLanguage} or WFTitle = ${WFTitle} is undefined`,
+    );
+  }
 
   storage.local.set({
     WFTitle,
     WFName: ticketNumber(ticketNumElm),
   });
 
-  const WFPath: string = await textToWFPath(
-    ticketMarket,
-    ticketLocalLanguage,
-    WFTitle,
-  );
+  const WFPath = await textToWFPath(ticketMarket, ticketLocalLanguage, WFTitle);
 
   const fullAuthorPath = await getFullAuthorPath();
   const workflowPath = await getWorkflowPath();
@@ -246,7 +259,7 @@ async function aemToolsCreateWF() {
   window.open(`https://${fullAuthorPath}/${workflowPath}/${WFPath}`);
 }
 
-function fixSorting() {
+function fixSorting(): void {
   const sortByDate = document.querySelector<HTMLAnchorElement>(
     '#attachment-sorting-options > li:nth-child(2) > a:not([class*="aui-checked"])',
   );
@@ -258,13 +271,11 @@ function fixSorting() {
   descending?.click();
 }
 
-runtime.onMessage.addListener(
-  ({ from, subject }: MessageCommon, _sender, _sendResponse) => {
-    if (from === "popup" && subject === "createWF") {
-      aemToolsCreateWF();
-    }
-  },
-);
+runtime.onMessage.addListener(({ from, subject }: MessageCommon): void => {
+  if (from === "popup" && subject === "createWF") {
+    aemToolsCreateWF();
+  }
+});
 
 (async function () {
   const { disCreateWF, enableFilterFix } = await loadSavedData();

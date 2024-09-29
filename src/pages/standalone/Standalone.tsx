@@ -1,8 +1,9 @@
-import { ChangeEvent } from "react";
+import { ChangeEvent, ReactElement } from "react";
 import { FileInput } from "react-daisyui";
-import { SavedSyncData } from "src/shared";
+import { SavedSyncData } from "src/lib/types";
 import { storage } from "webextension-polyfill";
 import { create } from "zustand";
+import "./index.scss";
 
 const useStateUploaded = create<{
   fileUploaded: boolean;
@@ -17,7 +18,7 @@ const useStateUploaded = create<{
 
 function handleFileSelect({
   target: { files },
-}: ChangeEvent<HTMLInputElement>) {
+}: ChangeEvent<HTMLInputElement>): void {
   if (!files) {
     throw new Error("File cannot be read");
   }
@@ -27,7 +28,9 @@ function handleFileSelect({
   reader.readAsText(files[0] as Blob);
 }
 
-async function handleFileLoad({ target }: ProgressEvent<FileReader>) {
+async function handleFileLoad({
+  target,
+}: ProgressEvent<FileReader>): Promise<void> {
   if (!target?.result) {
     throw new Error("event target result is undefined");
   }
@@ -39,7 +42,7 @@ async function handleFileLoad({ target }: ProgressEvent<FileReader>) {
   setTimeout(() => window.close(), 3000);
 }
 
-export default function Standalone() {
+export default function Standalone(): ReactElement {
   const { fileUploaded } = useStateUploaded();
 
   return (

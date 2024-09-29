@@ -1,10 +1,11 @@
 import { createElement } from "react";
 import { createRoot } from "react-dom/client";
-import { MessageCommon, waitForElm } from "src/shared";
+import { waitForElm } from "src/lib/tools";
+import { MessageCommon } from "src/lib/types";
 import { runtime } from "webextension-polyfill";
 import "./index.scss";
 
-async function fixOldLinks() {
+async function fixOldLinks(): Promise<void> {
   const findReplaceBodySelector =
     "div.find-replace-links.ng-scope > div.content.ng-scope.last-concatenated";
 
@@ -40,6 +41,7 @@ async function fixOldLinks() {
     const message: MessageCommon = {
       from: "content",
       subject: "openInTree",
+      url,
     };
 
     const a = createElement(

@@ -1,5 +1,5 @@
 import { ComponentProps, ReactElement } from "react";
-import { ShowroomCode } from "src/shared";
+import { ShowroomCode } from "src/lib/types";
 import "./index.scss";
 
 type Props = ShowroomCode & ComponentProps<"div">;

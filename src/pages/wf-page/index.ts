@@ -1,20 +1,21 @@
 import { createElement } from "react";
 import { createRoot } from "react-dom/client";
-import AEMLink, {
-  getRegexDetermineBeta,
-  getRegexWorkflow,
-  touch,
-  waitForElm,
-} from "src/shared";
+import {
+  betaString,
+  fixLocalLanguage,
+  fixMarket,
+  isMarketInBeta,
+} from "src/lib/convertLink";
+import { getRegexDetermineBeta, getRegexWorkflow } from "src/lib/storage";
+import { waitForElm } from "src/lib/tools";
 import "./index.scss";
 
-const addBetaToLink = async (link: HTMLAnchorElement) =>
-  (link.href = link.href.replace(
-    await getRegexDetermineBeta(),
-    `$1/${touch}$2`,
-  ));
+async function addBetaToLink(link: HTMLAnchorElement): Promise<void> {
+  const regexDetermineBeta = await getRegexDetermineBeta();
+  link.href = link.href.replace(regexDetermineBeta, `$1/${"editor.html"}$2`);
+}
 
-async function addWorkflowId() {
+async function addWorkflowId(): Promise<void> {
   const sectionSelector = ".page.section > .configSection > div a";
 
   const getLinksInWF: NodeListOf<HTMLAnchorElement> =
@@ -35,37 +36,29 @@ async function addWorkflowId() {
   requestButton?.removeAttribute("disabled");
 }
 
-async function usefulLinks() {
+async function usefulLinks(): Promise<void> {
   const container = await waitForElm(
     "body > div.wrapper-conf > div > div.content-conf.workflow-package-page > div.configSection > div > div:nth-child(2)",
   );
 
-  const AEMInstance = new AEMLink();
-  await AEMInstance.initialize();
-
-  AEMInstance.market = AEMInstance.fixMarket(
+  let market = fixMarket(
     location.href.replace(await getRegexWorkflow(), "$1").toLowerCase(),
   );
-  AEMInstance.localLanguage = location.href
+  let localLanguage = location.href
     .replace(await getRegexWorkflow(), "$2$3")
     .toLowerCase();
 
   const wrongMarkets = ["da", "cs", "el"];
-  const ifWrongMarket = !!wrongMarkets.some((mar) =>
-    AEMInstance.market?.includes(mar),
-  );
+  const ifWrongMarket = !!wrongMarkets.some((mar) => market?.includes(mar));
 
   if (ifWrongMarket) {
-    [AEMInstance.market, AEMInstance.localLanguage] = [
-      AEMInstance.localLanguage,
-      AEMInstance.market,
-    ];
+    [market, localLanguage] = [localLanguage, market];
   }
 
-  AEMInstance.isMarketInBeta();
+  const beta = isMarketInBeta(market);
 
-  const marketPath = `/content/guxeu${AEMInstance.betaString()}/${AEMInstance.market}`;
-  const marketLocalLangPart = `/${AEMInstance.fixLocalLanguage()}_${AEMInstance.fixMarket()}`;
+  const marketPath = `/content/guxeu${betaString(beta)}/${market}`;
+  const marketLocalLangPart = `/${fixLocalLanguage(localLanguage, market)}_${fixMarket(market)}`;
 
   function determineDisclosure(acc = false) {
     const disclosureLibrary = `/site-wide-content/${
@@ -78,14 +71,14 @@ async function usefulLinks() {
   let addDisclosure: string | null = null;
   let addAccDisclosure: string | null = null;
 
-  if (!AEMInstance.beta) {
+  if (!beta) {
     addDisclosure = determineDisclosure(true);
     addAccDisclosure = determineDisclosure(false);
   } else {
     let betaButAccBool = false;
 
     const betaButAcc = ["es", "it"];
-    if (betaButAcc.some((mar) => AEMInstance.market?.includes(mar))) {
+    if (betaButAcc.some((mar) => market?.includes(mar))) {
       betaButAccBool = true;
     }
 
@@ -143,14 +136,14 @@ async function usefulLinks() {
   root.render(wfFixedLinks);
 }
 
-function openAllPagesFunction() {
+function openAllPagesFunction(): void {
   const links = document.querySelectorAll<HTMLAnchorElement>(
     "body > div.wrapper-conf > div > div > div > div > div.cq-element-filters > div.page.section > div > div > div > div.configValue > a",
   );
   links.forEach(({ href }) => window.open(href));
 }
 
-function openAllPagesButton() {
+function openAllPagesButton(): void {
   const buttonsContainer = document.querySelector<HTMLDivElement>(
     "body > div.wrapper-conf > div > div.content-conf.workflow-package-page > div.configSection > div > div:nth-child(2)",
   );
@@ -175,7 +168,7 @@ function openAllPagesButton() {
   root.render(buttonOpenAllPages);
 }
 
-async function checkNodes() {
+async function checkNodes(): Promise<void> {
   // Select the node that will be observed for mutations
   const targetNode = await waitForElm("div.cq-element-filters");
 
@@ -185,10 +178,7 @@ async function checkNodes() {
   const config: MutationObserverInit = { childList: true, subtree: true };
 
   // Callback function to execute when mutations are observed
-  const callback: MutationCallback = (
-    mutationList: MutationRecord[],
-    _observer: MutationObserver,
-  ) => {
+  const callback: MutationCallback = (mutationList: MutationRecord[]) => {
     for (const { type, target } of mutationList) {
       if (type === "childList") {
         const childElm = target as HTMLDivElement;
