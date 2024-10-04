@@ -68,8 +68,13 @@ export function fixMarket(market: string): string {
 export function fixLocalLanguage(
   localLanguage: string,
   market: string,
-  toAuthor = true,
+  toAuthor = false,
 ): string {
+  if (localLanguage === market) {
+    localLanguage = "";
+    return localLanguage;
+  }
+
   const properties = {
     uk: ["co", "en"],
     ie: ["", "en"],
@@ -92,6 +97,7 @@ export function fixLocalLanguage(
   };
 
   const marketProp = properties[market as keyof typeof properties];
+
   if (marketProp) {
     localLanguage = marketProp[+toAuthor];
   }
@@ -260,7 +266,7 @@ async function makeAuthor(
 ): Promise<string> {
   let wrongLink = `/content/guxeu${betaString(beta)}/${
     market
-  }/${fixLocalLanguage(localLanguage, market)}_${fixMarket(market)}/${
+  }/${fixLocalLanguage(localLanguage, market, true)}_${fixMarket(market)}/${
     isMarketHasHomeNew(market) && !urlPart ? "home-new" : "home"
   }${urlPart}`;
 
@@ -350,6 +356,7 @@ export async function convertLink(
   // Author
   else if (regexAuthor.test(url.href)) {
     market = url.href.replace(regexAuthor, "$4");
+
     localLanguage = fixLocalLanguage(
       url.href.replace(regexAuthor, "$5"),
       market,
@@ -362,10 +369,6 @@ export async function convertLink(
     isAuthor = true;
   } else {
     throw new Error(`${url} doesn't math any of the env`);
-  }
-
-  if (localLanguage === market) {
-    localLanguage = "";
   }
 
   const beta = isMarketInBeta(market);

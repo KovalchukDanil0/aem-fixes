@@ -58,7 +58,7 @@ async function usefulLinks(): Promise<void> {
   const beta = isMarketInBeta(market);
 
   const marketPath = `/content/guxeu${betaString(beta)}/${market}`;
-  const marketLocalLangPart = `/${fixLocalLanguage(localLanguage, market)}_${fixMarket(market)}`;
+  const marketLocalLangPart = `/${fixLocalLanguage(localLanguage, market, true)}_${fixMarket(market)}`;
 
   function determineDisclosure(acc = false) {
     const disclosureLibrary = `/site-wide-content/${
@@ -130,9 +130,10 @@ async function usefulLinks(): Promise<void> {
       ),
   );
 
-  const root = createRoot(
-    container.appendChild(document.createElement("span")),
-  );
+  const rootElm = document.createElement("span");
+  rootElm.style.width = "100%";
+
+  const root = createRoot(container.appendChild(rootElm));
   root.render(wfFixedLinks);
 }
 
