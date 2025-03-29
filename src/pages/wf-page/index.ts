@@ -21,7 +21,8 @@ async function addWorkflowId(): Promise<void> {
   const getLinksInWF: NodeListOf<HTMLAnchorElement> =
     document.querySelectorAll(sectionSelector);
 
-  const WFID = location.href.replace(await getRegexWorkflow(), "$4");
+  const regexWorkflow = await getRegexWorkflow();
+  const WFID = location.href.replace(regexWorkflow, "$4");
 
   const form = await waitForElm<HTMLFormElement>("#workflow-title-input");
 
@@ -36,53 +37,69 @@ async function addWorkflowId(): Promise<void> {
   requestButton?.removeAttribute("disabled");
 }
 
+function determineDisclosure(
+  marketPath: string,
+  marketLocalLangPart: string,
+  acc = false,
+) {
+  const disclosureLibrary = `/site-wide-content/${
+    acc ? "acc-" : ""
+  }disclosure-library`;
+
+  return marketPath + marketLocalLangPart + disclosureLibrary;
+}
+
 async function usefulLinks(): Promise<void> {
   const container = await waitForElm(
     "body > div.wrapper-conf > div > div.content-conf.workflow-package-page > div.configSection > div > div:nth-child(2)",
   );
 
-  let market = fixMarket(
-    location.href.replace(await getRegexWorkflow(), "$1").toLowerCase(),
-  );
-  let localLanguage = location.href
-    .replace(await getRegexWorkflow(), "$2$3")
-    .toLowerCase();
+  const regexWorkflow = await getRegexWorkflow();
+
+  const matchWorkflow = regexWorkflow.exec(location.href);
+  if (!matchWorkflow) {
+    throw new Error("Regex not matched workflow");
+  }
+
+  const [, market, localLanguageLeft, localLanguageRight] = matchWorkflow;
+
+  let marketFixed = fixMarket(market.toLowerCase());
+
+  let localLanguage = `${localLanguageLeft}${localLanguageRight}`.toLowerCase();
 
   const wrongMarkets = ["da", "cs", "el"];
-  const ifWrongMarket = !!wrongMarkets.some((mar) => market?.includes(mar));
+  const ifWrongMarket = !!wrongMarkets.some(
+    (wrongMarket) => marketFixed === wrongMarket,
+  );
 
   if (ifWrongMarket) {
-    [market, localLanguage] = [localLanguage, market];
+    [marketFixed, localLanguage] = [localLanguage, marketFixed];
   }
 
-  const beta = isMarketInBeta(market);
+  const beta = isMarketInBeta(marketFixed);
 
-  const marketPath = `/content/guxeu${betaString(beta)}/${market}`;
-  const marketLocalLangPart = `/${fixLocalLanguage(localLanguage, market, true)}_${fixMarket(market)}`;
+  const marketPath = `/content/guxeu${betaString(beta)}/${marketFixed}`;
+  const marketLocalLangPart = `/${fixLocalLanguage(localLanguage, marketFixed, true)}_${marketFixed}`;
 
-  function determineDisclosure(acc = false) {
-    const disclosureLibrary = `/site-wide-content/${
-      acc ? "acc-" : ""
-    }disclosure-library`;
-
-    return marketPath + marketLocalLangPart + disclosureLibrary;
-  }
-
-  let addDisclosure: string | null = null;
-  let addAccDisclosure: string | null = null;
+  let addDisclosure = "";
+  let addAccDisclosure = "";
 
   if (!beta) {
-    addDisclosure = determineDisclosure(true);
-    addAccDisclosure = determineDisclosure(false);
+    addDisclosure = determineDisclosure(marketPath, marketLocalLangPart, true);
+    addAccDisclosure = determineDisclosure(marketPath, marketLocalLangPart);
   } else {
     let betaButAccBool = false;
 
     const betaButAcc = ["es", "it"];
-    if (betaButAcc.some((mar) => market?.includes(mar))) {
+    if (betaButAcc.some((mar) => marketFixed?.includes(mar))) {
       betaButAccBool = true;
     }
 
-    addDisclosure = determineDisclosure(betaButAccBool);
+    addDisclosure = determineDisclosure(
+      marketPath,
+      marketLocalLangPart,
+      betaButAccBool,
+    );
   }
 
   let addMarketConfig: string | null = null;
@@ -137,9 +154,9 @@ async function usefulLinks(): Promise<void> {
   root.render(wfFixedLinks);
 }
 
-function openAllPagesFunction(): void {
+function openAllPages(): void {
   const links = document.querySelectorAll<HTMLAnchorElement>(
-    "body > div.wrapper-conf > div > div > div > div > div.cq-element-filters > div.page.section > div > div > div > div.configValue > a",
+    "body > div.wrapper-conf div.configSubSection div.page.section div.configValue > a",
   );
   links.forEach(({ href }) => window.open(href));
 }
@@ -157,7 +174,7 @@ function openAllPagesButton(): void {
     {
       type: "button",
       onClick() {
-        openAllPagesFunction();
+        openAllPages();
       },
     },
     "OPEN ALL PAGES",
@@ -206,9 +223,9 @@ async function checkNodes(): Promise<void> {
   observer.observe(targetNode, config);
 }
 
-(function () {
-  addWorkflowId();
-  usefulLinks();
-  openAllPagesButton();
-  checkNodes();
-})();
+// Main logic
+
+addWorkflowId();
+usefulLinks();
+openAllPagesButton();
+checkNodes();

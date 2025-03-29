@@ -1,8 +1,7 @@
 import axios from "axios";
 import { createElement, ReactElement } from "react";
 import { createRoot } from "react-dom/client";
-import ReferencesBanner from "src/components/ReferencesBanner";
-import WFShowTicket from "src/components/WFShowTicket";
+import { ReferencesBanner, WFShowTicket } from "src/components";
 import {
   getFullAuthorPath,
   getLocalSavedData,
@@ -46,7 +45,7 @@ function getRealPerfUrl(): string | undefined {
     ?.content;
 }
 
-async function catErrors(): Promise<void> {
+async function catErrors() {
   let textContent = document.querySelector(
     "body > header > title",
   )?.textContent;
@@ -97,9 +96,9 @@ async function checkReferences(): Promise<void> {
   }
 
   const fullAuthorPath = await getFullAuthorPath();
-  const encodedURL = encodeURIComponent(
-    url.replace(await getRegexAuthor(), "$3"),
-  );
+  const regexAuthor = await getRegexAuthor();
+
+  const encodedURL = encodeURIComponent(url.replace(regexAuthor, "$3"));
   const pathToReferences = await getPathToReferences();
   const pathToReferencesParams = await getPathToReferencesParams();
 
@@ -121,9 +120,10 @@ async function checkReferences(): Promise<void> {
     document.body.firstChild,
   );
 
+  const regexDetermineBeta = await getRegexDetermineBeta();
   const referencesBanner: ReactElement = ReferencesBanner({
     pages,
-    regexDetermineBeta: await getRegexDetermineBeta(),
+    regexDetermineBeta,
   });
 
   const root = createRoot(container);
@@ -133,6 +133,7 @@ async function checkReferences(): Promise<void> {
 }
 
 runtime.onMessage.addListener(
+  // @ts-expect-error types issue
   ({ from, subject }: MessageCommon): Promise<string | undefined> => {
     if (from === "popup" && subject === "checkReferences") {
       checkReferences();
@@ -146,12 +147,12 @@ runtime.onMessage.addListener(
   },
 );
 
-(async function () {
-  const { enableFunErr } = await loadSavedData();
+// Main logic
 
-  if (enableFunErr) {
-    catErrors();
-  }
+const { enableFunErr } = await loadSavedData();
 
-  ticketFinder();
-})();
+if (enableFunErr) {
+  catErrors();
+}
+
+ticketFinder();

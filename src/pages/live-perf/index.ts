@@ -1,7 +1,7 @@
 import axios from "axios";
 import { createElement, ReactElement } from "react";
 import { createRoot } from "react-dom/client";
-import ShowroomCodes from "src/components/ShowroomCodes";
+import { ShowroomCodes } from "src/components";
 import { getRegexAuthor, loadSavedData } from "src/lib/storage";
 import { waitForElm } from "src/lib/tools";
 import {
@@ -15,15 +15,15 @@ import "./index.scss";
 
 let lastVehicleIndex = -1;
 
-type VehicleConfig = {
+interface VehicleConfig {
   data: Data[];
-};
+}
 
-type Data = {
+interface Data {
   eventItem: CarProps[];
-};
+}
 
-type CarProps = {
+interface CarProps {
   itemCode: string;
   desc: string;
   modelCode: string;
@@ -37,26 +37,24 @@ type CarProps = {
   omnitureBrochureType: string;
   wersCode: string;
   wersDerivCode: string;
-};
+}
 
-type DemoVehiclesType = {
+interface DemoVehiclesType {
   DemoVehicleModels: DemoVehicleModel[];
-};
+}
 
-type DemoVehicleModel = {
+interface DemoVehicleModel {
   Segments: Segment[];
-};
+}
 
-type Segment = {
+interface Segment {
   Status: string;
   VehicleCode: string;
   NamePlateID: string;
   NamePlate: string;
-};
+}
 
-type MemeResponseType = {
-  [key: string]: { path: string };
-};
+type MemeResponseType = Record<string, { path: string }>;
 
 async function randomProgrammerMemes(): Promise<void> {
   if (document.title !== "404") {
@@ -103,7 +101,8 @@ const generateRandom = (maxLimit: number): number =>
   Math.floor(Math.random() * maxLimit);
 
 async function checkMothersite(from: FromTypes): Promise<void> {
-  if (location.href.replace(await getRegexAuthor(), "$4") === "mothersite") {
+  const regexAuthor = await getRegexAuthor();
+  if (location.href.replace(regexAuthor, "$4") === "mothersite") {
     return;
   }
 
@@ -305,7 +304,8 @@ async function findShowroomCode(): Promise<void> {
   root.render(showroomCodes);
 }
 
-runtime.onMessage.addListener(({ from, subject }: MessageCommon): void => {
+// @ts-expect-error types issue
+runtime.onMessage.addListener(({ from, subject }: MessageCommon) => {
   if (from === "popup" && subject === "checkMothersite") {
     checkMothersite(from);
   }
@@ -374,18 +374,18 @@ async function nextGenCodes(): Promise<void> {
   });
 }
 
-(async function () {
-  const { disMothersiteCheck, enableFunErr } = await loadSavedData();
+// Main logic
 
-  if (!disMothersiteCheck) {
-    checkMothersite("content");
-  }
+const { disMothersiteCheck, enableFunErr } = await loadSavedData();
 
-  if (enableFunErr) {
-    randomProgrammerMemes();
-  }
+if (!disMothersiteCheck) {
+  checkMothersite("content");
+}
 
-  vehicleCodeInit();
-  findShowroomCode();
-  nextGenCodes();
-})();
+if (enableFunErr) {
+  randomProgrammerMemes();
+}
+
+vehicleCodeInit();
+findShowroomCode();
+nextGenCodes();

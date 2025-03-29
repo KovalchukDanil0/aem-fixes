@@ -15,6 +15,10 @@ import {
 } from "./storage";
 import { EnvTypesExtended, MessageCommon } from "./types";
 
+interface OriginalPathType {
+  map?: { originalPath?: string };
+}
+
 const marketsInBeta: string[] = [
   "uk",
   "de",
@@ -109,9 +113,14 @@ function fixUrlPart(urlPart: string): string {
   const regexFixSWAuthor =
     /\S+?(site-wide-content|home-new|home)((?:\S+)?(?=\.html)|\S+)(?:\S+)?/gm;
 
-  const partWithoutContent = urlPart.replace(regexFixSWAuthor, "$2");
+  const matchSiteWide = regexFixSWAuthor.exec(urlPart);
+  if (!matchSiteWide) {
+    throw new Error("Regex not matched url part");
+  }
 
-  if (urlPart.replace(regexFixSWAuthor, "$1") === "site-wide-content") {
+  const [, siteWide, partWithoutContent] = matchSiteWide;
+
+  if (siteWide === "site-wide-content") {
     urlPart = `/content${partWithoutContent}`;
   } else {
     urlPart = partWithoutContent;
@@ -171,21 +180,22 @@ async function determineEnv(
 ): Promise<string> {
   let newUrl: string;
 
-  const regexFastAuthorCached = await getRegexFastAuthor();
+  const regexFastAuthor = await getRegexFastAuthor();
 
   if (isAuthor) {
     if (env === "cf#" || env === "editor.html") {
-      const notContainsAuthor: boolean =
-        url.href.replace(regexFastAuthorCached, "$2") !== "author";
-      const notContainsHtml: boolean =
-        url.href.replace(regexFastAuthorCached, "$6") !== "html";
+      const matchFastAuthor = regexFastAuthor.exec(url.href);
 
-      newUrl = url.href.replace(
-        regexFastAuthorCached,
-        `$1${notContainsAuthor ? "author" : ""}$3${env + "/"}$5${
-          notContainsHtml ? ".html" : ""
-        }`,
-      );
+      if (!matchFastAuthor) {
+        throw new Error("Regex not matched fast author");
+      }
+
+      const [, linkDomain, authorPart, authorEnv, , linkContent, htmlPart] =
+        matchFastAuthor;
+
+      newUrl = `${linkDomain}${authorPart !== "author" ? "author" : ""}${authorEnv}${env}/${linkContent}${
+        htmlPart !== "html" ? ".html" : ""
+      }`;
 
       return newUrl;
     }
@@ -234,7 +244,7 @@ async function makeLive(
 
   const topLevelDomain = await getTopLevelDomain();
 
-  return `https://www.${localLanguage}${topLevelDomain}.${market}${britain}${urlPart}`;
+  return `https://www.${localLanguage ?? ""}${topLevelDomain}.${market}${britain}${urlPart}`;
 }
 
 async function makePerfProd(
@@ -254,7 +264,7 @@ async function makePerfProd(
 
   const domainPerfProd = isPerf ? await getDomainPerf() : await getDomainProd();
 
-  return `https://${domainPerfProd}${betaString(beta)}-${market}${localLanguage}.${domain}.${topLevelDomain}.com${urlPart}`;
+  return `https://${domainPerfProd}${betaString(beta)}-${market}${localLanguage ?? ""}.${domain}.${topLevelDomain}.com${urlPart}`;
 }
 
 async function makeAuthor(
@@ -270,19 +280,22 @@ async function makeAuthor(
     isMarketHasHomeNew(market) && !urlPart ? "home-new" : "home"
   }${urlPart}`;
 
-  const regexFixSiteWideCached = await getRegexFixSiteWide();
+  const regexFixSiteWide = await getRegexFixSiteWide();
 
-  if (wrongLink.replace(regexFixSiteWideCached, "$3") === "content") {
-    wrongLink = wrongLink.replace(
-      regexFixSiteWideCached,
-      "$1/site-wide-content$4",
-    );
+  const matchFixSiteWide = regexFixSiteWide.exec(wrongLink);
+  if (!matchFixSiteWide) {
+    throw new Error("Regex not matched site wide");
+  }
+
+  const [, linkDomain, , linkContent, linkPart] = matchFixSiteWide;
+
+  if (linkContent === "content") {
+    wrongLink = `${linkDomain}/site-wide-content${linkPart}`;
   }
 
   const fullAuthorPath = await getFullAuthorPath();
   const pathToResolver = await getPathToResolver();
 
-  type OriginalPathType = { map?: { originalPath?: string } };
   const { data: response } = await axios.get<OriginalPathType>(
     `https://${fullAuthorPath}/${pathToResolver}` + wrongLink,
     {
@@ -312,63 +325,57 @@ export async function convertLink(
   env: EnvTypesExtended,
   url: URL,
 ): Promise<string> {
-  let market: string;
-  let localLanguage: string;
+  let market: string | null = null;
+  let localLanguage = "";
   let urlPart: string;
-
   let isAuthor = false;
+
   const regexAuthor = await getRegexAuthor();
+  const regexLive = await getRegexLive();
+  const regexPerfProd = await getRegexPerfProd();
 
   urlPart = url.pathname + url.search + url.hash;
   if (urlPart === "/") {
     urlPart = "";
   }
 
-  const regexLiveCached = await getRegexLive();
-  const regexPerfProdCached = await getRegexPerfProd();
+  console.log(regexLive.exec(url.href));
 
-  // Live
-  if (regexLiveCached.test(url.href)) {
-    const topLevelDomain = url.href.replace(regexLiveCached, "$2");
-    const domain = url.href.replace(regexLiveCached, "$3");
+  const matchLive = regexLive.exec(url.href);
+  if (matchLive) {
+    const [, localLanguageTemp, topLevelDomain, domain] = matchLive;
 
-    if (!domain) {
-      market = topLevelDomain;
-      localLanguage = url.href.replace(regexLiveCached, "$1");
-    } else {
-      market = domain;
-      localLanguage = topLevelDomain;
-    }
+    console.log(localLanguageTemp);
+    console.log(topLevelDomain);
+
+    market = domain || topLevelDomain;
+    localLanguage = domain ? topLevelDomain : localLanguageTemp;
   }
-  // Perf & Prod
-  else if (regexPerfProdCached.test(url.href)) {
-    const topLevelDomain = url.href.replace(regexPerfProdCached, "$2");
-    const domain = url.href.replace(regexPerfProdCached, "$3");
 
-    if (domain === "uk") {
-      market = domain;
-      localLanguage = topLevelDomain;
-    } else {
-      market = topLevelDomain;
-      localLanguage = domain;
-    }
+  const matchPerfProd = regexPerfProd.exec(url.href);
+  if (matchPerfProd) {
+    const [, , topLevelDomain, domain] = matchPerfProd;
+
+    const isUk = domain === "uk";
+
+    market = isUk ? domain : topLevelDomain;
+    localLanguage = isUk ? topLevelDomain : domain;
   }
-  // Author
-  else if (regexAuthor.test(url.href)) {
-    market = url.href.replace(regexAuthor, "$4");
 
-    localLanguage = fixLocalLanguage(
-      url.href.replace(regexAuthor, "$5"),
-      market,
-    );
+  const matchAuthor = regexAuthor.exec(url.href);
+  if (matchAuthor) {
+    market = matchAuthor[4];
+    localLanguage = fixLocalLanguage(matchAuthor[5], market);
 
     // fix resource resolver not working if link not ending with html
     url.hash = "";
     url.search = "";
 
     isAuthor = true;
-  } else {
-    throw new Error(`${url} doesn't math any of the env`);
+  }
+
+  if (market == null) {
+    throw new Error(`${url} doesn't match any of the env`);
   }
 
   const beta = isMarketInBeta(market);

@@ -104,23 +104,18 @@ async function wfPathFromTitle(title: string): Promise<string | undefined> {
     return;
   }
 
-  const regexWFTitleCached = await getRegexWFTitle();
+  const regexWFTitle = await getRegexWFTitle();
 
-  const market = title?.replace(regexWFTitleCached, "$1");
-  if (!market) {
-    throw new Error("market from title is undefined");
+  const matchWFTitle = regexWFTitle.exec(title);
+  if (!matchWFTitle) {
+    throw new Error("Regex not matched WF Title");
   }
 
-  const localLanguage = title?.replace(regexWFTitleCached, "$2");
+  const [, market, localLanguage] = matchWFTitle;
 
-  let fullPath: string;
-  if (!localLanguage) {
-    fullPath = market + market;
-  } else {
-    fullPath = `${market}/${market}${localLanguage}`;
-  }
-
-  return fullPath;
+  return localLanguage
+    ? `${market}/${market}${localLanguage}`
+    : market + market;
 }
 
 async function textToWFPath(
@@ -271,20 +266,21 @@ function fixSorting(): void {
   descending?.click();
 }
 
+// @ts-expect-error types issue
 runtime.onMessage.addListener(({ from, subject }: MessageCommon): void => {
   if (from === "popup" && subject === "createWF") {
     aemToolsCreateWF();
   }
 });
 
-(async function () {
-  const { disCreateWF, enableFilterFix } = await loadSavedData();
+// Main logic
 
-  if (!disCreateWF) {
-    createWFButton();
-  }
+const { disCreateWF, enableFilterFix } = await loadSavedData();
 
-  if (enableFilterFix) {
-    fixSorting();
-  }
-})();
+if (!disCreateWF) {
+  createWFButton();
+}
+
+if (enableFilterFix) {
+  fixSorting();
+}

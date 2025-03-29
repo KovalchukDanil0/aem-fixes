@@ -1,7 +1,7 @@
 import { storage } from "webextension-polyfill";
 import { SavedSyncData } from "./types";
 
-export type SavedLocalData = {
+export interface SavedLocalData {
   secretSettings: {
     regexJira: string;
     regexLive: string;
@@ -31,9 +31,10 @@ export type SavedLocalData = {
     DAMTreeUrl: string;
     regexDetermineBeta: string;
   };
-};
+}
 
 export const getLocalSavedData = async (): Promise<SavedLocalData> =>
+  // @ts-expect-error types issue
   storage.local.get() as Promise<SavedLocalData>;
 
 async function getRegexJira(): Promise<RegExp> {
@@ -43,8 +44,10 @@ async function getRegexJira(): Promise<RegExp> {
   return new RegExp(regexJira);
 }
 
-export const ifJira = async (url: string): Promise<boolean> =>
-  (await getRegexJira()).test(url);
+export async function ifJira(url: string): Promise<boolean> {
+  const regexJira = await getRegexJira();
+  return regexJira.test(url);
+}
 
 export async function getRegexWorkflow(): Promise<RegExp> {
   const {
@@ -53,8 +56,10 @@ export async function getRegexWorkflow(): Promise<RegExp> {
   return new RegExp(regexWorkflow);
 }
 
-export const ifWorkflow = async (url: string): Promise<boolean> =>
-  (await getRegexWorkflow()).test(url);
+export async function ifWorkflow(url: string): Promise<boolean> {
+  const regexWorkflow = await getRegexWorkflow();
+  return regexWorkflow.test(url);
+}
 
 export async function getRegexDAMTree(): Promise<RegExp> {
   const {
@@ -70,8 +75,10 @@ export async function getRegexLive(): Promise<RegExp> {
   return new RegExp(regexLive);
 }
 
-export const ifLive = async (url: string): Promise<boolean> =>
-  (await getRegexLive()).test(url);
+export async function ifLive(url: string): Promise<boolean> {
+  const regexLive = await getRegexLive();
+  return regexLive.test(url);
+}
 
 export async function getRegexPerfProd(): Promise<RegExp> {
   const {
@@ -80,13 +87,20 @@ export async function getRegexPerfProd(): Promise<RegExp> {
   return new RegExp(regexPerfProd);
 }
 
-export const ifPerfProd = async (url: string): Promise<boolean> =>
-  (await getRegexPerfProd()).test(url);
+export async function ifPerfProd(url: string): Promise<boolean> {
+  const regexPerfProd = await getRegexPerfProd();
+  return regexPerfProd.test(url);
+}
 
-export const ifPerf = async (url: string): Promise<boolean> =>
-  url.replace(await getRegexPerfProd(), "$1") === "perf";
-export const ifProd = async (url: string): Promise<boolean> =>
-  url.replace(await getRegexPerfProd(), "$1") === "prod";
+export async function ifPerf(url: string): Promise<boolean> {
+  const regexPerfProd = await getRegexPerfProd();
+  return url.replace(regexPerfProd, "$1") === "perf";
+}
+
+export async function ifProd(url: string): Promise<boolean> {
+  const regexPerfProd = await getRegexPerfProd();
+  return url.replace(regexPerfProd, "$1") === "prod";
+}
 
 export async function getRegexAuthor(): Promise<RegExp> {
   const {
@@ -95,19 +109,35 @@ export async function getRegexAuthor(): Promise<RegExp> {
   return new RegExp(regexAuthor);
 }
 
-export const ifAuthor = async (url: string): Promise<boolean> =>
-  (await getRegexAuthor()).test(url);
-export const ifAuthorNoEnv = async (url: string): Promise<boolean> =>
-  url.replace(await getRegexAuthor(), "$2") === "";
-export const ifClassic = async (url: string): Promise<boolean> =>
-  url.replace(await getRegexAuthor(), "$2") === "cf#";
-export const ifTouch = async (url: string): Promise<boolean> =>
-  url.replace(await getRegexAuthor(), "$2") === "editor.html";
+export async function ifAuthor(url: string): Promise<boolean> {
+  const regexAuthor = await getRegexAuthor();
+  return regexAuthor.test(url);
+}
 
-export const ifAnyOfTheEnv = async (url: string) =>
-  (await getRegexLive()).test(url) ||
-  (await getRegexPerfProd()).test(url) ||
-  (await getRegexAuthor()).test(url);
+export async function ifAuthorNoEnv(url: string): Promise<boolean> {
+  const regexAuthor = await getRegexAuthor();
+  return url.replace(regexAuthor, "$2") === "";
+}
+
+export async function ifClassic(url: string): Promise<boolean> {
+  const regexAuthor = await getRegexAuthor();
+  return url.replace(regexAuthor, "$2") === "cf#";
+}
+
+export async function ifTouch(url: string): Promise<boolean> {
+  const regexAuthor = await getRegexAuthor();
+  return url.replace(regexAuthor, "$2") === "editor.html";
+}
+
+export async function ifAnyOfTheEnv(url: string) {
+  const regexLive = await getRegexLive();
+  const regexPerfProd = await getRegexPerfProd();
+  const regexAuthor = await getRegexAuthor();
+
+  return (
+    regexLive.test(url) || regexPerfProd.test(url) || regexAuthor.test(url)
+  );
+}
 
 export async function getRegexDetermineBeta(): Promise<RegExp> {
   const {

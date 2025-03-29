@@ -1,7 +1,9 @@
-import textShadow from "@designbycode/tailwindcss-text-shadow";
 import daisyui from "daisyui";
 import { Config } from "tailwindcss";
 import tailwindcssAnimated from "tailwindcss-animated";
+
+// @ts-expect-error module have no type definition
+import textShadow from "@designbycode/tailwindcss-text-shadow";
 
 const popup = "31.25rem";
 
@@ -18,11 +20,5 @@ export default {
     themes: ["dark"],
   },
   darkMode: "media",
-  plugins: [
-    daisyui,
-    tailwindcssAnimated,
-
-    // @ts-expect-error module have no type definition
-    textShadow,
-  ],
+  plugins: [daisyui, tailwindcssAnimated, textShadow],
 } satisfies Config;

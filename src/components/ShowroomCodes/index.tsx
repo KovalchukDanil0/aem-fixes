@@ -11,8 +11,7 @@ export default function ShowroomCodes({
   return (
     <div {...props} className="showroomCodes">
       {Object.keys(showroomConfig).map((item) => {
-        const { code, name } =
-          showroomConfig[item as keyof typeof showroomConfig];
+        const { code, name } = showroomConfig[item];
         return (
           <div key={code}>
             <h2>{name}</h2>

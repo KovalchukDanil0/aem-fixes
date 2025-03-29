@@ -1,12 +1,12 @@
 import { Tabs } from "webextension-polyfill";
 
-export type SavedSyncData = {
+export interface SavedSyncData {
   disCreateWF?: boolean;
   disMothersiteCheck?: boolean;
   enableAutoLogin?: boolean;
   enableFilterFix?: boolean;
   enableFunErr?: boolean;
-};
+}
 
 export type SubjectTypes =
   | "checkReferences"
@@ -20,11 +20,11 @@ export type SubjectTypes =
 
 export type FromTypes = "popup" | "background" | "content";
 
-export type MessageCommon = {
+export interface MessageCommon {
   from: FromTypes;
   subject: SubjectTypes | null;
   url?: string;
-};
+}
 
 export type EnvTypesExtended = "live" | "perf" | "prod" | "editor.html" | "cf#";
 export interface MessageEnv extends MessageCommon {
@@ -39,14 +39,15 @@ export interface MessageAlert extends MessageCommon {
   color: ColorProps;
 }
 
-export type ShowroomCode = {
-  showroomConfig: {
-    [key: string]: {
+export interface ShowroomCode {
+  showroomConfig: Record<
+    string,
+    {
       code: string;
       name: string;
-    };
-  };
-};
+    }
+  >;
+}
 
 export interface ReferencesConfig {
   pages: {

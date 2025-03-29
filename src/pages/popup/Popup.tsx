@@ -2,7 +2,7 @@ import { ComponentProps, MouseEvent, ReactElement } from "react";
 import { Async } from "react-async";
 import { Alert, Button, Loading } from "react-daisyui";
 import { FaCog, FaGithub } from "react-icons/fa";
-import UploadJsonFile from "src/components/UploadJsonFile";
+import { UploadJsonFile } from "src/components";
 import {
   getFullAuthorPath,
   getLocalSavedData,
@@ -33,10 +33,10 @@ const regexCopyContent = /\/content.+(?=\.html)/;
 
 let isFileUploaded = true;
 
-type AlertProps = {
+interface AlertProps {
   text?: string;
   color?: ColorProps;
-};
+}
 
 type BtnSubjectType =
   | "toEnvironment"
@@ -60,7 +60,7 @@ async function getPropertiesPath(): Promise<string> {
   return propertiesPath;
 }
 
-type InitVariablesType = {
+interface InitVariablesType {
   tabUrl: string;
   ifAnyOfTheEnvCache: boolean;
   ifAuthorCache: boolean;
@@ -70,7 +70,7 @@ type InitVariablesType = {
   ifPerfCache: boolean;
   ifProdCache: boolean;
   ifTouchCache: boolean;
-};
+}
 
 const useStateAlert = create<{
   alertProps: AlertProps | null;
@@ -155,9 +155,10 @@ async function openPropertiesTouchUI(): Promise<void> {
   const { url, index }: Tabs.Tab = await getCurrentTab();
   const fullAuthorPath = await getFullAuthorPath();
   const propertiesPath = await getPropertiesPath();
+  const regexAuthor = await getRegexAuthor();
 
   const newUrl = url?.replace(
-    await getRegexAuthor(),
+    regexAuthor,
     `https://${fullAuthorPath}/${propertiesPath}`,
   );
 
@@ -200,22 +201,20 @@ async function initVariables(): Promise<InitVariablesType> {
   };
 }
 
-runtime.onMessage.addListener(function ({
-  from,
-  color,
-  message: text,
-  subject,
-}: MessageAlert): void {
-  if (from === "popup") {
-    return;
-  }
+runtime.onMessage.addListener(
+  // @ts-expect-error types issue
+  ({ from, color, message: text, subject }: MessageAlert) => {
+    if (from === "popup") {
+      return;
+    }
 
-  if (subject === "showMessage") {
-    useStateAlert.setState({
-      alertProps: { text, color },
-    });
-  }
-});
+    if (subject === "showMessage") {
+      useStateAlert.setState({
+        alertProps: { text, color },
+      });
+    }
+  },
+);
 
 export default function Popup(): ReactElement {
   const { alertProps } = useStateAlert();

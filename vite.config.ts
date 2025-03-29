@@ -1,8 +1,7 @@
 import { crx } from "@crxjs/vite-plugin";
 import react from "@vitejs/plugin-react-swc";
 import { readFile, writeFile } from "fs/promises";
-import { mdxToMd } from "mdx-to-md";
-import { basename, join, resolve } from "path";
+import { resolve } from "path";
 import { defineConfig, Plugin, ResolvedConfig } from "vite";
 import { ViteImageOptimizer } from "vite-plugin-image-optimizer";
 import { ViteMinifyPlugin } from "vite-plugin-minify";
@@ -13,27 +12,6 @@ import { name, version } from "./package.json";
 import rollupOptions from "./rollup.config";
 
 const isWatch = process.argv.includes("--watch");
-
-function viteMdxToMdPlugin(): Plugin {
-  return {
-    name: "vite-plugin-mdx-to-md",
-    apply: "build",
-
-    async generateBundle() {
-      try {
-        const markdown = await mdxToMd(join(__dirname, "README.mdx"));
-
-        const banner = "This README was auto-generated using 'npm run readme'";
-        const readme = `<!--- ${banner} --> \n\n${markdown}`;
-        await writeFile(basename(join(__dirname, "README.md")), readme);
-
-        console.log("Mdx was successfully transformed to md");
-      } catch (error) {
-        console.error("Failed to transform mdx", error);
-      }
-    },
-  };
-}
 
 function fixManifest({
   object,
@@ -100,7 +78,6 @@ export default defineConfig({
       ViteMinifyPlugin(),
       ViteImageOptimizer(),
       zipPack({ outDir: "zip", outFileName: `${name}-${version}.zip` }),
-      viteMdxToMdPlugin(),
     ],
   ],
   build: {

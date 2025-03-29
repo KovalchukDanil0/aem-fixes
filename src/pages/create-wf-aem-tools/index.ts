@@ -1,7 +1,10 @@
 import { waitForElm } from "src/lib/tools";
 import { storage } from "webextension-polyfill";
 
-type WFProps = { WFTitle: string | null; WFName: string | null };
+interface WFProps {
+  WFTitle: string | null;
+  WFName: string | null;
+}
 
 async function createWF({ WFName, WFTitle }: WFProps): Promise<void> {
   if (WFTitle == null || WFName == null) {
@@ -59,11 +62,12 @@ async function createWF({ WFName, WFTitle }: WFProps): Promise<void> {
   promotionButton.click();
 }
 
-(async function () {
-  const { WFTitle, WFName } = (await storage.local.get({
-    WFTitle: null,
-    WFName: null,
-  })) as WFProps;
+// Main logic
 
-  createWF({ WFName, WFTitle });
-})();
+// @ts-expect-error types issue
+const { WFTitle, WFName } = (await storage.local.get({
+  WFTitle: null,
+  WFName: null,
+})) as WFProps;
+
+createWF({ WFName, WFTitle });

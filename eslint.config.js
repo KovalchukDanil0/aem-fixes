@@ -1,23 +1,19 @@
 // @ts-check
 
-import js from "@eslint/js";
-import globals from "globals";
+import { default as eslint } from "@eslint/js";
 import tseslint from "typescript-eslint";
 
-// @ts-ignore
+// @ts-expect-error no declaration file
 import reactHooks from "eslint-plugin-react-hooks";
-// @ts-ignore
+// @ts-expect-error no declaration file
 import reactRefresh from "eslint-plugin-react-refresh";
 
 export default tseslint.config(
+  eslint.configs.recommended,
+  ...tseslint.configs.strict,
+  ...tseslint.configs.stylistic,
   { ignores: ["dist"] },
   {
-    extends: [js.configs.recommended, ...tseslint.configs.recommended],
-    files: ["**/*.{ts,tsx}"],
-    languageOptions: {
-      ecmaVersion: 2020,
-      globals: globals.browser,
-    },
     plugins: {
       "react-hooks": reactHooks,
       "react-refresh": reactRefresh,

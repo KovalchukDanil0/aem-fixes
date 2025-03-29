@@ -1,10 +1,8 @@
-import { resolve } from "path";
+import { join } from "path";
 import { defineConfig } from "rollup";
 
-type ResourceExtType = "html" | "ts";
-
-function getPathToResource(name: string, ext: ResourceExtType = "html") {
-  return resolve("src", "pages", name, `index.${ext}`);
+function getPathToResource(name: string, ext: "html" | "ts" = "html") {
+  return join("src", "pages", name, `index.${ext}`);
 }
 
 export default defineConfig({

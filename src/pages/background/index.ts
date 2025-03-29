@@ -14,6 +14,7 @@ import {
 import { findAsyncSequential, getCurrentTab } from "src/lib/tools";
 import { EnvTypesExtended, MessageAlert, MessageEnv } from "src/lib/types";
 import {
+  Menus,
   Tabs,
   WebNavigation,
   commands,
@@ -56,17 +57,25 @@ async function getDamTreeUrl(): Promise<string> {
 const ifLivePerf = async (url: string): Promise<boolean> =>
   (await ifPerfProd(url)) || ifLive(url);
 
-const ifAEMToolsUrl = async (url: string): Promise<boolean> =>
-  url.includes(await getWorkflowPath());
+async function ifAEMToolsUrl(url: string): Promise<boolean> {
+  const workflowPath = await getWorkflowPath();
+  return url.includes(workflowPath);
+}
 
-const ifDamUrl = async (url: string): Promise<boolean> =>
-  url.includes(await getDamTreeUrl());
+async function ifDamUrl(url: string): Promise<boolean> {
+  const DAMTreeUrl = await getDamTreeUrl();
+  return url.includes(DAMTreeUrl);
+}
 
-const ifFindReplaceUrl = async (url: string): Promise<boolean> =>
-  url.includes(await getFindReplaceUrl());
+async function ifFindReplaceUrl(url: string): Promise<boolean> {
+  const findReplaceUrl = await getFindReplaceUrl();
+  return url.includes(findReplaceUrl);
+}
 
-const ifWorkflowUrl = async (url: string): Promise<boolean> =>
-  (await getRegexWorkflow()).test(url);
+async function ifWorkflowUrl(url: string): Promise<boolean> {
+  const regexWorkflow = await getRegexWorkflow();
+  return regexWorkflow.test(url);
+}
 
 function toEnvironment(
   activeTabs: Tabs.Tab[],
@@ -144,13 +153,15 @@ const changeContentInTab = async function (
 };
 
 const openInTree = async function (authorUrl?: string): Promise<void> {
-  authorUrl = authorUrl?.replace(await getRegexAuthor(), "$3");
+  const regexAuthor = await getRegexAuthor();
+  authorUrl = authorUrl?.replace(regexAuthor, "$3");
 
   const fullAuthorPath = await getFullAuthorPath();
   changeContentInTab(authorUrl, `https://${fullAuthorPath}/siteadmin`);
 };
 
 runtime.onMessage.addListener(
+  // @ts-expect-error types issue
   async (
     { from, subject, env, newTab, tabs: msgTabs, url }: MessageEnv,
     sender,
@@ -189,24 +200,50 @@ runtime.onMessage.addListener(
   },
 );
 
-runtime.onInstalled.addListener((): void => {
-  contextMenus.create({
-    title: "Open content in DAM",
-    contexts: ["image"],
-    id: "openInDAM",
-  });
-
-  contextMenus.create({
+const menus: Menus.CreateCreatePropertiesType[] = [
+  { title: "Open content in DAM", contexts: ["image"], id: "openInDAM" },
+  {
     title: "Open content in AEM tree",
     contexts: ["link", "selection"],
     id: "openInAEM",
-  });
-
-  contextMenus.create({
+  },
+  {
     title: "Open content in TouchUI",
     contexts: ["selection"],
     id: "openInTouchUI",
-  });
+  },
+];
+
+const menusWithParent: Menus.CreateCreatePropertiesType[] = [
+  {
+    title: "To Live",
+    contexts: ["link"],
+    id: "toLive",
+  },
+  {
+    title: "To Perf",
+    contexts: ["link"],
+    id: "toPerf",
+  },
+  {
+    title: "To Prod",
+    contexts: ["link"],
+    id: "toProd",
+  },
+  {
+    title: "To Touch",
+    contexts: ["link"],
+    id: "toTouch",
+  },
+  {
+    title: "To Classic",
+    contexts: ["link"],
+    id: "toClassic",
+  },
+];
+
+runtime.onInstalled.addListener((): void => {
+  menus.forEach((menu) => contextMenus.create(menu));
 
   const parentId = contextMenus.create({
     title: "To Environment",
@@ -214,40 +251,9 @@ runtime.onInstalled.addListener((): void => {
     id: "toEnvironment",
   });
 
-  contextMenus.create({
-    title: "To Live",
-    contexts: ["link"],
-    id: "toLive",
-    parentId,
-  });
-
-  contextMenus.create({
-    title: "To Perf",
-    contexts: ["link"],
-    id: "toPerf",
-    parentId,
-  });
-
-  contextMenus.create({
-    title: "To Prod",
-    contexts: ["link"],
-    id: "toProd",
-    parentId,
-  });
-
-  contextMenus.create({
-    title: "To Touch",
-    contexts: ["link"],
-    id: "toTouch",
-    parentId,
-  });
-
-  contextMenus.create({
-    title: "To Classic",
-    contexts: ["link"],
-    id: "toClassic",
-    parentId,
-  });
+  menusWithParent.forEach(({ title, contexts, id }) =>
+    contextMenus.create({ title, contexts, id, parentId }),
+  );
 });
 
 contextMenus.onClicked.addListener(
@@ -263,7 +269,8 @@ contextMenus.onClicked.addListener(
 
     switch (menuItemId) {
       case "openInDAM": {
-        const imagePath = srcUrl?.replace(await getRegexImagePicker(), "$1");
+        const regexImagePicker = await getRegexImagePicker();
+        const imagePath = srcUrl?.replace(regexImagePicker, "$1");
 
         changeContentInTab(imagePath, `https://${fullAuthorPath}/damadmin`);
 
@@ -283,8 +290,8 @@ contextMenus.onClicked.addListener(
           throw new Error("openInTouchUI content is undefined");
         }
 
-        const regexHTMLExistCached = await getRegexHTMLExist();
-        if (!regexHTMLExistCached.test(content)) {
+        const regexHTMLExist = await getRegexHTMLExist();
+        if (!regexHTMLExist.test(content)) {
           content += ".html";
         }
 
@@ -345,10 +352,10 @@ commands.onCommand.addListener((command, tab): void => {
 });
 
 type ResultType = [injectScript: string, allFrames?: boolean];
-type ConditionType = {
+interface ConditionType {
   isTrue: (url: string) => Promise<boolean>;
   result: () => ResultType;
-};
+}
 
 const conditions: ConditionType[] = [
   {

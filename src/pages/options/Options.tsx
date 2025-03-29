@@ -1,7 +1,7 @@
 import { MouseEvent, ReactElement } from "react";
 import { Async } from "react-async";
 import { Checkbox, Loading } from "react-daisyui";
-import UploadJsonFile from "src/components/UploadJsonFile";
+import { UploadJsonFile } from "src/components";
 import { loadSavedData } from "src/lib/storage";
 import { SavedSyncData } from "src/lib/types";
 import { storage } from "webextension-polyfill";
@@ -19,6 +19,8 @@ async function saveOptions({
   currentTarget: { id, checked },
 }: MouseEvent<HTMLInputElement>): Promise<void> {
   const data: SavedSyncData = { [id]: checked };
+
+  // @ts-expect-error types issue
   storage.sync.set(data);
 }
 

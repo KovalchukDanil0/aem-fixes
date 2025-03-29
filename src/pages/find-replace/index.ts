@@ -60,9 +60,9 @@ async function fixOldLinks(): Promise<void> {
   });
 }
 
-(async function () {
-  const validateButton = await waitForElm(
-    "div.find-replace-links.ng-scope > div.content.first > div.root-path-selection > button:nth-child(4)",
-  );
-  validateButton.addEventListener("click", fixOldLinks);
-})();
+// Main logic
+
+const validateButton = await waitForElm(
+  "div.find-replace-links.ng-scope > div.content.first > div.root-path-selection > button:nth-child(4)",
+);
+validateButton.addEventListener("click", fixOldLinks);
