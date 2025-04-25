@@ -1,0 +1,53 @@
+<script lang="ts" module>
+  import "$styles/main.css";
+  import "@fontsource/open-sans";
+  import { Icon } from "svelte-icons-pack";
+  import { FaSolidArrowLeft } from "svelte-icons-pack/fa";
+  import { twMerge } from "tailwind-merge";
+
+  const savedSyncDataInit = await browser.storage.sync.get<SavedSyncData>({
+    disCreateWF: false,
+    disMothersiteCheck: false,
+    enableAutoLogin: false,
+    enableFilterFix: false,
+    enableFunErr: false,
+  });
+</script>
+
+<script lang="ts">
+  const settingNames = {
+    disCreateWF: "Disable Create WF Button",
+    disMothersiteCheck: "Disable Mothersite Check",
+    enableAutoLogin: "Enable Auto Login",
+    enableFilterFix: "Enable Filter Fix in Jira",
+    enableFunErr: "Enable Funny Errors",
+  };
+
+  const savedSyncData = Object.entries(savedSyncDataInit);
+
+  function saveSyncData(data: string, value: boolean) {
+    browser.storage.sync.set<SavedSyncData>({ [data]: !value });
+  }
+</script>
+
+<a href="/popup.html" class="flex flex-row items-center gap-1"
+  ><Icon src={FaSolidArrowLeft} />Back</a
+>
+<h2>AEM Fixes Settings</h2>
+
+{#each savedSyncData as [key, value], idx}
+  <div
+    class={twMerge(
+      "flex flex-row gap-3",
+      savedSyncData.length - 1 === idx && "animate-glitch",
+    )}
+  >
+    <label class="flex flex-row gap-1 select-none"
+      >{settingNames[key as keyof typeof settingNames]}<input
+        onchange={() => saveSyncData(key, value)}
+        checked={value}
+        type="checkbox"
+      /></label
+    >
+  </div>
+{/each}

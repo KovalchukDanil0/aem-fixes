@@ -1,0 +1,98 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@layer base {
+
+  p,
+  a,
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  span,
+  b,
+  button,
+  textarea,
+  label {
+    @apply text-white;
+  }
+}
+
+@theme {
+  --animate-glitch: glitch 1s infinite;
+
+  @keyframes glitch {
+
+    0% {
+      transform: translate(0, 0);
+    }
+
+    20% {
+      transform: translate(-2px, -2px);
+    }
+
+    40% {
+      transform: translate(2px, 2px);
+    }
+
+    60% {
+      transform: translate(-2px, 2px);
+    }
+
+    80% {
+      transform: translate(2px, -2px);
+    }
+
+    100% {
+      transform: translate(0, 0);
+    }
+  }
+}
+
+body {
+  font-family: "Open Sans", sans-serif;
+}
+
+button,
+a {
+  @apply cursor-pointer;
+}
+
+h1 {
+  @apply text-4xl;
+}
+
+h2 {
+  @apply text-3xl;
+}
+
+h3 {
+  @apply text-2xl;
+}
+
+h4 {
+  @apply text-xl;
+}
+
+::-webkit-scrollbar {
+  @apply size-3 bg-gray-300;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply size-3 bg-gray-600 rounded-2xl cursor-pointer;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply size-3 bg-gray-700;
+}
+
+::-webkit-scrollbar-corner {
+  @apply bg-gray-300;
+}
+
+svg {
+  @apply text-white;
+}

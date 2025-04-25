@@ -1,43 +1,7 @@
 {
+  "extends": "./.wxt/tsconfig.json",
   "compilerOptions": {
-    "rootDir": ".",
-    "sourceMap": true,
-    "declaration": false,
-    "moduleResolution": "Node",
-    "emitDecoratorMetadata": true,
-    "experimentalDecorators": true,
-    "noImplicitAny": true,
-    "noImplicitThis": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "importHelpers": true,
-    "target": "ESNext",
-    "module": "ESNext",
-    "lib": ["DOM", "DOM.Iterable", "ESNext"],
-    "skipLibCheck": true,
-    "skipDefaultLibCheck": true,
-    "baseUrl": ".",
-    "paths": {
-      "src/*": ["src/*"],
-      "~/*": ["./*"]
-    },
-    "isolatedModules": true,
-    "esModuleInterop": true,
-    "jsx": "react-jsx",
-    "resolveJsonModule": true,
-    "strict": true,
-    "allowJs": true,
-    "forceConsistentCasingInFileNames": true,
-    "noEmit": true
-  },
-  "files": [],
-  "references": [
-    {
-      "path": "./tsconfig.app.json"
-    },
-    {
-      "path": "./tsconfig.spec.json"
-    }
-  ],
-  "exclude": ["node_modules", "dist"]
+    "useDefineForClassFields": true,
+    "verbatimModuleSyntax": true
+  }
 }

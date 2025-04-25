@@ -1,29 +1,29 @@
 // @ts-check
 
-import { default as eslint } from "@eslint/js";
-import tseslint from "typescript-eslint";
+import js from "@eslint/js";
+import svelte from "eslint-plugin-svelte";
+import globals from "globals";
+import ts from "typescript-eslint";
 
-// @ts-expect-error no declaration file
-import reactHooks from "eslint-plugin-react-hooks";
-// @ts-expect-error no declaration file
-import reactRefresh from "eslint-plugin-react-refresh";
-
-export default tseslint.config(
-  eslint.configs.recommended,
-  ...tseslint.configs.strict,
-  ...tseslint.configs.stylistic,
-  { ignores: ["dist"] },
+export default ts.config([
+  js.configs.recommended,
+  ...ts.configs.recommended,
+  ...svelte.configs["flat/recommended"],
   {
-    plugins: {
-      "react-hooks": reactHooks,
-      "react-refresh": reactRefresh,
-    },
-    rules: {
-      ...reactHooks.configs.recommended.rules,
-      "react-refresh/only-export-components": [
-        "warn",
-        { allowConstantExport: true },
-      ],
+    languageOptions: {
+      globals: {
+        ...globals.browser,
+        ...globals.node,
+      },
     },
   },
-);
+  {
+    files: ["**/*.svelte"],
+    languageOptions: {
+      parserOptions: {
+        parser: ts.parser,
+      },
+    },
+  },
+  { ignores: ["dist/"] },
+]);

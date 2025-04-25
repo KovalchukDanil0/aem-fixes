@@ -10,24 +10,24 @@ AEM Fixes is a modern Chrome Extension designed to eliminate repetitive everyday
 
 You have to upload a JSON file to use this extension. If you want to have your own settings, look at the `template.json` file. Otherwise, if you need a private file, please contact me via messenger or email.
 
-**_Some functions require their parameters to be enabled in options page_** ![Options Button](tutorial/OptionsButton.png) ![Options Page](tutorial/OptionsPage.png)
+**_Some functions require their parameters to be enabled in options page_** ![Options Button](demo/OptionsButton.png) ![Options Page](demo/OptionsPage.png)
 
 ## Features
 
 ### Jira page
 
-- Automatically creating WF by adding simple button, in Jira ticket page, matching the interface: ![settings can enable page](https://img.shields.io/badge/customizable-red) ![jira WF Button](tutorial/jiraWFButton.png)This button will redirect you to create WF page and automatically paste for you ticket number and name
+- Automatically creating WF by adding simple button, in Jira ticket page, matching the interface: ![settings can enable page](https://img.shields.io/badge/customizable-red) ![jira WF Button](demo/jiraWFButton.png)This button will redirect you to create WF page and automatically paste for you ticket number and name
 - Auto fix attachment filters to display new content at top ![settings can enable page](https://img.shields.io/badge/customizable-red)
 
 ### Almost all pages that you work on
 
 - Fast transition between environments, so you can jump from Live directly to Author: ![multiple tabs](https://img.shields.io/badge/multiple-tabs-green)  
-  ![Env Transition](tutorial/EnvTransition.png)
+  ![Env Transition](demo/EnvTransition.png)
 
 ### Author page
 
-- Open Touch properties in a new tab without page reload needed:![Open Touch Properties](tutorial/OpenTouchProperties.png)
-- Open author in AEM tree: ![smart](https://img.shields.io/badge/smart-green) ![Open In AEM Tree](tutorial/OpenInAEMTree.png)
+- Open Touch properties in a new tab without page reload needed:![Open Touch Properties](demo/OpenTouchProperties.png)
+- Open author in AEM tree: ![smart](https://img.shields.io/badge/smart-green) ![Open In AEM Tree](demo/OpenInAEMTree.png)
 - Showing blocked ticket with link to its parent ticket on the yellow box at the top of the author page
 
 ### Live&Perf pages
@@ -48,7 +48,7 @@ You have to upload a JSON file to use this extension. If you want to have your o
 ### Context menu
 
 - Open image directly in DAM
-- You can jump to eny environment from browser context menu, without opening page in a new tab![Context Menu](tutorial/ContextMenu.png)
+- You can jump to eny environment from browser context menu, without opening page in a new tab![Context Menu](demo/ContextMenu.png)
 
 cats and memes about programmers hidden in the depths of the codebase
 

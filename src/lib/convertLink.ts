@@ -1,22 +1,20 @@
-import axios from "axios";
-import { tabs, Tabs } from "webextension-polyfill";
+import ky from "ky";
 import {
-  getDomain,
-  getDomainPerf,
-  getDomainProd,
-  getFullAuthorPath,
-  getPathToResolver,
-  getRegexAuthor,
-  getRegexFastAuthor,
-  getRegexFixSiteWide,
-  getRegexLive,
-  getRegexPerfProd,
-  getTopLevelDomain,
+  domain,
+  domainPerf,
+  domainProd,
+  fullAuthorPath,
+  pathToResolver,
+  regexAuthor,
+  regexFastAuthor,
+  regexFixSiteWide,
+  regexLive,
+  regexPerfProd,
+  topLevelDomain,
 } from "./storage";
-import { EnvTypesExtended, MessageCommon } from "./types";
 
 interface OriginalPathType {
-  map?: { originalPath?: string };
+  map: { originalPath: string };
 }
 
 const marketsInBeta: string[] = [
@@ -75,8 +73,7 @@ export function fixLocalLanguage(
   toAuthor = false,
 ): string {
   if (localLanguage === market) {
-    localLanguage = "";
-    return localLanguage;
+    return "";
   }
 
   const properties = {
@@ -100,13 +97,7 @@ export function fixLocalLanguage(
     pl: ["", "pl"],
   };
 
-  const marketProp = properties[market as keyof typeof properties];
-
-  if (marketProp) {
-    localLanguage = marketProp[+toAuthor];
-  }
-
-  return localLanguage;
+  return properties[market as keyof typeof properties][+toAuthor];
 }
 
 function fixUrlPart(urlPart: string): string {
@@ -130,34 +121,34 @@ function fixUrlPart(urlPart: string): string {
 }
 
 async function getPerfRealUrl(
-  { href }: URL,
+  url: string,
   regexAuthor: RegExp,
 ): Promise<string> {
   let html: Document | null = null;
 
-  if (!regexAuthor.test(href)) {
+  if (!regexAuthor.test(url)) {
     const regexDeleteEnv = /\/(?:editor\.html|cf#)/gm;
-    const toEnvUrl = href.replace(regexDeleteEnv, "");
+    const toEnvUrl = url.replace(regexDeleteEnv, "");
 
-    const { data: htmlResponse } = await axios.get(toEnvUrl, {
-      headers: { "User-Agent": "request" },
-    });
+    const htmlResponse = await ky
+      .get(toEnvUrl, {
+        headers: { "User-Agent": "request" },
+      })
+      .json<Document>();
     html = htmlResponse;
   }
 
-  const tab: Tabs.Tab = (
-    await tabs.query({ url: href, currentWindow: true })
-  )[0];
+  const [tab] = await browser.tabs.query({ currentWindow: true, url });
 
   if (!tab.id) {
     throw new Error("tab id is undefined");
   }
 
-  const realPerfUrl: string | null = await tabs.sendMessage(tab.id, {
+  const realPerfUrl = await browser.tabs.sendMessage<MessageRealPerf>(tab.id, {
     from: "background",
     subject: "getRealUrl",
     html,
-  } as MessageCommon);
+  });
 
   if (!realPerfUrl) {
     throw new Error(
@@ -170,21 +161,19 @@ async function getPerfRealUrl(
 
 async function determineEnv(
   env: EnvTypesExtended,
-  url: URL,
+  url: string,
   regexAuthor: RegExp,
   isAuthor: boolean,
   market: string,
   localLanguage: string,
   urlPart: string,
   beta: boolean,
-): Promise<string> {
+) {
   let newUrl: string;
-
-  const regexFastAuthor = await getRegexFastAuthor();
 
   if (isAuthor) {
     if (env === "cf#" || env === "editor.html") {
-      const matchFastAuthor = regexFastAuthor.exec(url.href);
+      const matchFastAuthor = regexFastAuthor.exec(url);
 
       if (!matchFastAuthor) {
         throw new Error("Regex not matched fast author");
@@ -193,9 +182,9 @@ async function determineEnv(
       const [, linkDomain, authorPart, authorEnv, , linkContent, htmlPart] =
         matchFastAuthor;
 
-      newUrl = `${linkDomain}${authorPart !== "author" ? "author" : ""}${authorEnv}${env}/${linkContent}${
-        htmlPart !== "html" ? ".html" : ""
-      }`;
+      newUrl = `${linkDomain}${
+        authorPart !== "author" ? "author" : ""
+      }${authorEnv}${env}/${linkContent}${htmlPart !== "html" ? ".html" : ""}`;
 
       return newUrl;
     }
@@ -205,13 +194,13 @@ async function determineEnv(
 
   switch (env) {
     case "live":
-      newUrl = await makeLive(market, localLanguage, urlPart);
+      newUrl = makeLive(market, localLanguage, urlPart);
       break;
     case "perf":
-      newUrl = await makePerfProd(true, market, localLanguage, urlPart, beta);
+      newUrl = makePerfProd(true, market, localLanguage, urlPart, beta);
       break;
     case "prod":
-      newUrl = await makePerfProd(false, market, localLanguage, urlPart, beta);
+      newUrl = makePerfProd(false, market, localLanguage, urlPart, beta);
       break;
     case "editor.html":
       newUrl = await makeAuthor(true, market, beta, urlPart, localLanguage);
@@ -226,11 +215,7 @@ async function determineEnv(
   return newUrl;
 }
 
-async function makeLive(
-  market: string,
-  localLanguage: string,
-  urlPart: string,
-): Promise<string> {
+function makeLive(market: string, localLanguage: string, urlPart: string) {
   let britain = "";
   if (market === "uk") {
     britain = "uk";
@@ -242,29 +227,28 @@ async function makeLive(
     localLanguage += ".";
   }
 
-  const topLevelDomain = await getTopLevelDomain();
-
-  return `https://www.${localLanguage ?? ""}${topLevelDomain}.${market}${britain}${urlPart}`;
+  return `https://www.${
+    localLanguage ?? ""
+  }${topLevelDomain}.${market}${britain}${urlPart}`;
 }
 
-async function makePerfProd(
+function makePerfProd(
   isPerf: boolean,
   market: string,
   localLanguage: string,
   urlPart: string,
   beta: boolean,
-): Promise<string> {
+) {
   if (market === "uk" || market === "gb") {
     market = "co";
     localLanguage = "uk";
   }
 
-  const domain = await getDomain();
-  const topLevelDomain = await getTopLevelDomain();
+  const domainPerfProd = isPerf ? domainPerf : domainProd;
 
-  const domainPerfProd = isPerf ? await getDomainPerf() : await getDomainProd();
-
-  return `https://${domainPerfProd}${betaString(beta)}-${market}${localLanguage ?? ""}.${domain}.${topLevelDomain}.com${urlPart}`;
+  return `https://${domainPerfProd}${betaString(beta)}-${market}${
+    localLanguage ?? ""
+  }.${domain}.${topLevelDomain}.com${urlPart}`;
 }
 
 async function makeAuthor(
@@ -273,15 +257,14 @@ async function makeAuthor(
   beta: boolean,
   urlPart: string,
   localLanguage: string,
-): Promise<string> {
-  let wrongLink = `/content/guxeu${betaString(beta)}/${
-    market
-  }/${fixLocalLanguage(localLanguage, market, true)}_${fixMarket(market)}/${
-    isMarketHasHomeNew(market) && !urlPart ? "home-new" : "home"
-  }${urlPart}`;
+) {
+  let wrongLink = `/content/guxeu${betaString(
+    beta,
+  )}/${market}/${fixLocalLanguage(localLanguage, market, true)}_${fixMarket(
+    market,
+  )}/${isMarketHasHomeNew(market) && !urlPart ? "home-new" : "home"}${urlPart}`;
 
-  const regexFixSiteWide = await getRegexFixSiteWide();
-
+  console.log(wrongLink);
   const matchFixSiteWide = regexFixSiteWide.exec(wrongLink);
   if (!matchFixSiteWide) {
     throw new Error("Regex not matched site wide");
@@ -289,26 +272,22 @@ async function makeAuthor(
 
   const [, linkDomain, , linkContent, linkPart] = matchFixSiteWide;
 
-  if (linkContent === "content") {
+  if (linkContent === "/content") {
     wrongLink = `${linkDomain}/site-wide-content${linkPart}`;
   }
 
-  const fullAuthorPath = await getFullAuthorPath();
-  const pathToResolver = await getPathToResolver();
-
-  const { data: response } = await axios.get<OriginalPathType>(
-    `https://${fullAuthorPath}/${pathToResolver}` + wrongLink,
-    {
+  const response = await ky
+    .get(`https://${fullAuthorPath}/${pathToResolver}${wrongLink}`, {
       headers: {
         Accept: "application/json",
       },
-    },
-  );
+    })
+    .json<OriginalPathType>()
+    .catch(() => {
+      throw new Error("Please logIn to your AEM account");
+    });
 
-  const originalPath = response.map?.originalPath;
-  if (!originalPath) {
-    throw new Error("Please logIn to your AEM account");
-  }
+  const originalPath = response.map.originalPath;
 
   return makeRealAuthorLink(originalPath, fullAuthorPath, isTouch);
 }
@@ -318,7 +297,9 @@ function makeRealAuthorLink(
   fullAuthorPath: string,
   isTouch: boolean,
 ): string {
-  return `https://${fullAuthorPath}/${isTouch ? "editor.html" : "cf#"}${wrongLink}.html`;
+  return `https://${fullAuthorPath}/${
+    isTouch ? "editor.html" : "cf#"
+  }${wrongLink}.html`;
 }
 
 export async function convertLink(
@@ -330,23 +311,14 @@ export async function convertLink(
   let urlPart: string;
   let isAuthor = false;
 
-  const regexAuthor = await getRegexAuthor();
-  const regexLive = await getRegexLive();
-  const regexPerfProd = await getRegexPerfProd();
-
   urlPart = url.pathname + url.search + url.hash;
   if (urlPart === "/") {
     urlPart = "";
   }
 
-  console.log(regexLive.exec(url.href));
-
   const matchLive = regexLive.exec(url.href);
   if (matchLive) {
     const [, localLanguageTemp, topLevelDomain, domain] = matchLive;
-
-    console.log(localLanguageTemp);
-    console.log(topLevelDomain);
 
     market = domain || topLevelDomain;
     localLanguage = domain ? topLevelDomain : localLanguageTemp;
@@ -374,7 +346,7 @@ export async function convertLink(
     isAuthor = true;
   }
 
-  if (market == null) {
+  if (!market) {
     throw new Error(`${url} doesn't match any of the env`);
   }
 
@@ -382,7 +354,7 @@ export async function convertLink(
 
   return determineEnv(
     env,
-    url,
+    url.href,
     regexAuthor,
     isAuthor,
     market,

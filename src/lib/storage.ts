@@ -1,223 +1,88 @@
-import { storage } from "webextension-polyfill";
-import { SavedSyncData } from "./types";
+export const regexJira = RegExp(import.meta.env.VITE_REGEX_JIRA);
+export const regexWorkflow = RegExp(import.meta.env.VITE_REGEX_WORKFLOW);
+export const regexDAMTree = RegExp(import.meta.env.VITE_REGEX_DAM_TREE);
+export const regexLive = RegExp(import.meta.env.VITE_REGEX_LIVE);
+export const regexPerfProd = RegExp(import.meta.env.VITE_REGEX_PERF_PROD);
+export const regexAuthor = RegExp(import.meta.env.VITE_REGEX_AUTHOR);
+export const regexDetermineBeta = RegExp(
+  import.meta.env.VITE_REGEX_DETERMINE_BETA,
+);
+export const regexFastAuthor = RegExp(import.meta.env.VITE_REGEX_FAST_AUTHOR);
+export const regexFixSiteWide = RegExp(
+  import.meta.env.VITE_REGEX_FIX_SITE_WIDE,
+);
+export const regexWFTitle = RegExp(import.meta.env.VITE_REGEX_WF_TITLE);
+export const regexImagePicker = RegExp(import.meta.env.VITE_REGEX_IMAGE_PICKER);
+export const regexHTMLExist = RegExp(import.meta.env.VITE_REGEX_HTML_EXIST);
+export const domain = import.meta.env.VITE_DOMAIN;
+export const pathToResolver = import.meta.env.VITE_PATH_TO_RESOLVER;
+export const pathToReferences = import.meta.env.VITE_PATH_TO_REFERENCES;
+export const pathToReferencesParams = import.meta.env
+  .VITE_PATH_TO_REFERENCES_PARAMS;
+export const topLevelDomain = import.meta.env.VITE_DOMAIN_TOP_LEVEL;
+export const domainPerf = import.meta.env.VITE_DOMAIN_PERF;
+export const domainProd = import.meta.env.VITE_DOMAIN_PROD;
+export const workflowPath = import.meta.env.VITE_WORKFLOW_PATH;
+export const fullAuthorPath = import.meta.env.VITE_FULL_AUTHOR_PATH;
+export const propertiesPath = import.meta.env.VITE_PROPERTIES_PATH;
+export const aemToolsUrl = import.meta.env.VITE_WORKFLOW_PATH;
+export const findReplaceUrl = import.meta.env.VITE_FIND_REPLACE_URL;
+export const damTreeUrl = import.meta.env.VITE_DAM_TREE_URL;
+export const secretWord = import.meta.env.VITE_SECRET_WORD;
+export const jiraFullPath = import.meta.env.VITE_JIRA_FULL_PATH;
 
-export interface SavedLocalData {
-  secretSettings: {
-    regexJira: string;
-    regexLive: string;
-    regexPerfProd: string;
-    regexAuthor: string;
-    regexWorkflow: string;
-    regexDAMTree: string;
-    regexFastAuthor: string;
-    regexFixSiteWide: string;
-    regexImagePicker: string;
-    regexHTMLExist: string;
-    regexWFTitle: string;
-    domain: string;
-    domainAuthor: string;
-    domainPerf: string;
-    domainProd: string;
-    topLevelDomain: string;
-    secretWord: string;
-    pathToResolver: string;
-    pathToReferences: string;
-    pathToReferencesParams: string;
-    fullAuthorPath: string;
-    propertiesPath: string;
-    workflowPath: string;
-    jiraFullPath: string;
-    findReplaceUrl: string;
-    DAMTreeUrl: string;
-    regexDetermineBeta: string;
-  };
-}
+export const isJira = (url: string | undefined): boolean =>
+  url ? regexJira.test(url) : false;
 
-export const getLocalSavedData = async (): Promise<SavedLocalData> =>
-  // @ts-expect-error types issue
-  storage.local.get() as Promise<SavedLocalData>;
+export const isWorkflow = (url: string | undefined): boolean =>
+  url ? regexWorkflow.test(url) : false;
 
-async function getRegexJira(): Promise<RegExp> {
-  const {
-    secretSettings: { regexJira },
-  } = await getLocalSavedData();
-  return new RegExp(regexJira);
-}
+export const isLive = (url: string | undefined): boolean =>
+  url ? regexLive.test(url) : false;
 
-export async function ifJira(url: string): Promise<boolean> {
-  const regexJira = await getRegexJira();
-  return regexJira.test(url);
-}
+export const isLivePerf = (url: string | undefined): boolean =>
+  isPerfProd(url) || isLive(url);
 
-export async function getRegexWorkflow(): Promise<RegExp> {
-  const {
-    secretSettings: { regexWorkflow },
-  } = await getLocalSavedData();
-  return new RegExp(regexWorkflow);
-}
+export const isPerfProd = (url: string | undefined): boolean =>
+  url ? regexPerfProd.test(url) : false;
 
-export async function ifWorkflow(url: string): Promise<boolean> {
-  const regexWorkflow = await getRegexWorkflow();
-  return regexWorkflow.test(url);
-}
+export const isPerf = (url: string | undefined): boolean =>
+  url?.replace(regexPerfProd, "$1") === "perf";
 
-export async function getRegexDAMTree(): Promise<RegExp> {
-  const {
-    secretSettings: { regexDAMTree },
-  } = await getLocalSavedData();
-  return new RegExp(regexDAMTree);
-}
+export const isProd = (url: string | undefined): boolean =>
+  url?.replace(regexPerfProd, "$1") === "prod";
 
-export async function getRegexLive(): Promise<RegExp> {
-  const {
-    secretSettings: { regexLive },
-  } = await getLocalSavedData();
-  return new RegExp(regexLive);
-}
+export const isAuthor = (url: string | undefined): boolean =>
+  url ? regexAuthor.test(url) : false;
 
-export async function ifLive(url: string): Promise<boolean> {
-  const regexLive = await getRegexLive();
-  return regexLive.test(url);
-}
+export const isAuthorNoEnv = (url: string | undefined): boolean =>
+  url?.replace(regexAuthor, "$2") === "";
 
-export async function getRegexPerfProd(): Promise<RegExp> {
-  const {
-    secretSettings: { regexPerfProd },
-  } = await getLocalSavedData();
-  return new RegExp(regexPerfProd);
-}
+export const isClassic = (url: string | undefined): boolean =>
+  url?.replace(regexAuthor, "$2") === "cf#";
 
-export async function ifPerfProd(url: string): Promise<boolean> {
-  const regexPerfProd = await getRegexPerfProd();
-  return regexPerfProd.test(url);
-}
+export const isTouch = (url: string | undefined): boolean =>
+  url?.replace(regexAuthor, "$2") === "editor.html";
 
-export async function ifPerf(url: string): Promise<boolean> {
-  const regexPerfProd = await getRegexPerfProd();
-  return url.replace(regexPerfProd, "$1") === "perf";
-}
+export const isAnyOfTheEnv = (url: string | undefined): boolean =>
+  url
+    ? regexLive.test(url) || regexPerfProd.test(url) || regexAuthor.test(url)
+    : false;
 
-export async function ifProd(url: string): Promise<boolean> {
-  const regexPerfProd = await getRegexPerfProd();
-  return url.replace(regexPerfProd, "$1") === "prod";
-}
+export const isAEMToolsUrl = (url: string | undefined): boolean =>
+  url?.includes(workflowPath) ?? false;
 
-export async function getRegexAuthor(): Promise<RegExp> {
-  const {
-    secretSettings: { regexAuthor },
-  } = await getLocalSavedData();
-  return new RegExp(regexAuthor);
-}
+export const isDamUrl = (url: string | undefined): boolean =>
+  url?.includes(damTreeUrl) ?? false;
 
-export async function ifAuthor(url: string): Promise<boolean> {
-  const regexAuthor = await getRegexAuthor();
-  return regexAuthor.test(url);
-}
+export const isFindReplaceUrl = (url: string | undefined): boolean =>
+  url?.includes(findReplaceUrl) ?? false;
 
-export async function ifAuthorNoEnv(url: string): Promise<boolean> {
-  const regexAuthor = await getRegexAuthor();
-  return url.replace(regexAuthor, "$2") === "";
-}
+export const isWorkflowUrl = (url: string | undefined): boolean =>
+  url ? regexWorkflow.test(url) : false;
 
-export async function ifClassic(url: string): Promise<boolean> {
-  const regexAuthor = await getRegexAuthor();
-  return url.replace(regexAuthor, "$2") === "cf#";
-}
-
-export async function ifTouch(url: string): Promise<boolean> {
-  const regexAuthor = await getRegexAuthor();
-  return url.replace(regexAuthor, "$2") === "editor.html";
-}
-
-export async function ifAnyOfTheEnv(url: string) {
-  const regexLive = await getRegexLive();
-  const regexPerfProd = await getRegexPerfProd();
-  const regexAuthor = await getRegexAuthor();
-
-  return (
-    regexLive.test(url) || regexPerfProd.test(url) || regexAuthor.test(url)
-  );
-}
-
-export async function getRegexDetermineBeta(): Promise<RegExp> {
-  const {
-    secretSettings: { regexDetermineBeta },
-  } = await getLocalSavedData();
-  return new RegExp(regexDetermineBeta);
-}
-
-export async function getRegexFastAuthor(): Promise<RegExp> {
-  const {
-    secretSettings: { regexFastAuthor },
-  } = await getLocalSavedData();
-  return new RegExp(regexFastAuthor);
-}
-
-export async function getRegexFixSiteWide(): Promise<RegExp> {
-  const {
-    secretSettings: { regexFixSiteWide },
-  } = await getLocalSavedData();
-  return new RegExp(regexFixSiteWide);
-}
-
-export async function getRegexWFTitle(): Promise<RegExp> {
-  const {
-    secretSettings: { regexWFTitle },
-  } = await getLocalSavedData();
-  return new RegExp(regexWFTitle);
-}
-
-export async function getDomain(): Promise<string> {
-  const {
-    secretSettings: { domain },
-  } = await getLocalSavedData();
-  return domain;
-}
-
-export async function getFullAuthorPath(): Promise<string> {
-  const {
-    secretSettings: { fullAuthorPath },
-  } = await getLocalSavedData();
-  return fullAuthorPath;
-}
-
-export async function getPathToResolver(): Promise<string> {
-  const {
-    secretSettings: { pathToResolver },
-  } = await getLocalSavedData();
-  return pathToResolver;
-}
-
-export async function getTopLevelDomain(): Promise<string> {
-  const {
-    secretSettings: { topLevelDomain },
-  } = await getLocalSavedData();
-  return topLevelDomain;
-}
-
-export async function getDomainPerf(): Promise<string> {
-  const {
-    secretSettings: { domainPerf },
-  } = await getLocalSavedData();
-  return domainPerf;
-}
-
-export async function getDomainProd(): Promise<string> {
-  const {
-    secretSettings: { domainProd },
-  } = await getLocalSavedData();
-  return domainProd;
-}
-
-export async function getWorkflowPath(): Promise<string> {
-  const {
-    secretSettings: { workflowPath },
-  } = await getLocalSavedData();
-  return workflowPath;
-}
-
-export const loadSavedData = async (): Promise<SavedSyncData> =>
-  storage.sync.get({
+export const loadSavedData = async () =>
+  browser.storage.sync.get<SavedSyncData>({
     disCreateWF: false,
     disMothersiteCheck: false,
     enableFunErr: false,
