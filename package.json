@@ -2,7 +2,7 @@
   "name": "aem-fixes",
   "description": "Quality of Life changes for AEM",
   "private": true,
-  "version": "6.0",
+  "version": "6.1",
   "type": "module",
   "scripts": {
     "dev": "wxt",
@@ -16,10 +16,10 @@
   },
   "devDependencies": {
     "@eslint/js": "9.25.1",
-    "@tailwindcss/vite": "4.1.4",
+    "@tailwindcss/vite": "4.1.5",
     "@tsconfig/svelte": "5.0.4",
-    "@types/chrome": "0.0.316",
-    "@types/node": "22.14.1",
+    "@types/chrome": "0.0.318",
+    "@types/node": "22.15.3",
     "@wxt-dev/module-svelte": "2.0.3",
     "eslint": "9.25.1",
     "eslint-plugin-svelte": "3.5.1",
@@ -31,12 +31,12 @@
     "svelte": "5.28.2",
     "svelte-check": "4.1.6",
     "tailwind-merge": "3.2.0",
-    "tailwindcss": "4.1.4",
+    "tailwindcss": "4.1.5",
     "tslib": "2.8.1",
     "typescript": "5.8.3",
-    "typescript-eslint": "8.31.0",
+    "typescript-eslint": "8.31.1",
     "vite-plugin-image-optimizer": "1.1.8",
-    "wxt": "0.20.3"
+    "wxt": "0.20.6"
   },
   "dependencies": {
     "@fontsource/open-sans": "5.2.5",

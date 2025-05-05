@@ -14,8 +14,11 @@ import {
 import { waitForElm } from "$lib/tools";
 import ky from "ky";
 import { mount } from "svelte";
+import "~/styles/livePerf.scss";
 
 let lastVehicleIndex = -1;
+
+let showroomShowed = false;
 
 interface VehicleConfig {
   data: Data[];
@@ -100,18 +103,9 @@ function checkMothersite(from: FromType) {
     return;
   }
 
-  const links: NodeListOf<HTMLLinkElement> =
-    document.querySelectorAll("[href]");
-
-  let mothersiteLinks = 0;
-  links.forEach((link) => {
-    if (link.href.includes("mothersite")) {
-      link.style.backgroundColor = "blue";
-      link.style.filter = "invert(100%)";
-
-      mothersiteLinks += 1;
-    }
-  });
+  const mothersiteLinks = document.querySelectorAll(
+    "[href*='mothersite']",
+  ).length;
 
   const text = `MOTHERSITE LINKS ON THIS PAGE - ${mothersiteLinks}`;
 
@@ -242,8 +236,18 @@ function findVehicleCode(
 }
 
 async function findShowroomCode() {
+  if (showroomShowed) {
+    return;
+  }
+
   const showroomElm = document.querySelector("#acc-showroom > span");
   if (!showroomElm) {
+    await browser.runtime.sendMessage<MessageAlert>({
+      from: "content",
+      subject: "showMessage",
+      text: "Please make sure you are on showroom page",
+      color: "error",
+    });
     return;
   }
 
@@ -258,7 +262,17 @@ async function findShowroomCode() {
         Accept: "application/json",
       },
     })
-    .json<ShowroomCode>();
+    .json<ShowroomCode>()
+    .catch(async () => {
+      await browser.runtime.sendMessage<MessageAlert>({
+        from: "content",
+        subject: "showMessage",
+        text: "Please log in to AEM account, or try to refresh page",
+        color: "error",
+      });
+
+      return { data: null };
+    });
 
   if (!showroomConfig) {
     throw new Error(`Cannot reach showroom config page: ${config}`);
@@ -268,6 +282,8 @@ async function findShowroomCode() {
   if (!target) {
     throw new Error("Cannot get parent element of the showroom");
   }
+
+  showroomShowed = true;
 
   mount(ShowroomCodes, {
     props: { data: showroomConfig },

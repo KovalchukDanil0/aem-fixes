@@ -40,10 +40,11 @@ const marketsHomeNew: string[] = [
   "gr",
   "ro",
   "lu",
+  "ch",
 ];
 
 export const isMarketInBeta = (market: string): boolean =>
-  !!marketsInBeta.some((link) => market.includes(link));
+  !!marketsInBeta.some((marketBeta) => marketBeta === market);
 
 export const betaString = (beta: boolean): string => (beta ? "-beta" : "");
 
@@ -76,7 +77,9 @@ export function fixLocalLanguage(
     return "";
   }
 
-  const properties = {
+  const properties: {
+    [market: string]: [string, string] | undefined;
+  } = {
     uk: ["co", "en"],
     ie: ["", "en"],
     fr: ["", "fr"],
@@ -97,7 +100,7 @@ export function fixLocalLanguage(
     pl: ["", "pl"],
   };
 
-  return properties[market as keyof typeof properties][+toAuthor];
+  return properties[market]?.[+toAuthor] ?? localLanguage;
 }
 
 function fixUrlPart(urlPart: string): string {
@@ -174,7 +177,6 @@ async function determineEnv(
   if (isAuthor) {
     if (env === "cf#" || env === "editor.html") {
       const matchFastAuthor = regexFastAuthor.exec(url);
-
       if (!matchFastAuthor) {
         throw new Error("Regex not matched fast author");
       }
@@ -264,7 +266,6 @@ async function makeAuthor(
     market,
   )}/${isMarketHasHomeNew(market) && !urlPart ? "home-new" : "home"}${urlPart}`;
 
-  console.log(wrongLink);
   const matchFixSiteWide = regexFixSiteWide.exec(wrongLink);
   if (!matchFixSiteWide) {
     throw new Error("Regex not matched site wide");
@@ -276,7 +277,9 @@ async function makeAuthor(
     wrongLink = `${linkDomain}/site-wide-content${linkPart}`;
   }
 
-  const response = await ky
+  const {
+    map: { originalPath },
+  } = await ky
     .get(`https://${fullAuthorPath}/${pathToResolver}${wrongLink}`, {
       headers: {
         Accept: "application/json",
@@ -286,8 +289,6 @@ async function makeAuthor(
     .catch(() => {
       throw new Error("Please logIn to your AEM account");
     });
-
-  const originalPath = response.map.originalPath;
 
   return makeRealAuthorLink(originalPath, fullAuthorPath, isTouch);
 }
@@ -306,7 +307,7 @@ export async function convertLink(
   env: EnvTypesExtended,
   url: URL,
 ): Promise<string> {
-  let market: string | null = null;
+  let market = "";
   let localLanguage = "";
   let urlPart: string;
   let isAuthor = false;

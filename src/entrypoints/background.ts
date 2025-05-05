@@ -164,7 +164,7 @@ export default defineBackground({
       },
     );
 
-    browser.runtime.onInstalled.addListener(() => {
+    browser.runtime.onInstalled.addListener(({ reason }) => {
       menus.forEach((menu) => browser.contextMenus.create(menu));
 
       const parentId = browser.contextMenus.create({

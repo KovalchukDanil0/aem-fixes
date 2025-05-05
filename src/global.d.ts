@@ -72,7 +72,7 @@ interface ReferencesConfig {
   }[];
 }
 
-interface EventHandler<T> extends Event {
+interface EventHandler<T> extends MouseEvent {
   currentTarget: EventTarget & T;
 }
 

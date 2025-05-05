@@ -17,7 +17,7 @@
 
 <style lang="scss">
   div.alertBanner {
-    background-color: rgb(17 24 39);
+    background-color: rgb(17 24 39 / 72%);
     padding: 1rem;
     position: fixed;
     width: 100%;

@@ -51,7 +51,15 @@
   };
   const variantClass = variantList[variant];
 
-  async function buttonOnClick({ type }: EventHandler<HTMLButtonElement>) {
+  async function buttonOnClick({
+    type,
+    button,
+  }: EventHandler<HTMLButtonElement>) {
+    // check if left or middle mouse button is clicked
+    if (button > 1) {
+      return;
+    }
+
     if (!btnSendAs || !btnSubject) {
       return;
     }

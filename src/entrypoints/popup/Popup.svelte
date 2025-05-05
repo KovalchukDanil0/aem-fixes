@@ -213,7 +213,7 @@
             btnSubject="showShowroomConfig"
             btnSendAs="tab"
           >
-            Show Showroom Config (WIP)
+            Show Showroom Config
           </ButtonEnv>
         {/if}
       </div>
@@ -261,3 +261,5 @@
     See Guide
   </Link>
 </div>
+
+<!-- TODO: implement audit mode with links to all specific site pages -->

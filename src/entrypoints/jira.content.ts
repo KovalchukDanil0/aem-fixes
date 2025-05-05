@@ -170,24 +170,21 @@ function ticketNumber(ticketNumElm: HTMLElement): string {
     .getAttribute("data-issue-key")
     ?.match(/ESM-\w+/gm)?.[0];
 
-  let embargo = "";
-
   const labels: NodeListOf<HTMLSpanElement> = document.querySelectorAll(
     "#wrap-labels > div > ul > li > a > span",
   );
-  labels.forEach(({ textContent: labelText }: HTMLSpanElement) => {
-    if (labelText?.includes("embargo")) {
-      embargo = "-EMBARGO";
-    }
-  });
 
-  let fix = "";
+  const embargo = Array.from(labels).some(({ textContent: labelText }) =>
+    labelText?.includes("embargo"),
+  )
+    ? "-EMBARGO"
+    : "";
+
   const ticketStatus = document.querySelector<HTMLElement>(
     "#opsbar-transitions_more > span",
   );
-  if (ticketStatus?.textContent?.includes("deployment")) {
-    fix = "-FIX";
-  }
+
+  const fix = ticketStatus?.textContent?.includes("deployment") ? "-FIX" : "";
 
   return ticketNum + embargo + fix;
 }
@@ -203,6 +200,7 @@ function aemToolsCreateWF() {
   const ticketMarket = selectorTextNoSpaces("#customfield_13300-val");
   const ticketLocalLanguage = selectorTextNoSpaces("#customfield_15000-val");
   const WFTitle = selectorTextNoSpaces("#summary-val");
+  const workType = selectorTextNoSpaces("#customfield_18667-val"); // TODO: implement analytics WF
 
   if (!ticketMarket || !ticketLocalLanguage || !WFTitle) {
     throw new Error(

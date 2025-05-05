@@ -1,5 +1,5 @@
 import { WFOpenAllPages, WFUsefulLinks } from "$components/content";
-import { regexDetermineBeta, regexWorkflow } from "$lib/storage";
+import { regexDetermineBeta } from "$lib/storage";
 import { waitForElm } from "$lib/tools";
 import "$styles/authorCustom.scss";
 import "$styles/wfPage.scss";
@@ -15,7 +15,7 @@ function addWorkflowId() {
   const getLinksInWF: NodeListOf<HTMLAnchorElement> =
     document.querySelectorAll(sectionSelector);
 
-  const workflowID = location.href.replace(regexWorkflow, "$5");
+  const workflowID = location.href.replace(/.+\/(.+)\.html.*$/, "$1");
 
   const workflowTitleInput = document.querySelector<HTMLFormElement>(
     "#workflow-title-input",
