@@ -5,22 +5,20 @@ import { defineConfig } from "wxt";
 const email = "danilkovalchuk0@gmail.com";
 
 export default defineConfig({
-  vite() {
-    return {
-      plugins: [tailwindcss(), ViteImageOptimizer()],
-      optimizeDeps: {
-        esbuildOptions: {
-          target: "esnext",
-        },
-      },
-      build: {
+  vite: () => ({
+    plugins: [tailwindcss(), ViteImageOptimizer()],
+    optimizeDeps: {
+      esbuildOptions: {
         target: "esnext",
       },
-      server: {
-        hmr: false,
-      },
-    };
-  },
+    },
+    build: {
+      target: "esnext",
+    },
+    server: {
+      hmr: false,
+    },
+  }),
   alias: {
     $lib: "src/lib",
     $styles: "src/styles",
