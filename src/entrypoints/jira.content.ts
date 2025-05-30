@@ -1,10 +1,12 @@
 import { WFCreateButton } from "$components/content";
+import { onMessage } from "$lib/messaging";
 import {
   fullAuthorPath,
   loadSavedData,
   regexWFTitle,
   secretWord,
   workflowPath,
+  type SavedLocalData,
 } from "$lib/storage";
 import { mount } from "svelte";
 
@@ -200,7 +202,8 @@ function aemToolsCreateWF() {
   const ticketMarket = selectorTextNoSpaces("#customfield_13300-val");
   const ticketLocalLanguage = selectorTextNoSpaces("#customfield_15000-val");
   const WFTitle = selectorTextNoSpaces("#summary-val");
-  const workType = selectorTextNoSpaces("#customfield_18667-val"); // TODO: implement analytics WF
+  // const workType = selectorTextNoSpaces("#customfield_18667-val");
+  // TODO: implement analytics WF
 
   if (!ticketMarket || !ticketLocalLanguage || !WFTitle) {
     throw new Error(
@@ -237,21 +240,8 @@ export default defineContentScript({
   matches: [import.meta.env.VITE_JIRA_MATCH],
   runAt: "document_end",
   async main() {
-    browser.runtime.onMessage.addListener(
-      ({ from, subject }: MessageCommon, _, sendResponse) => {
-        if (from !== "popup") {
-          return;
-        }
-
-        if (subject === "createWF") {
-          aemToolsCreateWF();
-        }
-
-        if (subject === "getEnvironment") {
-          sendResponse("jira" as EnvTypesExtended);
-        }
-      },
-    );
+    onMessage("createWF", () => aemToolsCreateWF());
+    onMessage("getEnvironment", () => "jira");
 
     const { disCreateWF, enableFilterFix } = await loadSavedData();
 

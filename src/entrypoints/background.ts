@@ -1,4 +1,5 @@
 import { convertLink } from "$lib/convertLink";
+import { onMessage, sendMessage } from "$lib/messaging";
 import {
   fullAuthorPath,
   regexAuthor,
@@ -8,7 +9,7 @@ import {
 
 function toEnvironment(
   activeTabs: Browser.tabs.Tab[],
-  env: EnvTypesExtended,
+  env: EnvTypes,
   newTab: boolean,
   url?: string,
 ) {
@@ -20,9 +21,7 @@ function toEnvironment(
 
     const newUrl = await convertLink(env, new URL(tabUrl)).catch(
       async (error: Error) => {
-        await browser.runtime.sendMessage<MessageAlert>({
-          from: "background",
-          subject: "showMessage",
+        await sendMessage("showMessage", {
           color: "error",
           text: `ERROR - ${error.message}`,
         });
@@ -127,44 +126,29 @@ type CommandEnvs = "toLive" | "toPerf" | "toProd" | "toAuthor";
 export default defineBackground({
   type: "module",
   main() {
-    browser.runtime.onMessage.addListener(
-      async (
-        { tabs: msgTabs, env, from, newTab, subject, url }: MessageEnv,
-        sender,
-        sendResponse,
-      ) => {
-        if (from === "background") {
-          return;
-        }
+    onMessage("toEnvironment", ({ data: { tabs: msgTabs, env, newTab } }) => {
+      toEnvironment(msgTabs, env, newTab);
+    });
 
-        switch (subject) {
-          case "toEnvironment":
-            toEnvironment(msgTabs, env, newTab);
-            break;
+    onMessage("openInTree", ({ data: { tabs: msgTabs, url } }) => {
+      const urlToOpen = url ?? msgTabs?.at(-1)?.url;
+      openInTree(urlToOpen);
+    });
 
-          case "openInTree": {
-            const urlToOpen = url ?? msgTabs[msgTabs.length - 1].url;
-            openInTree(urlToOpen);
-            break;
-          }
+    onMessage("getCookie", async ({ sender }) => {
+      const senderTabUrl = sender.tab?.url;
 
-          case "getCookie":
-            if (sender.tab?.url) {
-              const cookie = await browser.cookies.get({
-                name: "ADFS-credential",
-                url: sender.tab.url,
-              });
+      if (senderTabUrl) {
+        const cookie = await browser.cookies.get({
+          name: "ADFS-credential",
+          url: senderTabUrl,
+        });
 
-              sendResponse(cookie?.value);
-              return true;
-            }
+        return cookie?.value;
+      }
+    });
 
-            break;
-        }
-      },
-    );
-
-    browser.runtime.onInstalled.addListener(({ reason }) => {
+    browser.runtime.onInstalled.addListener(() => {
       menus.forEach((menu) => browser.contextMenus.create(menu));
 
       const parentId = browser.contextMenus.create({

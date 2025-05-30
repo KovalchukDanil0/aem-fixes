@@ -1,3 +1,4 @@
+import type { SavedLocalData } from "$lib/storage";
 import { waitForElm } from "$lib/tools";
 
 async function createWF({ WFName, WFTitle }: SavedLocalData) {

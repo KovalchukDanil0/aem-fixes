@@ -3,6 +3,7 @@ import {
   ReferencesBanner,
   WFShowTicket,
 } from "$components/content";
+import { onMessage } from "$lib/messaging";
 import {
   fullAuthorPath,
   isTouch,
@@ -99,27 +100,12 @@ export default defineContentScript({
   async main() {
     const inIframe = window.self !== window.top;
 
-    browser.runtime.onMessage.addListener(
-      ({ from, subject }: MessageCommon, _, sendResponse) => {
-        if (inIframe && from === "background" && subject === "getRealUrl") {
-          sendResponse(getRealPerfUrl());
-        }
+    if (inIframe) {
+      onMessage("getRealUrl", () => getRealPerfUrl());
 
-        if (from !== "popup" || !inIframe) {
-          return;
-        }
-
-        if (subject === "getEnvironment") {
-          sendResponse(
-            (isTouch(url) ? "editor.html" : "cf#") as EnvTypesExtended,
-          );
-        }
-
-        if (subject === "checkReferences") {
-          checkReferences();
-        }
-      },
-    );
+      onMessage("getEnvironment", () => (isTouch(url) ? "editor.html" : "cf#"));
+      onMessage("checkReferences", () => checkReferences());
+    }
 
     if (!inIframe) {
       return;

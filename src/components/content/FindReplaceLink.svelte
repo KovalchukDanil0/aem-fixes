@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { sendMessage } from "$lib/messaging";
   import type { HTMLAnchorAttributes } from "svelte/elements";
 
   interface Props extends HTMLAnchorAttributes {
@@ -7,10 +8,8 @@
 
   const { url, ...restProps }: Props = $props();
 
-  function openInTree() {
-    browser.runtime.sendMessage<MessageCommon>({
-      from: "content",
-      subject: "openInTree",
+  async function openInTree() {
+    await sendMessage("openInTree", {
       url,
     });
   }

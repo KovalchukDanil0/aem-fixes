@@ -1,3 +1,16 @@
+export interface SavedSyncData {
+  disCreateWF?: boolean;
+  disMothersiteCheck?: boolean;
+  enableAutoLogin?: boolean;
+  enableFilterFix?: boolean;
+  enableFunErr?: boolean;
+}
+
+export interface SavedLocalData {
+  WFTitle?: string;
+  WFName?: string;
+}
+
 export const regexJira = RegExp(import.meta.env.VITE_REGEX_JIRA);
 export const regexWorkflow = RegExp(import.meta.env.VITE_REGEX_WORKFLOW);
 export const regexDAMTree = RegExp(import.meta.env.VITE_REGEX_DAM_TREE);

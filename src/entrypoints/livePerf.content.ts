@@ -4,6 +4,7 @@ import {
   ShowroomCodes,
   VehicleCode,
 } from "$components/content";
+import { onMessage, sendMessage } from "$lib/messaging";
 import {
   isLive,
   isPerf,
@@ -98,7 +99,7 @@ async function randomProgrammerMemes() {
   });
 }
 
-function checkMothersite(from: FromType) {
+async function checkMothersite(content: boolean) {
   if (location.href.replace(regexAuthor, "$4") === "mothersite") {
     return;
   }
@@ -109,16 +110,14 @@ function checkMothersite(from: FromType) {
 
   const text = `MOTHERSITE LINKS ON THIS PAGE - ${mothersiteLinks}`;
 
-  if (mothersiteLinks > 0 && from === "content") {
+  if (mothersiteLinks > 0 && content) {
     mount(AlertMothersite, {
       target: document.body,
       anchor: document.body.firstChild ?? undefined,
       props: { text },
     });
   } else {
-    browser.runtime.sendMessage<MessageAlert>({
-      from: "content",
-      subject: "showMessage",
+    await sendMessage("showMessage", {
       color: mothersiteLinks === 0 ? "success" : "error",
       text,
     });
@@ -159,10 +158,7 @@ async function vehicleCodeInit() {
     "data-event-type",
   )}?locale=${wizardConfig.getAttribute("data-culture-code")}`;
 
-  const cookieValue = await browser.runtime.sendMessage<MessageCommon>({
-    from: "content",
-    subject: "getCookie",
-  });
+  const cookieValue = await sendMessage("getCookie", undefined);
 
   const vehicleConfigResponse = await ky
     .get(config, {
@@ -242,12 +238,11 @@ async function findShowroomCode() {
 
   const showroomElm = document.querySelector("#acc-showroom > span");
   if (!showroomElm) {
-    await browser.runtime.sendMessage<MessageAlert>({
-      from: "content",
-      subject: "showMessage",
+    await sendMessage("showMessage", {
       text: "Please make sure you are on showroom page",
       color: "error",
     });
+
     return;
   }
 
@@ -264,9 +259,7 @@ async function findShowroomCode() {
     })
     .json<ShowroomCode>()
     .catch(async () => {
-      await browser.runtime.sendMessage<MessageAlert>({
-        from: "content",
-        subject: "showMessage",
+      await sendMessage("showMessage", {
         text: "Please log in to AEM account, or try to refresh page",
         color: "error",
       });
@@ -351,7 +344,7 @@ async function nextGenCodes() {
   });
 }
 
-const determineEnvironment = (): EnvTypesExtended | null => {
+const determineEnvironment = (): EnvTypes | null => {
   if (isLive(location.href)) {
     return "live";
   }
@@ -361,6 +354,7 @@ const determineEnvironment = (): EnvTypesExtended | null => {
   if (isProd(location.href)) {
     return "prod";
   }
+
   return null;
 };
 
@@ -368,30 +362,14 @@ export default defineContentScript({
   matches: JSON.parse(import.meta.env.VITE_LIVE_PERF_MATCH),
   runAt: "document_end",
   async main() {
-    browser.runtime.onMessage.addListener(
-      ({ from, subject }: MessageCommon, _, sendResponse) => {
-        if (from !== "popup") {
-          return;
-        }
-
-        if (subject === "getEnvironment") {
-          sendResponse(determineEnvironment());
-        }
-
-        if (subject === "checkMothersite") {
-          checkMothersite(from);
-        }
-
-        if (subject === "showShowroomConfig") {
-          findShowroomCode();
-        }
-      },
-    );
+    onMessage("getEnvironment", () => determineEnvironment());
+    onMessage("checkMothersite", () => checkMothersite(false));
+    onMessage("showShowroomConfig", () => findShowroomCode());
 
     const { disMothersiteCheck, enableFunErr } = await loadSavedData();
 
     if (!disMothersiteCheck) {
-      checkMothersite("content");
+      checkMothersite(true);
     }
 
     if (enableFunErr) {

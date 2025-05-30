@@ -1,4 +1,5 @@
 import ky from "ky";
+import { sendMessage } from "./messaging";
 import {
   domain,
   domainPerf,
@@ -123,10 +124,7 @@ function fixUrlPart(urlPart: string): string {
   return urlPart;
 }
 
-async function getPerfRealUrl(
-  url: string,
-  regexAuthor: RegExp,
-): Promise<string> {
+async function getPerfRealUrl(url: string): Promise<string> {
   let html: Document | null = null;
 
   if (!regexAuthor.test(url)) {
@@ -147,11 +145,7 @@ async function getPerfRealUrl(
     throw new Error("tab id is undefined");
   }
 
-  const realPerfUrl = await browser.tabs.sendMessage<MessageRealPerf>(tab.id, {
-    from: "background",
-    subject: "getRealUrl",
-    html,
-  });
+  const realPerfUrl = await sendMessage("getRealUrl", { html }, tab.id);
 
   if (!realPerfUrl) {
     throw new Error(
@@ -163,9 +157,8 @@ async function getPerfRealUrl(
 }
 
 async function determineEnv(
-  env: EnvTypesExtended,
+  env: EnvTypes,
   url: string,
-  regexAuthor: RegExp,
   isAuthor: boolean,
   market: string,
   localLanguage: string,
@@ -191,7 +184,7 @@ async function determineEnv(
       return newUrl;
     }
 
-    urlPart = await getPerfRealUrl(url, regexAuthor);
+    urlPart = await getPerfRealUrl(url);
   }
 
   switch (env) {
@@ -290,23 +283,16 @@ async function makeAuthor(
       throw new Error("Please logIn to your AEM account");
     });
 
-  return makeRealAuthorLink(originalPath, fullAuthorPath, isTouch);
+  return makeRealAuthorLink(originalPath, isTouch);
 }
 
-function makeRealAuthorLink(
-  wrongLink: string,
-  fullAuthorPath: string,
-  isTouch: boolean,
-): string {
+function makeRealAuthorLink(wrongLink: string, isTouch: boolean): string {
   return `https://${fullAuthorPath}/${
     isTouch ? "editor.html" : "cf#"
   }${wrongLink}.html`;
 }
 
-export async function convertLink(
-  env: EnvTypesExtended,
-  url: URL,
-): Promise<string> {
+export async function convertLink(env: EnvTypes, url: URL): Promise<string> {
   let market = "";
   let localLanguage = "";
   let urlPart: string;
@@ -356,7 +342,6 @@ export async function convertLink(
   return determineEnv(
     env,
     url.href,
-    regexAuthor,
     isAuthor,
     market,
     localLanguage,

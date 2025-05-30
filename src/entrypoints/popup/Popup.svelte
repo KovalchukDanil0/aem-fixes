@@ -1,11 +1,17 @@
 <script lang="ts" module>
   import { Alert, ButtonEnv, Link, Spinner } from "$components";
+  import { onMessage, sendMessage } from "$lib/messaging";
   import { fullAuthorPath, propertiesPath, regexAuthor } from "$lib/storage";
   import "$styles/main.css";
   import "@fontsource/open-sans";
   import ky from "ky";
   import { Icon } from "svelte-icons-pack";
   import { FaBrandsGithub, FaSolidWrench } from "svelte-icons-pack/fa";
+
+  interface AlertType {
+    text: string;
+    color: ColorProps;
+  }
 
   const [{ url, index: tabIndex, id: tabId, status }] =
     await browser.tabs.query({
@@ -14,17 +20,16 @@
     });
 
   let pageLoaded = $state(false);
-  let environment: EnvTypesExtended | null = $state(null);
+  let environment: EnvTypes | null = $state(null);
 
-  const setEnvironment = (env: EnvTypesExtended) => (environment = env);
+  let alertBanner = $state<AlertType | null>(null);
+
+  const setEnvironment = (env: EnvTypes) => (environment = env);
 
   async function fetchEnvironment(tabId: number) {
-    environment = await browser.tabs
-      .sendMessage<MessageCommon, EnvTypesExtended>(tabId, {
-        from: "popup",
-        subject: "getEnvironment",
-      })
-      .catch(() => null);
+    environment = await sendMessage("getEnvironment", {}, tabId).catch(
+      () => null,
+    );
   }
 
   if (status === "complete" && tabId) {
@@ -47,25 +52,10 @@
       pageLoaded = false;
     }
   });
-</script>
 
-<script lang="ts">
-  interface AlertType {
-    text: string;
-    color: ColorProps;
-  }
-
-  let alertBanner = $state<AlertType | null>(null);
-
-  browser.runtime.onMessage.addListener(
-    ({ from, color, text, subject }: MessageAlert) => {
-      if (from === "popup" && subject !== "showMessage") {
-        return;
-      }
-
-      alertBanner = { text, color };
-    },
-  );
+  onMessage("showMessage", ({ data: { text, color } }) => {
+    alertBanner = { text, color };
+  });
 
   const regexCopyContent = /\/content.+(?=\.html)/;
 

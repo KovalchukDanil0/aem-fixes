@@ -1,4 +1,5 @@
 <script lang="ts" module>
+  import type { SavedSyncData } from "$lib/storage";
   import "$styles/main.css";
   import "@fontsource/open-sans";
   import { Icon } from "svelte-icons-pack";
@@ -12,9 +13,7 @@
     enableFilterFix: false,
     enableFunErr: false,
   });
-</script>
 
-<script lang="ts">
   const settingNames = {
     disCreateWF: "Disable Create WF Button",
     disMothersiteCheck: "Disable Mothersite Check",
@@ -35,7 +34,7 @@
 >
 <h2>AEM Fixes Settings</h2>
 
-{#each savedSyncData as [key, value], idx}
+{#each savedSyncData as [name, value], idx}
   <div
     class={twMerge(
       "flex flex-row gap-3",
@@ -43,8 +42,8 @@
     )}
   >
     <label class="flex flex-row gap-1 select-none"
-      >{settingNames[key as keyof typeof settingNames]}<input
-        onchange={() => saveSyncData(key, value)}
+      >{settingNames[name as keyof typeof settingNames]}<input
+        onchange={() => saveSyncData(name, value)}
         checked={value}
         type="checkbox"
       /></label

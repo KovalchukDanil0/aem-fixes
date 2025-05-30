@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { sendMessage, type ProtocolMap } from "$lib/messaging";
   import type { HTMLButtonAttributes } from "svelte/elements";
   import { twMerge } from "tailwind-merge";
 
@@ -18,9 +19,9 @@
 
   interface Props extends HTMLButtonAttributes {
     variant: VariantType;
-    btnSubject?: SubjectTypes;
+    btnSubject?: keyof ProtocolMap;
     btnSendAs?: "tab" | "runtime";
-    btnEnv?: EnvTypesExtended;
+    btnEnv?: EnvTypes;
   }
 
   const {
@@ -69,24 +70,18 @@
       currentWindow: true,
     });
 
-    let [{ id: tabId }] = activeTabs;
-    if (!tabId) {
-      throw new Error(`tabId is ${tabId}`);
-    }
+    const [{ id: tabId }] =
+      btnSendAs === "tab" ? activeTabs : [{ id: undefined }];
 
-    const message: MessageEnv = {
-      from: "popup",
-      newTab: type !== "click",
-      env: btnEnv,
-      subject: btnSubject,
-      tabs: activeTabs,
-    };
-
-    if (btnSendAs === "tab") {
-      await browser.tabs.sendMessage(tabId, message);
-    } else {
-      await browser.runtime.sendMessage(message);
-    }
+    await sendMessage(
+      btnSubject,
+      {
+        newTab: type !== "click",
+        env: btnEnv,
+        tabs: activeTabs,
+      },
+      tabId,
+    );
   }
 </script>
 
