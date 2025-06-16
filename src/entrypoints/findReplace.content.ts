@@ -1,4 +1,5 @@
 import { FindReplaceLink, InvalidLinks } from "$components/content";
+import { findReplaceMatch } from "$lib/storage";
 import { waitForElm } from "$lib/tools";
 import "$styles/authorCustom.scss";
 import "$styles/findReplace.scss";
@@ -39,7 +40,7 @@ async function fixOldLinks() {
 }
 
 export default defineContentScript({
-  matches: [import.meta.env.VITE_FIND_REPLACE_MATCH],
+  matches: findReplaceMatch,
   runAt: "document_end",
   allFrames: true,
   async main() {

@@ -5,6 +5,7 @@ import {
 } from "$components/content";
 import { onMessage } from "$lib/messaging";
 import {
+  authorMatch,
   fullAuthorPath,
   isTouch,
   loadSavedData,
@@ -94,17 +95,17 @@ async function checkReferences() {
 }
 
 export default defineContentScript({
-  matches: [import.meta.env.VITE_AUTHOR_MATCH],
+  matches: authorMatch,
   allFrames: true,
   runAt: "document_end",
   async main() {
     const inIframe = window.self !== window.top;
 
     if (inIframe) {
-      onMessage("getRealUrl", () => getRealPerfUrl());
+      onMessage("getRealUrl", getRealPerfUrl);
 
       onMessage("getEnvironment", () => (isTouch(url) ? "editor.html" : "cf#"));
-      onMessage("checkReferences", () => checkReferences());
+      onMessage("checkReferences", checkReferences);
     }
 
     if (!inIframe) {

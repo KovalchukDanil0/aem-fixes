@@ -9,6 +9,7 @@ import {
   isLive,
   isPerf,
   isProd,
+  livePerfMatch,
   loadSavedData,
   regexAuthor,
 } from "$lib/storage";
@@ -99,7 +100,7 @@ async function randomProgrammerMemes() {
   });
 }
 
-async function checkMothersite(content: boolean) {
+async function checkMothersite(fromPopup: boolean) {
   if (location.href.replace(regexAuthor, "$4") === "mothersite") {
     return;
   }
@@ -110,16 +111,16 @@ async function checkMothersite(content: boolean) {
 
   const text = `MOTHERSITE LINKS ON THIS PAGE - ${mothersiteLinks}`;
 
-  if (mothersiteLinks > 0 && content) {
+  if (fromPopup) {
+    await sendMessage("showMessage", {
+      color: mothersiteLinks === 0 ? "success" : "error",
+      text,
+    });
+  } else if (mothersiteLinks > 0) {
     mount(AlertMothersite, {
       target: document.body,
       anchor: document.body.firstChild ?? undefined,
       props: { text },
-    });
-  } else {
-    await sendMessage("showMessage", {
-      color: mothersiteLinks === 0 ? "success" : "error",
-      text,
     });
   }
 }
@@ -359,17 +360,17 @@ const determineEnvironment = (): EnvTypes | null => {
 };
 
 export default defineContentScript({
-  matches: JSON.parse(import.meta.env.VITE_LIVE_PERF_MATCH),
+  matches: livePerfMatch,
   runAt: "document_end",
   async main() {
-    onMessage("getEnvironment", () => determineEnvironment());
-    onMessage("checkMothersite", () => checkMothersite(false));
-    onMessage("showShowroomConfig", () => findShowroomCode());
+    onMessage("getEnvironment", determineEnvironment);
+    onMessage("showShowroomConfig", findShowroomCode);
+    onMessage("checkMothersite", () => checkMothersite(true));
 
     const { disMothersiteCheck, enableFunErr } = await loadSavedData();
 
     if (!disMothersiteCheck) {
-      checkMothersite(true);
+      checkMothersite(false);
     }
 
     if (enableFunErr) {

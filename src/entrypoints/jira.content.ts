@@ -2,6 +2,7 @@ import { WFCreateButton } from "$components/content";
 import { onMessage } from "$lib/messaging";
 import {
   fullAuthorPath,
+  jiraMatch,
   loadSavedData,
   regexWFTitle,
   secretWord,
@@ -9,6 +10,27 @@ import {
   type SavedLocalData,
 } from "$lib/storage";
 import { mount } from "svelte";
+
+const marketMap: Record<string, string> = {
+  [`${secretWord} Germany`]: "DEDE",
+  [`${secretWord} Britain`]: "ENGB",
+  [`${secretWord} Spain`]: "ESES",
+  [`${secretWord} France`]: "FRFR",
+  [`${secretWord} Italy`]: "ITIT",
+  [`${secretWord} Netherlands`]: "NLNL",
+  [`${secretWord} Ireland`]: "IEIE",
+  [`${secretWord} Denmark`]: "DA_DK",
+  [`${secretWord} Portugal`]: "PTPT",
+  [`${secretWord} Norway`]: "NONO",
+  [`${secretWord} Finland`]: "FIFI",
+  [`${secretWord} Poland`]: "PLPL",
+  [`${secretWord} Austria`]: "ATDE",
+  [`${secretWord} Czech Republic`]: "CSCZ",
+  [`${secretWord} Hungary`]: "HUHU",
+  [`${secretWord} Greece`]: "ELGR",
+  [`${secretWord} Romania`]: "RORO",
+  [`${secretWord} Luxembourg`]: "LULU",
+};
 
 function createWFButton() {
   const buttonsContainer = document.querySelector<HTMLDivElement>(
@@ -91,80 +113,27 @@ function wfPathFromTitle(title: string): string | undefined {
   return wfPath;
 }
 
+const getMarketWFPath = (market: string): string | undefined =>
+  marketMap[market];
+
 function textToWFPath(
   market: string,
   localLanguage: string,
   title: string,
 ): string | undefined {
-  let fullPath: string | undefined;
-
-  switch (market) {
-    case `${secretWord} Germany`:
-      fullPath = "DEDE";
-      break;
-    case `${secretWord} Britain`:
-      fullPath = "ENGB";
-      break;
-    case `${secretWord} Spain`:
-      fullPath = "ESES";
-      break;
-    case `${secretWord} France`:
-      fullPath = "FRFR";
-      break;
-    case `${secretWord} Italy`:
-      fullPath = "ITIT";
-      break;
-    case `${secretWord} Netherlands`:
-      fullPath = "NLNL";
-      break;
-    case `${secretWord} Ireland`:
-      fullPath = "IEIE";
-      break;
-    case `${secretWord} Denmark`:
-      fullPath = "DA_DK";
-      break;
-    case `${secretWord} Portugal`:
-      fullPath = "PTPT";
-      break;
-    case `${secretWord} Norway`:
-      fullPath = "NONO";
-      break;
-    case `${secretWord} Finland`:
-      fullPath = "FIFI";
-      break;
-    case `${secretWord} Poland`:
-      fullPath = "PLPL";
-      break;
-    case `${secretWord} Austria`:
-      fullPath = "ATDE";
-      break;
-    case `${secretWord} Czech Republic`:
-      fullPath = "CSCZ";
-      break;
-    case `${secretWord} Belgium`:
-      fullPath = belgium(localLanguage, title);
-      break;
-    case `${secretWord} Hungary`:
-      fullPath = "HUHU";
-      break;
-    case `${secretWord} Greece`:
-      fullPath = "ELGR";
-      break;
-    case `${secretWord} Switzerland`:
-      fullPath = switzerland(localLanguage, title);
-      break;
-    case `${secretWord} Romania`:
-      fullPath = "RORO";
-      break;
-    case `${secretWord} Luxembourg`:
-      fullPath = "LULU";
-      break;
-    default:
-      fullPath = wfPathFromTitle(title);
-      break;
+  if (market === `${secretWord} Belgium`) {
+    return belgium(localLanguage, title);
+  }
+  if (market === `${secretWord} Switzerland`) {
+    return switzerland(localLanguage, title);
   }
 
-  return fullPath;
+  const mapped = getMarketWFPath(market);
+  if (mapped) {
+    return mapped;
+  }
+
+  return wfPathFromTitle(title);
 }
 
 function ticketNumber(ticketNumElm: HTMLElement): string {
@@ -237,10 +206,10 @@ function fixSorting() {
 }
 
 export default defineContentScript({
-  matches: [import.meta.env.VITE_JIRA_MATCH],
+  matches: jiraMatch,
   runAt: "document_end",
   async main() {
-    onMessage("createWF", () => aemToolsCreateWF());
+    onMessage("createWF", aemToolsCreateWF);
     onMessage("getEnvironment", () => "jira");
 
     const { disCreateWF, enableFilterFix } = await loadSavedData();

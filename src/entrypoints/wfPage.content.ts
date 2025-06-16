@@ -1,5 +1,5 @@
 import { WFOpenAllPages, WFUsefulLinks } from "$components/content";
-import { regexDetermineBeta } from "$lib/storage";
+import { regexDetermineBeta, wfPageMatch } from "$lib/storage";
 import { waitForElm } from "$lib/tools";
 import "$styles/authorCustom.scss";
 import "$styles/wfPage.scss";
@@ -42,8 +42,6 @@ function usefulLinks() {
   }
 
   mount(WFUsefulLinks, { target });
-
-  // const root = createRoot(container.appendChild(rootElm));
 }
 
 function openAllPagesButton() {
@@ -95,7 +93,7 @@ async function checkNodes() {
 }
 
 export default defineContentScript({
-  matches: [import.meta.env.VITE_WF_PAGE_MATCH],
+  matches: wfPageMatch,
   runAt: "document_end",
   allFrames: true,
   main() {

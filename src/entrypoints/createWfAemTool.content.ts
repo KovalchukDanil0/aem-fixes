@@ -1,4 +1,4 @@
-import type { SavedLocalData } from "$lib/storage";
+import { aemToolsMatch, type SavedLocalData } from "$lib/storage";
 import { waitForElm } from "$lib/tools";
 
 async function createWF({ WFName, WFTitle }: SavedLocalData) {
@@ -16,17 +16,17 @@ async function createWF({ WFName, WFTitle }: SavedLocalData) {
   }
 
   await waitForElm(
-    "div.x-panel-body.x-panel-body-noheader > div > div.x-grid3-viewport > div.x-grid3-scroller > div > div.x-grid3-row.x-grid3-row-first > table > tbody > tr > td.x-grid3-col.x-grid3-cell.x-grid3-td-title > div",
+    "div.x-grid3-row-first > table > tbody > tr > td.x-grid3-td-title > div",
     panelContentElm,
   );
 
   const button = panelContentElm.querySelector<HTMLButtonElement>(
-    "div.x-panel-tbar.x-panel-tbar-noheader > div > table > tbody > tr > td.x-toolbar-left > table > tbody > tr > td:nth-child(3) > table > tbody > tr:nth-child(2) > td.x-btn-mc > em > button",
+    "button.x-btn-text.cq-siteadmin-create-page-icon",
   );
   button?.click();
 
   const createPageOverlayElm = document.querySelector(
-    "#CQ > div.x-window-plain.x-form-label-left > div > form > div.x-window.x-window-plain.x-resizable-pinned > div.x-window-bwrap > div.x-window-ml > div > div > div > div > div > div",
+    ".x-panel.x-form-label-left > .x-panel-bwrap > .x-panel-body.x-panel-body-noheader",
   );
   if (!createPageOverlayElm) {
     throw new Error("create page overlay element not found");
@@ -54,7 +54,7 @@ async function createWF({ WFName, WFTitle }: SavedLocalData) {
 }
 
 export default defineContentScript({
-  matches: [import.meta.env.VITE_AEM_TOOLS_MATCH],
+  matches: aemToolsMatch,
   runAt: "document_end",
   async main() {
     const { WFTitle, WFName } = await browser.storage.local.get<SavedLocalData>(

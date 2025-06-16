@@ -15,6 +15,9 @@ export default defineConfig({
     build: {
       target: "esnext",
     },
+    esbuild: {
+      legalComments: "none",
+    },
     server: {
       hmr: false,
     },

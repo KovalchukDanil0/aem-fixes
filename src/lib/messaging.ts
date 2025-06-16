@@ -1,4 +1,5 @@
 import { defineExtensionMessaging } from "@webext-core/messaging";
+import { defineProxyService } from "@webext-core/proxy-service";
 
 interface MessageCommon {
   url?: string;
@@ -41,3 +42,11 @@ export interface ProtocolMap {
 
 export const { sendMessage, onMessage } =
   defineExtensionMessaging<ProtocolMap>();
+
+class BackgroundService {
+  async fibonacci(number: number): Promise<number> {
+    return Promise.resolve(number);
+  }
+}
+export const [registerBackgroundService, getBackgroundService] =
+  defineProxyService("BackgroundService", () => new BackgroundService());

@@ -1,5 +1,9 @@
 import { convertLink } from "$lib/convertLink";
-import { onMessage, sendMessage } from "$lib/messaging";
+import {
+  onMessage,
+  registerBackgroundService,
+  sendMessage,
+} from "$lib/messaging";
 import {
   fullAuthorPath,
   regexAuthor,
@@ -123,9 +127,54 @@ const menusWithParent: Browser.contextMenus.CreateProperties[] = [
 
 type CommandEnvs = "toLive" | "toPerf" | "toProd" | "toAuthor";
 
+function handleOpenInDAM(srcUrl: string | undefined) {
+  const imagePath = srcUrl?.replace(regexImagePicker, "$1");
+  changeContentInTab(imagePath, `https://${fullAuthorPath}/damadmin`);
+}
+
+function handleOpenInAEM(
+  selectionText: string | undefined,
+  linkUrl: string | undefined,
+) {
+  const newLinkUrl = selectionText
+    ? `https://${fullAuthorPath}${selectionText}.html`
+    : linkUrl;
+  openInTree(newLinkUrl);
+}
+
+function handleOpenInTouchUI(
+  selectionText: string | undefined,
+  patternTab: Browser.tabs.Tab,
+) {
+  let content: string | undefined = selectionText;
+  if (!content) {
+    throw new Error("openInTouchUI content is undefined");
+  }
+
+  if (!regexHTMLExist.test(content)) {
+    content += ".html";
+  }
+
+  const newUrl = `https://${fullAuthorPath}/editor.html${content}`;
+  browser.tabs.create({
+    url: newUrl,
+    index: patternTab.index + 1,
+  });
+}
+
+function handleToEnvironment(
+  patternTab: Browser.tabs.Tab,
+  env: EnvTypes,
+  linkUrl: string | undefined,
+) {
+  toEnvironment([patternTab], env, true, linkUrl);
+}
+
 export default defineBackground({
   type: "module",
   main() {
+    registerBackgroundService();
+
     onMessage("toEnvironment", ({ data: { tabs: msgTabs, env, newTab } }) => {
       toEnvironment(msgTabs, env, newTab);
     });
@@ -136,16 +185,16 @@ export default defineBackground({
     });
 
     onMessage("getCookie", async ({ sender }) => {
-      const senderTabUrl = sender.tab?.url;
-
-      if (senderTabUrl) {
-        const cookie = await browser.cookies.get({
-          name: "ADFS-credential",
-          url: senderTabUrl,
-        });
-
-        return cookie?.value;
+      const senderTabUrl = sender.tab.url;
+      if (!senderTabUrl) {
+        return;
       }
+
+      const cookie = await browser.cookies.get({
+        name: "ADFS-credential",
+        url: senderTabUrl,
+      });
+      return cookie?.value;
     });
 
     browser.runtime.onInstalled.addListener(() => {
@@ -169,53 +218,29 @@ export default defineBackground({
         }
 
         switch (menuItemId) {
-          case "openInDAM": {
-            const imagePath = srcUrl?.replace(regexImagePicker, "$1");
-
-            changeContentInTab(imagePath, `https://${fullAuthorPath}/damadmin`);
-
+          case "openInDAM":
+            handleOpenInDAM(srcUrl);
             break;
-          }
-          case "openInAEM": {
-            const newLinkUrl = selectionText
-              ? `https://${fullAuthorPath}${selectionText}.html`
-              : linkUrl;
-            openInTree(newLinkUrl);
-
+          case "openInAEM":
+            handleOpenInAEM(selectionText, linkUrl);
             break;
-          }
-          case "openInTouchUI": {
-            let content: string | undefined = selectionText;
-            if (!content) {
-              throw new Error("openInTouchUI content is undefined");
-            }
-
-            if (!regexHTMLExist.test(content)) {
-              content += ".html";
-            }
-
-            const newUrl = `https://${fullAuthorPath}/editor.html${content}`;
-            browser.tabs.create({
-              url: newUrl,
-              index: patternTab.index + 1,
-            });
-
+          case "openInTouchUI":
+            handleOpenInTouchUI(selectionText, patternTab);
             break;
-          }
           case "toLive":
-            toEnvironment([patternTab], "live", true, linkUrl);
+            handleToEnvironment(patternTab, "live", linkUrl);
             break;
           case "toPerf":
-            toEnvironment([patternTab], "perf", true, linkUrl);
+            handleToEnvironment(patternTab, "perf", linkUrl);
             break;
           case "toProd":
-            toEnvironment([patternTab], "prod", true, linkUrl);
+            handleToEnvironment(patternTab, "prod", linkUrl);
             break;
           case "toTouch":
-            toEnvironment([patternTab], "editor.html", true, linkUrl);
+            handleToEnvironment(patternTab, "editor.html", linkUrl);
             break;
           case "toClassic":
-            toEnvironment([patternTab], "cf#", true, linkUrl);
+            handleToEnvironment(patternTab, "cf#", linkUrl);
             break;
           default:
             break;

@@ -10,12 +10,10 @@
 <div {...restProps} class="referencesBanner">
   {#if pages.length !== 0}
     {#each pages.toSorted( ({ path }, { path: pathToCompare }) => path.localeCompare(pathToCompare), ) as { path }}
-      <a
-        href={path.replace(regexDetermineBeta, `$1/${"editor.html"}$2`) +
-          ".html"}
-        target="_blank"
-        rel="noreferrer">{path}</a
-      >
+      {@const href =
+        path.replace(regexDetermineBeta, `$1/${"editor.html"}$2`) + ".html"}
+
+      <a {href} target="_blank" rel="noreferrer">{path}</a>
     {/each}
   {:else}
     <p>No References Found</p>

@@ -1,4 +1,10 @@
-<div role="status">
+<script lang="ts">
+  import type { HTMLAttributes } from "svelte/elements";
+
+  const props: HTMLAttributes<EventTarget> = $props();
+</script>
+
+<div {...props} role="status">
   <svg
     aria-hidden="true"
     class="h-8 w-8 animate-spin fill-blue-600 text-gray-200 dark:text-gray-600"

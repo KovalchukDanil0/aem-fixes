@@ -11,6 +11,14 @@ export interface SavedLocalData {
   WFName?: string;
 }
 
+export const livePerfMatch = JSON.parse(import.meta.env.VITE_LIVE_PERF_MATCH);
+export const wfPageMatch = [import.meta.env.VITE_WF_PAGE_MATCH];
+export const jiraMatch = [import.meta.env.VITE_JIRA_MATCH];
+export const authorMatch = [import.meta.env.VITE_AUTHOR_MATCH];
+export const aemToolsMatch = [import.meta.env.VITE_AEM_TOOLS_MATCH];
+export const damTreeMatch = [import.meta.env.VITE_DAM_TREE_MATCH];
+export const findReplaceMatch = [import.meta.env.VITE_FIND_REPLACE_MATCH];
+
 export const regexJira = RegExp(import.meta.env.VITE_REGEX_JIRA);
 export const regexWorkflow = RegExp(import.meta.env.VITE_REGEX_WORKFLOW);
 export const regexDAMTree = RegExp(import.meta.env.VITE_REGEX_DAM_TREE);

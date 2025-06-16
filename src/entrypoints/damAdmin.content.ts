@@ -1,7 +1,7 @@
-import { fullAuthorPath, regexDAMTree } from "$lib/storage";
+import { damTreeMatch, fullAuthorPath, regexDAMTree } from "$lib/storage";
 
 export default defineContentScript({
-  matches: [import.meta.env.VITE_DAM_TREE_MATCH],
+  matches: damTreeMatch,
   runAt: "document_end",
   main() {
     window.addEventListener(
