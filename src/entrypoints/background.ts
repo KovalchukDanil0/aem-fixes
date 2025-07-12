@@ -10,6 +10,7 @@ import {
   regexHTMLExist,
   regexImagePicker,
 } from "$lib/storage";
+import livePerfStyles from "$styles/livePerf.scss?url";
 
 function toEnvironment(
   activeTabs: Browser.tabs.Tab[],
@@ -195,6 +196,13 @@ export default defineBackground({
         url: senderTabUrl,
       });
       return cookie?.value;
+    });
+
+    onMessage("injectMothersiteCss", async ({ sender }) => {
+      browser.scripting.insertCSS({
+        target: { tabId: sender.tab.id },
+        files: [livePerfStyles],
+      });
     });
 
     browser.runtime.onInstalled.addListener(() => {

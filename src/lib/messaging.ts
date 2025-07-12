@@ -34,6 +34,7 @@ export interface ProtocolMap {
 
   getCookie(): string | undefined;
 
+  injectMothersiteCss(): void;
   checkMothersite(): void;
   checkReferences(): void;
   createWF(): void;

@@ -38,7 +38,7 @@ export default defineConfig({
     },
     homepage_url: "https://github.com/kovalchukdanil0/aem-fixes.git",
     offline_enabled: false,
-    permissions: ["tabs", "storage", "contextMenus", "cookies"],
+    permissions: ["tabs", "storage", "contextMenus", "cookies", "scripting"],
     host_permissions: ["<all_urls>"],
     icons: {
       "16": "icon/16.png",

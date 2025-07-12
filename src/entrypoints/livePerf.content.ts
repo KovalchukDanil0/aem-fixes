@@ -16,7 +16,6 @@ import {
 import { waitForElm } from "$lib/tools";
 import ky from "ky";
 import { mount } from "svelte";
-import "~/styles/livePerf.scss";
 
 let lastVehicleIndex = -1;
 
@@ -67,6 +66,9 @@ interface AppConfigType {
   };
 }
 
+const isMothersite = () =>
+  location.href.replace(regexAuthor, "$4") === "mothersite";
+
 async function randomProgrammerMemes() {
   if (document.title !== "404") {
     return;
@@ -101,7 +103,7 @@ async function randomProgrammerMemes() {
 }
 
 async function checkMothersite(fromPopup: boolean) {
-  if (location.href.replace(regexAuthor, "$4") === "mothersite") {
+  if (isMothersite()) {
     return;
   }
 
@@ -366,6 +368,10 @@ export default defineContentScript({
     onMessage("getEnvironment", determineEnvironment);
     onMessage("showShowroomConfig", findShowroomCode);
     onMessage("checkMothersite", () => checkMothersite(true));
+
+    if (!isMothersite()) {
+      sendMessage("injectMothersiteCss");
+    }
 
     const { disMothersiteCheck, enableFunErr } = await loadSavedData();
 
