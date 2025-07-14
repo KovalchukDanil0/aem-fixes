@@ -2,8 +2,8 @@ import { FindReplaceLink, InvalidLinks } from "$components/content";
 import { findReplaceMatch } from "$lib/storage";
 import { waitForElm } from "$lib/tools";
 import "$styles/authorCustom.scss";
-import "$styles/findReplace.scss";
 import { mount } from "svelte";
+import "./findReplace.scss";
 
 async function fixOldLinks() {
   const findReplaceBodySelector =

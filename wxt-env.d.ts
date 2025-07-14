@@ -39,6 +39,8 @@ interface ImportMetaEnv {
   readonly VITE_PROPERTIES_PATH: string;
   readonly VITE_WORKFLOW_PATH: string;
   readonly VITE_JIRA_FULL_PATH: string;
+
+  readonly VITE_POSTHOG_TOKEN: string;
 }
 
 interface ImportMeta {

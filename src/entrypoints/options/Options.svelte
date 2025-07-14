@@ -2,6 +2,7 @@
   import type { SavedSyncData } from "$lib/storage";
   import "$styles/main.css";
   import "@fontsource/open-sans";
+  import posthog from "posthog-js";
   import { Icon } from "svelte-icons-pack";
   import { FaSolidArrowLeft } from "svelte-icons-pack/fa";
   import { twMerge } from "tailwind-merge";
@@ -27,6 +28,11 @@
   function saveSyncData(data: string, value: boolean) {
     browser.storage.sync.set<SavedSyncData>({ [data]: !value });
   }
+
+  posthog.init(import.meta.env.VITE_POSTHOG_TOKEN, {
+    api_host: "https://us.i.posthog.com",
+    person_profiles: "identified_only",
+  });
 </script>
 
 <a href="/popup.html" class="flex flex-row items-center gap-1"

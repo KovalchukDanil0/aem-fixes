@@ -2,8 +2,8 @@ import { WFOpenAllPages, WFUsefulLinks } from "$components/content";
 import { regexDetermineBeta, wfPageMatch } from "$lib/storage";
 import { waitForElm } from "$lib/tools";
 import "$styles/authorCustom.scss";
-import "$styles/wfPage.scss";
 import { mount } from "svelte";
+import "./wfPage.scss";
 
 function addBetaToLink(link: HTMLAnchorElement) {
   link.href = link.href.replace(regexDetermineBeta, `$1/${"editor.html"}$2`);

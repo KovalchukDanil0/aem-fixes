@@ -2,7 +2,7 @@
   "name": "aem-fixes",
   "description": "Quality of Life changes for AEM",
   "private": true,
-  "version": "6.2",
+  "version": "6.3",
   "type": "module",
   "scripts": {
     "dev": "wxt",
@@ -28,6 +28,7 @@
     "eslint-plugin-svelte": "3.10.1",
     "globals": "16.3.0",
     "ky": "1.8.1",
+    "posthog-js": "^1.257.0",
     "prettier": "3.6.2",
     "prettier-plugin-svelte": "3.4.0",
     "prettier-plugin-tailwindcss": "0.6.14",
