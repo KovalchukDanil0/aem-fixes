@@ -1,12 +1,8 @@
 import { aemToolsMatch, type SavedLocalData } from "$lib/storage";
 import { waitForElm } from "$lib/tools";
 
-async function createWF({ WFName, WFTitle }: SavedLocalData) {
-  if (!WFTitle || !WFName) {
-    return;
-  }
-
-  await browser.storage.local.remove<SavedLocalData>(["WFName", "WFTitle"]);
+async function createWF(wfName: string, wfTitle: string) {
+  await browser.storage.local.remove<SavedLocalData>(["wfName", "wfTitle"]);
 
   const panelContentElm = await waitForElm<HTMLElement>(
     "#cq-miscadmin-grid > div",
@@ -36,7 +32,7 @@ async function createWF({ WFName, WFTitle }: SavedLocalData) {
     "div:nth-child(1) > div.x-form-element > input",
     createPageOverlayElm,
   );
-  formWFTitle.value = WFTitle;
+  formWFTitle.value = wfTitle;
 
   const formWFName = createPageOverlayElm.querySelector<HTMLFormElement>(
     "div:nth-child(2) > div.x-form-element > input",
@@ -44,7 +40,7 @@ async function createWF({ WFName, WFTitle }: SavedLocalData) {
   if (!formWFName) {
     throw new Error("form in WF AEM tools wasn't found");
   }
-  formWFName.value = WFName;
+  formWFName.value = wfName;
 
   const promotionButton = await waitForElm(
     "div.x-panel.cq-template-view.x-panel-noborder > div > div > div > div.template-item:nth-child(3)",
@@ -57,13 +53,16 @@ export default defineContentScript({
   matches: aemToolsMatch,
   runAt: "document_end",
   async main() {
-    const { WFTitle, WFName } = await browser.storage.local.get<SavedLocalData>(
+    const { wfTitle, wfName } = await browser.storage.local.get<SavedLocalData>(
       {
-        WFTitle: "",
-        WFName: "",
+        wfTitle: "",
+        wfName: "",
       },
     );
+    if (!wfTitle || !wfName) {
+      return;
+    }
 
-    createWF({ WFName, WFTitle });
+    createWF(wfName, wfTitle);
   },
 });

@@ -1,8 +1,8 @@
 <script lang="ts" module>
+  import { initPosthog } from "$lib/posthog";
   import type { SavedSyncData } from "$lib/storage";
   import "$styles/main.css";
   import "@fontsource/open-sans";
-  import posthog from "posthog-js";
   import { Icon } from "svelte-icons-pack";
   import { FaSolidArrowLeft } from "svelte-icons-pack/fa";
   import { twMerge } from "tailwind-merge";
@@ -15,6 +15,8 @@
     enableFunErr: false,
   });
 
+  const savedSyncData = Object.entries(savedSyncDataInit);
+
   const settingNames = {
     disCreateWF: "Disable Create WF Button",
     disMothersiteCheck: "Disable Mothersite Check",
@@ -23,16 +25,11 @@
     enableFunErr: "Enable Funny Errors",
   };
 
-  const savedSyncData = Object.entries(savedSyncDataInit);
-
   function saveSyncData(data: string, value: boolean) {
     browser.storage.sync.set<SavedSyncData>({ [data]: !value });
   }
 
-  posthog.init(import.meta.env.VITE_POSTHOG_TOKEN, {
-    api_host: "https://us.i.posthog.com",
-    person_profiles: "identified_only",
-  });
+  await initPosthog();
 </script>
 
 <a href="/popup.html" class="flex flex-row items-center gap-1"

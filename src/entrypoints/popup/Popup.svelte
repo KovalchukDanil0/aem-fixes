@@ -1,11 +1,11 @@
 <script lang="ts" module>
   import { Alert, ButtonEnv, Link, Spinner } from "$components";
   import { onMessage, sendMessage } from "$lib/messaging";
+  import { initPosthog } from "$lib/posthog";
   import { fullAuthorPath, propertiesPath, regexAuthor } from "$lib/storage";
   import "$styles/main.css";
   import "@fontsource/open-sans";
   import ky from "ky";
-  import posthog from "posthog-js";
   import { Icon } from "svelte-icons-pack";
   import { FaBrandsGithub, FaSolidWrench } from "svelte-icons-pack/fa";
 
@@ -87,10 +87,7 @@
     });
   }
 
-  posthog.init(import.meta.env.VITE_POSTHOG_TOKEN, {
-    api_host: "https://us.i.posthog.com",
-    person_profiles: "identified_only",
-  });
+  await initPosthog();
 </script>
 
 <div class="flex size-full grow flex-col items-center justify-center gap-5">

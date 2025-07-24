@@ -7,8 +7,9 @@ export interface SavedSyncData {
 }
 
 export interface SavedLocalData {
-  WFTitle?: string;
-  WFName?: string;
+  wfTitle?: string;
+  wfName?: string;
+  posthog_distinct_id: string;
 }
 
 export const livePerfMatch = JSON.parse(import.meta.env.VITE_LIVE_PERF_MATCH);

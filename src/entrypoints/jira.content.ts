@@ -170,22 +170,22 @@ function aemToolsCreateWF() {
 
   const ticketMarket = selectorTextNoSpaces("#customfield_13300-val");
   const ticketLocalLanguage = selectorTextNoSpaces("#customfield_15000-val");
-  const WFTitle = selectorTextNoSpaces("#summary-val");
+  const wfTitle = selectorTextNoSpaces("#summary-val");
   // const workType = selectorTextNoSpaces("#customfield_18667-val");
   // TODO: implement analytics WF
 
-  if (!ticketMarket || !ticketLocalLanguage || !WFTitle) {
+  if (!ticketMarket || !ticketLocalLanguage || !wfTitle) {
     throw new Error(
-      `ticketMarket = ${ticketMarket} or ticketLocalLanguage = ${ticketLocalLanguage} or WFTitle = ${WFTitle} is undefined`,
+      `ticketMarket = ${ticketMarket} or ticketLocalLanguage = ${ticketLocalLanguage} or WFTitle = ${wfTitle} is undefined`,
     );
   }
 
   browser.storage.local.set<SavedLocalData>({
-    WFName: ticketNumber(ticketNumElm),
-    WFTitle,
+    wfName: ticketNumber(ticketNumElm),
+    wfTitle,
   });
 
-  const WFPath = textToWFPath(ticketMarket, ticketLocalLanguage, WFTitle);
+  const WFPath = textToWFPath(ticketMarket, ticketLocalLanguage, wfTitle);
   if (!WFPath) {
     return;
   }
