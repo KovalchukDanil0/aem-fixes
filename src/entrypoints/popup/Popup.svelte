@@ -1,5 +1,6 @@
 <script lang="ts" module>
   import { Alert, ButtonEnv, Link, Spinner } from "$components";
+  import Button from "$components/Button.svelte";
   import { onMessage, sendMessage } from "$lib/messaging";
   import { initPosthog } from "$lib/posthog";
   import { fullAuthorPath, propertiesPath, regexAuthor } from "$lib/storage";
@@ -101,8 +102,11 @@
   {:else if environment}
     {#if environment === "jira"}
       <div class="flex items-center justify-center">
-        <ButtonEnv variant="red" btnSubject="createWF" btnSendAs="tab"
-          >Create WF</ButtonEnv
+        <ButtonEnv
+          variant="red"
+          btnSubject="createWF"
+          btnSendAs="tab"
+          posthogEvent={["jira_created_wf"]}>Create WF</ButtonEnv
         >
       </div>
     {:else}
@@ -113,6 +117,7 @@
             btnEnv="live"
             btnSubject="toEnvironment"
             btnSendAs="runtime"
+            posthogEvent={["page_moved_live", { environment }]}
           >
             To Live
           </ButtonEnv>
@@ -124,6 +129,7 @@
             btnEnv="perf"
             btnSubject="toEnvironment"
             btnSendAs="runtime"
+            posthogEvent={["page_moved_perf", { environment }]}
           >
             To Perf
           </ButtonEnv>
@@ -135,6 +141,7 @@
             btnEnv="prod"
             btnSubject="toEnvironment"
             btnSendAs="runtime"
+            posthogEvent={["page_moved_prod", { environment }]}
           >
             To Prod
           </ButtonEnv>
@@ -146,6 +153,7 @@
             btnEnv="cf#"
             btnSubject="toEnvironment"
             btnSendAs="runtime"
+            posthogEvent={["page_moved_classic", { environment }]}
           >
             To Classic
           </ButtonEnv>
@@ -157,6 +165,7 @@
             btnEnv="editor.html"
             btnSubject="toEnvironment"
             btnSendAs="runtime"
+            posthogEvent={["page_moved_touch", { environment }]}
           >
             To Touch
           </ButtonEnv>
@@ -167,11 +176,18 @@
         class="hidden flex-wrap items-center justify-center gap-2 has-[button]:flex"
       >
         {#if environment === "cf#" || environment === "editor.html"}
-          <ButtonEnv variant="yellow" onclick={copyContent}
+          <ButtonEnv
+            variant="yellow"
+            onclick={copyContent}
+            posthogEvent={["page_link_copied", { environment }]}
             >Copy Content</ButtonEnv
           >
 
-          <ButtonEnv variant="fuchsia" onclick={openPropertiesTouchUI}>
+          <ButtonEnv
+            variant="fuchsia"
+            onclick={openPropertiesTouchUI}
+            posthogEvent={["page_properties_opened", { environment }]}
+          >
             Open Properties Touch UI
           </ButtonEnv>
 
@@ -179,6 +195,7 @@
             variant="violet"
             btnSubject="openInTree"
             btnSendAs="runtime"
+            posthogEvent={["page_opened_in_tree", { environment }]}
           >
             Open In Tree
           </ButtonEnv>
@@ -187,6 +204,7 @@
             variant="lime"
             btnSubject="checkReferences"
             btnSendAs="tab"
+            posthogEvent={["page_checked_references", { environment }]}
           >
             Check references
           </ButtonEnv>
@@ -197,6 +215,7 @@
             variant="indigo"
             btnSubject="checkMothersite"
             btnSendAs="tab"
+            posthogEvent={["mothersite_links_checked", { environment }]}
           >
             Check mothersite links
           </ButtonEnv>
@@ -205,6 +224,7 @@
             variant="blue"
             btnSubject="showShowroomConfig"
             btnSendAs="tab"
+            posthogEvent={["showroom_config_showed", { environment }]}
           >
             Show Showroom Config
           </ButtonEnv>
@@ -222,11 +242,26 @@
     <div class="flex flex-col gap-3">
       <p>I think it's</p>
       <div class="flex flex-row gap-3">
-        <button onclick={() => setEnvironment("live")}>live</button>
-        <button onclick={() => setEnvironment("perf")}>perf</button>
-        <button onclick={() => setEnvironment("prod")}>prod</button>
-        <button onclick={() => setEnvironment("cf#")}>classic</button>
-        <button onclick={() => setEnvironment("editor.html")}>touch ui</button>
+        <Button
+          onclick={() => setEnvironment("live")}
+          posthogEvent={["page_should_be_live"]}>live</Button
+        >
+        <Button
+          onclick={() => setEnvironment("perf")}
+          posthogEvent={["page_should_be_perf"]}>perf</Button
+        >
+        <Button
+          onclick={() => setEnvironment("prod")}
+          posthogEvent={["page_should_be_prod"]}>prod</Button
+        >
+        <Button
+          onclick={() => setEnvironment("cf#")}
+          posthogEvent={["page_should_be_classic"]}>classic</Button
+        >
+        <Button
+          onclick={() => setEnvironment("editor.html")}
+          posthogEvent={["page_should_be_touch"]}>touch ui</Button
+        >
       </div>
     </div>
   {:else}
@@ -240,6 +275,7 @@
   <Link
     class="flex flex-row items-center gap-1 text-shadow-lg/20"
     href="/options.html"
+    posthogEvent={["options_link_clicked"]}
   >
     <Icon src={FaSolidWrench} />
     Options
@@ -249,6 +285,7 @@
     class="flex flex-row items-center gap-1 text-shadow-lg/20"
     href="https://github.com/KovalchukDanil0/aem-fixes#features"
     target="_blank"
+    posthogEvent={["guide_link_clicked"]}
   >
     <Icon src={FaBrandsGithub} />
     See Guide

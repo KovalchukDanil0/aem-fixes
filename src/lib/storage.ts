@@ -1,5 +1,5 @@
 export interface SavedSyncData {
-  disCreateWF?: boolean;
+  disCreateWf?: boolean;
   disMothersiteCheck?: boolean;
   enableAutoLogin?: boolean;
   enableFilterFix?: boolean;
@@ -105,7 +105,7 @@ export const isWorkflowUrl = (url: string | undefined): boolean =>
 
 export const loadSavedData = async () =>
   browser.storage.sync.get<SavedSyncData>({
-    disCreateWF: false,
+    disCreateWf: false,
     disMothersiteCheck: false,
     enableFunErr: false,
     enableFilterFix: false,

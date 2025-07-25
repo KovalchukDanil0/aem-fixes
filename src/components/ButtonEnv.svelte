@@ -2,6 +2,7 @@
   import { sendMessage, type ProtocolMap } from "$lib/messaging";
   import type { HTMLButtonAttributes } from "svelte/elements";
   import { twMerge } from "tailwind-merge";
+  import Button from "./Button.svelte";
 
   type VariantType =
     | "red"
@@ -22,6 +23,7 @@
     btnSubject?: keyof ProtocolMap;
     btnSendAs?: "tab" | "runtime";
     btnEnv?: EnvTypes;
+    posthogEvent?: PosthogEventType;
   }
 
   const {
@@ -85,7 +87,7 @@
   }
 </script>
 
-<button
+<Button
   {...restProps}
   onclick={onclick ?? buttonOnClick}
   onauxclick={onauxclick ?? buttonOnClick}
@@ -98,4 +100,4 @@
   {#if children}
     {@render children()}
   {/if}
-</button>
+</Button>

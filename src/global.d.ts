@@ -23,3 +23,5 @@ interface EventHandler<T> extends MouseEvent {
 }
 
 type MemeResponseType = Record<string, { path: string }>;
+
+type PosthogEventType = [name: EventName, config?: Properties];
