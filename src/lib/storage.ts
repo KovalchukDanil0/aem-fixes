@@ -12,7 +12,7 @@ export interface SavedLocalData {
   posthog_distinct_id: string;
 }
 
-export const livePerfMatch = JSON.parse(import.meta.env.VITE_LIVE_PERF_MATCH);
+export const livePerfMatch = import.meta.env.VITE_LIVE_PERF_MATCH.split(", ");
 export const wfPageMatch = [import.meta.env.VITE_WF_PAGE_MATCH];
 export const jiraMatch = [import.meta.env.VITE_JIRA_MATCH];
 export const authorMatch = [import.meta.env.VITE_AUTHOR_MATCH];
