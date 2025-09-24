@@ -1,16 +1,21 @@
+import livePerfUrl from "$assets/livePerf.scss?url";
 import { convertLink } from "$lib/convertLink";
 import {
   onMessage,
   registerBackgroundService,
   sendMessage,
 } from "$lib/messaging";
+import { initPosthog } from "$lib/posthog";
 import {
   fullAuthorPath,
   regexAuthor,
   regexHTMLExist,
   regexImagePicker,
 } from "$lib/storage";
-import livePerfStyles from "$styles/livePerf.scss?url";
+import { noCase, snakeCase } from "change-case";
+import type { PostHog } from "posthog-js/dist/module.no-external";
+
+let posthog: PostHog | null = null;
 
 function toEnvironment(
   activeTabs: Browser.tabs.Tab[],
@@ -201,7 +206,7 @@ export default defineBackground({
     onMessage("injectMothersiteCss", async ({ sender }) => {
       browser.scripting.insertCSS({
         target: { tabId: sender.tab.id },
-        files: [livePerfStyles],
+        files: [livePerfUrl],
       });
     });
 
@@ -220,10 +225,22 @@ export default defineBackground({
     });
 
     browser.contextMenus.onClicked.addListener(
-      ({ menuItemId, srcUrl, selectionText, linkUrl }, patternTab) => {
+      async ({ menuItemId, srcUrl, selectionText, linkUrl }, patternTab) => {
         if (!patternTab) {
           throw new Error("tab in menus is undefined");
         }
+
+        if (!posthog) {
+          posthog = await initPosthog({
+            persistence: "localStorage",
+            capture_pageview: false,
+            autocapture: false,
+            disable_session_recording: true,
+            disable_surveys: true,
+          });
+        }
+
+        posthog.capture(`menu_${snakeCase(noCase(menuItemId.toString()))}`);
 
         switch (menuItemId) {
           case "openInDAM":

@@ -1,5 +1,3 @@
-type EnvTypes = "live" | "perf" | "prod" | "editor.html" | "cf#" | "jira";
-
 type ColorProps = "info" | "success" | "warning" | "error";
 
 interface ShowroomCode {
@@ -18,10 +16,10 @@ interface ReferencesConfig {
   }[];
 }
 
+type MemeResponseType = Record<string, { path: string }>;
+
+type EnvTypes = "live" | "perf" | "prod" | "editor.html" | "cf#" | "jira";
+
 interface EventHandler<T> extends MouseEvent {
   currentTarget: EventTarget & T;
 }
-
-type MemeResponseType = Record<string, { path: string }>;
-
-type PosthogEventType = [name: EventName, config?: Properties];

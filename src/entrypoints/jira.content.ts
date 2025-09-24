@@ -1,4 +1,4 @@
-import { WFCreateButton } from "$components/content";
+import { WFCreateButton } from "$lib/content";
 import { onMessage } from "$lib/messaging";
 import {
   fullAuthorPath,
@@ -212,9 +212,9 @@ export default defineContentScript({
     onMessage("createWF", aemToolsCreateWF);
     onMessage("getEnvironment", () => "jira");
 
-    const { disCreateWF, enableFilterFix } = await loadSavedData();
+    const { disCreateWf, enableFilterFix } = await loadSavedData();
 
-    if (!disCreateWF) {
+    if (!disCreateWf) {
       createWFButton();
     }
 

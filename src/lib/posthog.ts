@@ -1,4 +1,6 @@
-import posthog from "posthog-js/dist/module.no-external";
+import posthog, {
+  type PostHogConfig,
+} from "posthog-js/dist/module.no-external";
 import { v7 as uuidv7 } from "uuid";
 import type { SavedLocalData } from "./storage";
 
@@ -17,7 +19,7 @@ async function getSharedDistinctId() {
   return distinctId;
 }
 
-export async function initPosthog() {
+export async function initPosthog(config: Partial<PostHogConfig>) {
   return posthog.init(import.meta.env.VITE_POSTHOG_TOKEN, {
     bootstrap: {
       distinctID: await getSharedDistinctId(),
@@ -25,6 +27,8 @@ export async function initPosthog() {
     api_host: "https://us.i.posthog.com",
     disable_external_dependency_loading: true,
     capture_pageview: true,
-    autocapture: true,
+    ...config,
   });
 }
+
+export default posthog;

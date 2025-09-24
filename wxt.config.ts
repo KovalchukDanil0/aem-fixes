@@ -24,8 +24,7 @@ export default defineConfig({
   }),
   alias: {
     $lib: "src/lib",
-    $styles: "src/styles",
-    $components: "src/components",
+    $assets: "src/assets",
   },
   srcDir: "src",
   outDir: "dist",

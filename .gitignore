@@ -26,3 +26,5 @@ web-ext.config.ts
 *.sw?
 pnpm-lock.yaml
 *.local
+
+bun.lock

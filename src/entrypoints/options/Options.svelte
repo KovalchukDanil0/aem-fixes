@@ -1,10 +1,10 @@
 <script lang="ts" module>
-  import { Input } from "$components";
+  import "$assets/main.css";
+  import { Input, Link } from "$lib";
   import { initPosthog } from "$lib/posthog";
   import type { SavedSyncData } from "$lib/storage";
   import { camelToSnakeCase } from "$lib/tools";
-  import "$styles/main.css";
-  import "@fontsource/open-sans";
+  import "@fontsource/open-sans/latin";
   import { Icon } from "svelte-icons-pack";
   import { FaSolidArrowLeft } from "svelte-icons-pack/fa";
   import { twMerge } from "tailwind-merge";
@@ -31,7 +31,7 @@
     browser.storage.sync.set<SavedSyncData>({ [data]: !value });
   }
 
-  await initPosthog();
+  await initPosthog({ capture_pageview: false, autocapture: true });
 </script>
 
 <Link

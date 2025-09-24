@@ -3,7 +3,7 @@ import {
   ProgrammerError,
   ShowroomCodes,
   VehicleCode,
-} from "$components/content";
+} from "$lib/content";
 import { onMessage, sendMessage } from "$lib/messaging";
 import {
   isLive,

@@ -1,11 +1,10 @@
 <script lang="ts" module>
-  import { Alert, ButtonEnv, Link, Spinner } from "$components";
-  import Button from "$components/Button.svelte";
+  import "$assets/main.css";
+  import { Alert, Button, ButtonEnv, Link, Spinner } from "$lib";
   import { onMessage, sendMessage } from "$lib/messaging";
   import { initPosthog } from "$lib/posthog";
   import { fullAuthorPath, propertiesPath, regexAuthor } from "$lib/storage";
-  import "$styles/main.css";
-  import "@fontsource/open-sans";
+  import "@fontsource/open-sans/latin";
   import ky from "ky";
   import { Icon } from "svelte-icons-pack";
   import { FaBrandsGithub, FaSolidWrench } from "svelte-icons-pack/fa";
@@ -15,6 +14,8 @@
     color: ColorProps;
   }
 
+  const regexCopyContent = /\/content.+(?=\.html)/;
+
   const [{ url, index: tabIndex, id: tabId, status }] =
     await browser.tabs.query({
       active: true,
@@ -22,7 +23,7 @@
     });
 
   let pageLoaded = $state(false);
-  let environment: EnvTypes | null = $state(null);
+  let environment = $state<EnvTypes | null>(null);
 
   let alertBanner = $state<AlertType | null>(null);
 
@@ -59,8 +60,6 @@
     alertBanner = { text, color };
   });
 
-  const regexCopyContent = /\/content.+(?=\.html)/;
-
   function copyContent() {
     if (!url) {
       return;
@@ -88,7 +87,10 @@
     });
   }
 
-  await initPosthog();
+  await initPosthog({
+    capture_pageview: false,
+    autocapture: true,
+  });
 </script>
 
 <div class="flex size-full grow flex-col items-center justify-center gap-5">
@@ -106,7 +108,7 @@
           variant="red"
           btnSubject="createWF"
           btnSendAs="tab"
-          posthogEvent={["jira_created_wf"]}>Create WF</ButtonEnv
+          postHogEvent="jira_created_wf">Create WF</ButtonEnv
         >
       </div>
     {:else}
@@ -117,7 +119,8 @@
             btnEnv="live"
             btnSubject="toEnvironment"
             btnSendAs="runtime"
-            posthogEvent={["page_moved_live", { environment }]}
+            postHogEvent="page_moved_live"
+            postHogConfig={{ environment }}
           >
             To Live
           </ButtonEnv>
@@ -129,7 +132,8 @@
             btnEnv="perf"
             btnSubject="toEnvironment"
             btnSendAs="runtime"
-            posthogEvent={["page_moved_perf", { environment }]}
+            postHogEvent="page_moved_perf"
+            postHogConfig={{ environment }}
           >
             To Perf
           </ButtonEnv>
@@ -141,7 +145,8 @@
             btnEnv="prod"
             btnSubject="toEnvironment"
             btnSendAs="runtime"
-            posthogEvent={["page_moved_prod", { environment }]}
+            postHogEvent="page_moved_prod"
+            postHogConfig={{ environment }}
           >
             To Prod
           </ButtonEnv>
@@ -153,7 +158,8 @@
             btnEnv="cf#"
             btnSubject="toEnvironment"
             btnSendAs="runtime"
-            posthogEvent={["page_moved_classic", { environment }]}
+            postHogEvent="page_moved_classic"
+            postHogConfig={{ environment }}
           >
             To Classic
           </ButtonEnv>
@@ -165,7 +171,8 @@
             btnEnv="editor.html"
             btnSubject="toEnvironment"
             btnSendAs="runtime"
-            posthogEvent={["page_moved_touch", { environment }]}
+            postHogEvent="page_moved_touch"
+            postHogConfig={{ environment }}
           >
             To Touch
           </ButtonEnv>
@@ -179,14 +186,15 @@
           <ButtonEnv
             variant="yellow"
             onclick={copyContent}
-            posthogEvent={["page_link_copied", { environment }]}
-            >Copy Content</ButtonEnv
+            postHogEvent="page_link_copied"
+            postHogConfig={{ environment }}>Copy Content</ButtonEnv
           >
 
           <ButtonEnv
             variant="fuchsia"
             onclick={openPropertiesTouchUI}
-            posthogEvent={["page_properties_opened", { environment }]}
+            postHogEvent="page_properties_opened"
+            postHogConfig={{ environment }}
           >
             Open Properties Touch UI
           </ButtonEnv>
@@ -195,7 +203,8 @@
             variant="violet"
             btnSubject="openInTree"
             btnSendAs="runtime"
-            posthogEvent={["page_opened_in_tree", { environment }]}
+            postHogEvent="page_opened_in_tree"
+            postHogConfig={{ environment }}
           >
             Open In Tree
           </ButtonEnv>
@@ -204,7 +213,8 @@
             variant="lime"
             btnSubject="checkReferences"
             btnSendAs="tab"
-            posthogEvent={["page_checked_references", { environment }]}
+            postHogEvent="page_checked_references"
+            postHogConfig={{ environment }}
           >
             Check references
           </ButtonEnv>
@@ -215,7 +225,8 @@
             variant="indigo"
             btnSubject="checkMothersite"
             btnSendAs="tab"
-            posthogEvent={["mothersite_links_checked", { environment }]}
+            postHogEvent="mothersite_links_checked"
+            postHogConfig={{ environment }}
           >
             Check mothersite links
           </ButtonEnv>
@@ -224,7 +235,8 @@
             variant="blue"
             btnSubject="showShowroomConfig"
             btnSendAs="tab"
-            posthogEvent={["showroom_config_showed", { environment }]}
+            postHogEvent="showroom_config_showed"
+            postHogConfig={{ environment }}
           >
             Show Showroom Config
           </ButtonEnv>
@@ -244,23 +256,23 @@
       <div class="flex flex-row gap-3">
         <Button
           onclick={() => setEnvironment("live")}
-          posthogEvent={["page_should_be_live"]}>live</Button
+          postHogEvent="page_should_be_live">live</Button
         >
         <Button
           onclick={() => setEnvironment("perf")}
-          posthogEvent={["page_should_be_perf"]}>perf</Button
+          postHogEvent="page_should_be_perf">perf</Button
         >
         <Button
           onclick={() => setEnvironment("prod")}
-          posthogEvent={["page_should_be_prod"]}>prod</Button
+          postHogEvent="page_should_be_prod">prod</Button
         >
         <Button
           onclick={() => setEnvironment("cf#")}
-          posthogEvent={["page_should_be_classic"]}>classic</Button
+          postHogEvent="page_should_be_classic">classic</Button
         >
         <Button
           onclick={() => setEnvironment("editor.html")}
-          posthogEvent={["page_should_be_touch"]}>touch ui</Button
+          postHogEvent="page_should_be_touch">touch ui</Button
         >
       </div>
     </div>
@@ -275,7 +287,7 @@
   <Link
     class="flex flex-row items-center gap-1 text-shadow-lg/20"
     href="/options.html"
-    posthogEvent={["options_link_clicked"]}
+    postHogEvent="options_link_clicked"
   >
     <Icon src={FaSolidWrench} />
     Options
@@ -285,11 +297,9 @@
     class="flex flex-row items-center gap-1 text-shadow-lg/20"
     href="https://github.com/KovalchukDanil0/aem-fixes#features"
     target="_blank"
-    posthogEvent={["guide_link_clicked"]}
+    postHogEvent="guide_link_clicked"
   >
     <Icon src={FaBrandsGithub} />
     See Guide
   </Link>
 </div>
-
-<!-- TODO: implement audit mode with links to all specific site pages -->
