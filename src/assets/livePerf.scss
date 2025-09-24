@@ -1,0 +1,8 @@
+[href*="mothersite"] {
+  filter: invert(1) !important;
+  background-color: aqua;
+
+  * {
+    color: red;
+  }
+}
