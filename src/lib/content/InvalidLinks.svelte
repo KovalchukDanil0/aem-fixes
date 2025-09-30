@@ -9,7 +9,7 @@
 </script>
 
 <p {...restProps} class="invalidLinks">
-  {`${invalidLinksCount.toString()} INVALID LINKS FOUND!`}
+  {invalidLinksCount} INVALID LINKS FOUND!
 </p>
 
 <style lang="scss">

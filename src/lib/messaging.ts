@@ -39,6 +39,8 @@ export interface ProtocolMap {
   checkReferences(): void;
   createWF(): void;
   showShowroomConfig(): void;
+
+  getUrlPageTag(data: { pageTag: string }): string;
 }
 
 export const { sendMessage, onMessage } =

@@ -39,8 +39,10 @@
 <a
   {...restProps}
   class={twMerge(
-    variantClass &&
-      `rounded-xl border-none px-5 py-2.5 text-xl text-white ${variantClass}`,
+    variantClass && [
+      "rounded-xl border-none px-5 py-2.5 text-xl text-white",
+      variantClass,
+    ],
     className?.toString(),
   )}
   onclick={(ev) => {
@@ -51,7 +53,6 @@
     onauxclick?.(ev);
     posthogCapture();
   }}
-  >{#if children}
-    {@render children()}
-  {/if}
+>
+  {@render children?.()}
 </a>

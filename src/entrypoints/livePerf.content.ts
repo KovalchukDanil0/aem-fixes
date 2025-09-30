@@ -118,7 +118,10 @@ async function checkMothersite(fromPopup: boolean) {
       color: mothersiteLinks === 0 ? "success" : "error",
       text,
     });
-  } else if (mothersiteLinks > 0) {
+    return;
+  }
+
+  if (mothersiteLinks > 0) {
     mount(AlertMothersite, {
       target: document.body,
       anchor: document.body.firstChild ?? undefined,
@@ -127,8 +130,8 @@ async function checkMothersite(fromPopup: boolean) {
   }
 }
 
-const getCarByName = (data: CarProps[], value?: string): CarProps =>
-  data.filter(({ desc }) => desc === value)[0];
+const getCarByName = (data: CarProps[], value?: string): CarProps | undefined =>
+  data.find(({ desc }) => desc === value);
 
 async function vehicleCodeInit() {
   const wizardWindowElm = document.querySelector<HTMLDivElement>(
@@ -203,10 +206,7 @@ function findVehicleCode(
   allCars?.forEach((carElm) => {
     const carName = carElm.textContent?.trim();
 
-    const carObj: CarProps = getCarByName(
-      vehicleConfig.data[idx].eventItem,
-      carName,
-    );
+    const carObj = getCarByName(vehicleConfig.data[idx].eventItem, carName);
 
     if (carElm.parentElement && carObj) {
       carElm.id = "carCode";
@@ -347,7 +347,7 @@ async function nextGenCodes() {
   });
 }
 
-const determineEnvironment = (): EnvTypes | null => {
+const determineEnvironment = (): EnvTypes | undefined => {
   if (isLive(location.href)) {
     return "live";
   }
@@ -357,8 +357,6 @@ const determineEnvironment = (): EnvTypes | null => {
   if (isProd(location.href)) {
     return "prod";
   }
-
-  return null;
 };
 
 export default defineContentScript({
@@ -368,6 +366,9 @@ export default defineContentScript({
     onMessage("getEnvironment", determineEnvironment);
     onMessage("showShowroomConfig", findShowroomCode);
     onMessage("checkMothersite", () => checkMothersite(true));
+    onMessage("getUrlPageTag", ({ data: { pageTag } }) =>
+      alert(pageTag + "\nearly beta!!!"),
+    );
 
     if (!isMothersite()) {
       sendMessage("injectMothersiteCss");

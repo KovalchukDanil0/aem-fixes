@@ -25,7 +25,5 @@
     className?.toString(),
   )}
 >
-  {#if children}
-    {@render children()}
-  {/if}
+  {@render children?.()}
 </div>

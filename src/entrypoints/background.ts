@@ -12,6 +12,7 @@ import {
   regexHTMLExist,
   regexImagePicker,
 } from "$lib/storage";
+import { determinePageTag } from "$lib/tags";
 import { noCase, snakeCase } from "change-case";
 import type { PostHog } from "posthog-js/dist/module.no-external";
 
@@ -89,47 +90,50 @@ const openInTree = function (authorUrl?: string) {
   changeContentInTab(authorUrl, `https://${fullAuthorPath}/siteadmin`);
 };
 
-const menus: Browser.contextMenus.CreateProperties[] = [
-  { title: "Open content in DAM", contexts: ["image"], id: "openInDAM" },
-  {
+const menus: Record<
+  string,
+  Omit<Browser.contextMenus.CreateProperties, "id">
+> = {
+  openInDAM: { title: "Open content in DAM", contexts: ["image"] },
+  openInAEM: {
     title: "Open content in AEM tree",
     contexts: ["link", "selection"],
-    id: "openInAEM",
   },
-  {
+  openInTouchUI: {
     title: "Open content in TouchUI",
     contexts: ["selection"],
-    id: "openInTouchUI",
   },
-];
+  checkTag: {
+    title: "Check Tag",
+    contexts: ["link"],
+  },
+};
 
-const menusWithParent: Browser.contextMenus.CreateProperties[] = [
-  {
+const menusWithParent: Record<
+  string,
+  Omit<Browser.contextMenus.CreateProperties, "id">
+> = {
+  toLive: {
     title: "To Live",
     contexts: ["link"],
-    id: "toLive",
   },
-  {
+  toPerf: {
     title: "To Perf",
     contexts: ["link"],
-    id: "toPerf",
   },
-  {
+  toProd: {
     title: "To Prod",
     contexts: ["link"],
-    id: "toProd",
   },
-  {
+  toTouch: {
     title: "To Touch",
     contexts: ["link"],
-    id: "toTouch",
   },
-  {
+  toClassic: {
     title: "To Classic",
     contexts: ["link"],
-    id: "toClassic",
   },
-];
+};
 
 type CommandEnvs = "toLive" | "toPerf" | "toProd" | "toAuthor";
 
@@ -204,6 +208,11 @@ export default defineBackground({
     });
 
     onMessage("injectMothersiteCss", async ({ sender }) => {
+      const tabId = sender.tab.id;
+      if (!tabId) {
+        return;
+      }
+
       browser.scripting.insertCSS({
         target: { tabId: sender.tab.id },
         files: [livePerfUrl],
@@ -211,7 +220,9 @@ export default defineBackground({
     });
 
     browser.runtime.onInstalled.addListener(() => {
-      menus.forEach((menu) => browser.contextMenus.create(menu));
+      Object.entries(menus).forEach(([id, props]) =>
+        browser.contextMenus.create({ id, ...props }),
+      );
 
       const parentId = browser.contextMenus.create({
         title: "To Environment",
@@ -219,8 +230,8 @@ export default defineBackground({
         id: "toEnvironment",
       });
 
-      menusWithParent.forEach(({ title, contexts, id }) =>
-        browser.contextMenus.create({ title, contexts, id, parentId }),
+      Object.entries(menusWithParent).forEach(([id, { title, contexts }]) =>
+        browser.contextMenus.create({ parentId, id, title, contexts }),
       );
     });
 
@@ -230,15 +241,13 @@ export default defineBackground({
           throw new Error("tab in menus is undefined");
         }
 
-        if (!posthog) {
-          posthog = await initPosthog({
-            persistence: "localStorage",
-            capture_pageview: false,
-            autocapture: false,
-            disable_session_recording: true,
-            disable_surveys: true,
-          });
-        }
+        posthog ??= await initPosthog({
+          persistence: "localStorage",
+          capture_pageview: false,
+          autocapture: false,
+          disable_session_recording: true,
+          disable_surveys: true,
+        });
 
         posthog.capture(`menu_${snakeCase(noCase(menuItemId.toString()))}`);
 
@@ -267,6 +276,21 @@ export default defineBackground({
           case "toClassic":
             handleToEnvironment(patternTab, "cf#", linkUrl);
             break;
+          case "checkTag": {
+            const pageTag = await determinePageTag(linkUrl);
+            if (!pageTag) {
+              return;
+            }
+
+            sendMessage(
+              "getUrlPageTag",
+              {
+                pageTag,
+              },
+              patternTab.id,
+            );
+            break;
+          }
           default:
             break;
         }

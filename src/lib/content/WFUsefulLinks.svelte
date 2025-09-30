@@ -68,19 +68,19 @@
 
 <div {...props} class="fixedLinksContainer">
   {#if addAccDisclosure}
-    <a href={`/cf#${addAccDisclosure}.html`} target="_blank" rel="noreferrer"
+    <a href="/cf#{addAccDisclosure}.html" target="_blank" rel="noreferrer"
       >{addAccDisclosure}</a
     >
   {/if}
 
   {#if addDisclosure}
-    <a href={`/cf#${addDisclosure}.html`} target="_blank" rel="noreferrer"
+    <a href="/cf#{addDisclosure}.html" target="_blank" rel="noreferrer"
       >{addDisclosure}</a
     >
   {/if}
 
   {#if addMarketConfig}
-    <a href={`/cf#${addMarketConfig}.html`} target="_blank" rel="noreferrer"
+    <a href="/cf#{addMarketConfig}.html" target="_blank" rel="noreferrer"
       >{addMarketConfig}</a
     >
   {/if}

@@ -37,7 +37,7 @@
 <Link
   href="/popup.html"
   class="flex flex-row items-center gap-1"
-  posthogEvent={["back_to_popup_link_clicked"]}
+  postHogEvent="back_to_popup_link_clicked"
   ><Icon src={FaSolidArrowLeft} />Back</Link
 >
 <h2>AEM Fixes Settings</h2>
@@ -55,7 +55,7 @@
       >{settingNames[name as keyof typeof settingNames]}<Input
         onchange={() => saveSyncData(name, value)}
         checked={value}
-        posthogEvent={[`${camelToSnakeCase(name)}_setting_clicked`]}
+        postHogEvent="{camelToSnakeCase(name)}_setting_clicked"
         type="checkbox"
       /></label
     >

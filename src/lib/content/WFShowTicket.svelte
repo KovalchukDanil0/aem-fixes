@@ -19,7 +19,7 @@
 <a
   {...restProps}
   class="showTicket"
-  href={`https://${jiraFullPath}${blockingTicketReplaced}#view-subtasks`}
+  href="https://{jiraFullPath}{blockingTicketReplaced}#view-subtasks"
   target="_blank"
   rel="noreferrer"
 >

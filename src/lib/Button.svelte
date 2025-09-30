@@ -38,7 +38,5 @@
     posthogCapture();
   }}
 >
-  {#if children}
-    {@render children()}
-  {/if}
+  {@render children?.()}
 </button>
