@@ -3,7 +3,7 @@
   import posthog from "./posthog";
   import type { PostHogProps } from "./types";
 
-  type Props = HTMLButtonAttributes & PostHogProps;
+  type Props = HTMLButtonAttributes & Partial<PostHogProps>;
 
   const {
     postHogEvent: posthogEvent,

@@ -12,24 +12,24 @@ import {
 import { mount } from "svelte";
 
 const marketMap: Record<string, string> = {
-  [`${secretWord} Germany`]: "DEDE",
-  [`${secretWord} Britain`]: "ENGB",
-  [`${secretWord} Spain`]: "ESES",
-  [`${secretWord} France`]: "FRFR",
-  [`${secretWord} Italy`]: "ITIT",
-  [`${secretWord} Netherlands`]: "NLNL",
-  [`${secretWord} Ireland`]: "IEIE",
-  [`${secretWord} Denmark`]: "DA_DK",
-  [`${secretWord} Portugal`]: "PTPT",
-  [`${secretWord} Norway`]: "NONO",
-  [`${secretWord} Finland`]: "FIFI",
-  [`${secretWord} Poland`]: "PLPL",
-  [`${secretWord} Austria`]: "ATDE",
-  [`${secretWord} Czech Republic`]: "CSCZ",
-  [`${secretWord} Hungary`]: "HUHU",
-  [`${secretWord} Greece`]: "ELGR",
-  [`${secretWord} Romania`]: "RORO",
-  [`${secretWord} Luxembourg`]: "LULU",
+  [secretWord("Germany")]: "DEDE",
+  [secretWord("Britain")]: "ENGB",
+  [secretWord("Spain")]: "ESES",
+  [secretWord("France")]: "FRFR",
+  [secretWord("Italy")]: "ITIT",
+  [secretWord("Netherlands")]: "NLNL",
+  [secretWord("Ireland")]: "IEIE",
+  [secretWord("Denmark")]: "DA_DK",
+  [secretWord("Portugal")]: "PTPT",
+  [secretWord("Norway")]: "NONO",
+  [secretWord("Finland")]: "FIFI",
+  [secretWord("Poland")]: "PLPL",
+  [secretWord("Austria")]: "ATDE",
+  [secretWord("Czech Republic")]: "CSCZ",
+  [secretWord("Hungary")]: "HUHU",
+  [secretWord("Greece")]: "ELGR",
+  [secretWord("Romania")]: "RORO",
+  [secretWord("Luxembourg")]: "LULU",
 };
 
 function createWFButton() {
@@ -121,10 +121,10 @@ function textToWFPath(
   localLanguage: string,
   title: string,
 ): string | undefined {
-  if (market === `${secretWord} Belgium`) {
+  if (market === secretWord("Belgium")) {
     return belgium(localLanguage, title);
   }
-  if (market === `${secretWord} Switzerland`) {
+  if (market === secretWord("Switzerland")) {
     return switzerland(localLanguage, title);
   }
 

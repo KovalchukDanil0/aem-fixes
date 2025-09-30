@@ -19,7 +19,7 @@
     | "indigo"
     | "blue";
 
-  interface Props extends HTMLButtonAttributes, PostHogProps {
+  interface Props extends HTMLButtonAttributes, Partial<PostHogProps> {
     variant: VariantType;
     btnSubject?: keyof ProtocolMap;
     btnSendAs?: "tab" | "runtime";

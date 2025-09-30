@@ -5,7 +5,7 @@
 
   type VariantType = "green" | "red";
 
-  type Props = HTMLInputAttributes & PostHogProps;
+  type Props = HTMLInputAttributes & Partial<PostHogProps>;
 
   const {
     onclick,

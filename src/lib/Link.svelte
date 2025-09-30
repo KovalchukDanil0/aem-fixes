@@ -6,7 +6,7 @@
 
   type VariantType = "green" | "red";
 
-  interface Props extends HTMLAnchorAttributes, PostHogProps {
+  interface Props extends HTMLAnchorAttributes, Partial<PostHogProps> {
     variant?: VariantType;
   }
 

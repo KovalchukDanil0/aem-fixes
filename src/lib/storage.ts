@@ -1,16 +1,18 @@
-export interface SavedSyncData {
-  disCreateWf?: boolean;
-  disMothersiteCheck?: boolean;
-  enableAutoLogin?: boolean;
-  enableFilterFix?: boolean;
-  enableFunErr?: boolean;
+interface SyncData {
+  disCreateWf: boolean;
+  disMothersiteCheck: boolean;
+  enableAutoLogin: boolean;
+  enableFilterFix: boolean;
+  enableFunErr: boolean;
 }
+export type SavedSyncData = Partial<SyncData>;
 
-export interface SavedLocalData {
-  wfTitle?: string;
-  wfName?: string;
+interface LocalData {
+  wfTitle: string;
+  wfName: string;
   posthog_distinct_id: string;
 }
+export type SavedLocalData = Partial<LocalData>;
 
 export const livePerfMatch = import.meta.env.VITE_LIVE_PERF_MATCH.split(", ");
 export const wfPageMatch = [import.meta.env.VITE_WF_PAGE_MATCH];
@@ -20,7 +22,6 @@ export const aemToolsMatch = [import.meta.env.VITE_AEM_TOOLS_MATCH];
 export const damTreeMatch = [import.meta.env.VITE_DAM_TREE_MATCH];
 export const findReplaceMatch = [import.meta.env.VITE_FIND_REPLACE_MATCH];
 
-export const regexJira = RegExp(import.meta.env.VITE_REGEX_JIRA);
 export const regexWorkflow = RegExp(import.meta.env.VITE_REGEX_WORKFLOW);
 export const regexDAMTree = RegExp(import.meta.env.VITE_REGEX_DAM_TREE);
 export const regexLive = RegExp(import.meta.env.VITE_REGEX_LIVE);
@@ -47,61 +48,19 @@ export const domainProd = import.meta.env.VITE_DOMAIN_PROD;
 export const workflowPath = import.meta.env.VITE_WORKFLOW_PATH;
 export const fullAuthorPath = import.meta.env.VITE_FULL_AUTHOR_PATH;
 export const propertiesPath = import.meta.env.VITE_PROPERTIES_PATH;
-export const aemToolsUrl = import.meta.env.VITE_WORKFLOW_PATH;
-export const findReplaceUrl = import.meta.env.VITE_FIND_REPLACE_URL;
-export const damTreeUrl = import.meta.env.VITE_DAM_TREE_URL;
-export const secretWord = import.meta.env.VITE_SECRET_WORD;
 export const jiraFullPath = import.meta.env.VITE_JIRA_FULL_PATH;
 
-export const isJira = (url: string | undefined): boolean =>
-  url ? regexJira.test(url) : false;
+export const secretWord = (country: string) =>
+  `${import.meta.env.VITE_SECRET_WORD} ${country}`;
 
-export const isWorkflow = (url: string | undefined): boolean =>
-  url ? regexWorkflow.test(url) : false;
-
-export const isLive = (url: string | undefined): boolean =>
-  url ? regexLive.test(url) : false;
-
-export const isLivePerf = (url: string | undefined): boolean =>
-  isPerfProd(url) || isLive(url);
-
-export const isPerfProd = (url: string | undefined): boolean =>
-  url ? regexPerfProd.test(url) : false;
-
-export const isPerf = (url: string | undefined): boolean =>
+export const isLive = (url?: string) => url && regexLive.test(url);
+export const isPerf = (url?: string) =>
   url?.replace(regexPerfProd, "$1") === "perf";
-
-export const isProd = (url: string | undefined): boolean =>
+export const isProd = (url?: string) =>
   url?.replace(regexPerfProd, "$1") === "prod";
-
-export const isAuthor = (url: string | undefined): boolean =>
-  url ? regexAuthor.test(url) : false;
-
-export const isAuthorNoEnv = (url: string | undefined): boolean =>
-  url?.replace(regexAuthor, "$2") === "";
-
-export const isClassic = (url: string | undefined): boolean =>
-  url?.replace(regexAuthor, "$2") === "cf#";
-
-export const isTouch = (url: string | undefined): boolean =>
+export const isAuthor = (url?: string) => url && regexAuthor.test(url);
+export const isTouch = (url?: string) =>
   url?.replace(regexAuthor, "$2") === "editor.html";
-
-export const isAnyOfTheEnv = (url: string | undefined): boolean =>
-  url
-    ? regexLive.test(url) || regexPerfProd.test(url) || regexAuthor.test(url)
-    : false;
-
-export const isAEMToolsUrl = (url: string | undefined): boolean =>
-  url?.includes(workflowPath) ?? false;
-
-export const isDamUrl = (url: string | undefined): boolean =>
-  url?.includes(damTreeUrl) ?? false;
-
-export const isFindReplaceUrl = (url: string | undefined): boolean =>
-  url?.includes(findReplaceUrl) ?? false;
-
-export const isWorkflowUrl = (url: string | undefined): boolean =>
-  url ? regexWorkflow.test(url) : false;
 
 export const loadSavedData = async () =>
   browser.storage.sync.get<SavedSyncData>({

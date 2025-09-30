@@ -9,8 +9,8 @@ interface TagsTableType {
 }
 
 interface FordAnalyticsType {
-  "vehicle.bodystyle"?: string;
-  "page.pageName"?: string;
+  "vehicle.bodystyle": string;
+  "page.pageName": string;
 }
 
 const tagsTable: TagsTableType[] = [
@@ -117,7 +117,7 @@ const tagsTable: TagsTableType[] = [
   },
 ];
 
-export function getPageTag(dom: Document): FordAnalyticsType {
+export function getPageTag(dom: Document) {
   const analyticsPropertiesElm = selectOne(
     "#analytics-properties",
     dom.children as Element[],
@@ -134,7 +134,7 @@ export function getPageTag(dom: Document): FordAnalyticsType {
     return {};
   }
 
-  return JSON.parse(jsonData) as FordAnalyticsType;
+  return JSON.parse(jsonData) as Partial<FordAnalyticsType>;
 }
 
 export async function determinePageTag(url?: string) {
