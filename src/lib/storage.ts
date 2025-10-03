@@ -1,16 +1,25 @@
+interface TourProps {
+  toEnvironmentLive: boolean;
+  toEnvironmentPerf: boolean;
+  toEnvironmentProd: boolean;
+  toEnvironmentCf: boolean;
+  toEnvironmentEditorHtml: boolean;
+}
+
 interface SyncData {
   disCreateWf: boolean;
   disMothersiteCheck: boolean;
   enableAutoLogin: boolean;
   enableFilterFix: boolean;
   enableFunErr: boolean;
+  posthog_distinct_id: string;
+  tourSettings: TourProps | true;
 }
 export type SavedSyncData = Partial<SyncData>;
 
 interface LocalData {
-  wfTitle: string;
-  wfName: string;
-  posthog_distinct_id: string;
+  wfTitle: string | null;
+  wfName: string | null;
 }
 export type SavedLocalData = Partial<LocalData>;
 

@@ -6,8 +6,8 @@
   type Props = HTMLButtonAttributes & Partial<PostHogProps>;
 
   const {
-    postHogEvent: posthogEvent,
-    postHogConfig: posthogConfig,
+    postHogEvent,
+    postHogConfig,
     children,
     onclick,
     onauxclick,
@@ -15,25 +15,21 @@
   }: Props = $props();
 
   function posthogCapture() {
-    if (!posthogEvent) {
+    if (!postHogEvent) {
       return;
     }
 
-    posthog.capture(posthogEvent, posthogConfig);
+    posthog.capture(postHogEvent, postHogConfig);
   }
 </script>
 
 <button
   {...restProps}
   onclick={(ev) => {
-    console.log(posthogEvent);
-
     onclick?.(ev);
     posthogCapture();
   }}
   onauxclick={(ev) => {
-    console.log(posthogEvent);
-
     onauxclick?.(ev);
     posthogCapture();
   }}

@@ -17,7 +17,7 @@ async function fixOldLinks() {
   const { length: invalidLinksCount } = findReplaceBody.querySelectorAll(
     "div.one-link > div.is-invalid",
   );
-  if (invalidLinksCount !== 0 && findReplaceBody.firstChild) {
+  if (invalidLinksCount && findReplaceBody.firstChild) {
     mount(InvalidLinks, {
       target: findReplaceBody,
       anchor: findReplaceBody.firstChild,
@@ -34,7 +34,7 @@ async function fixOldLinks() {
       throw new Error("link is null");
     }
 
-    link.textContent = "";
+    link.textContent = null;
     mount(FindReplaceLink, { target: link, props: { url } });
   });
 }

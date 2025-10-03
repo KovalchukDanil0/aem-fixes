@@ -3,8 +3,8 @@
   import { Input, Link } from "$lib";
   import { initPosthog } from "$lib/posthog";
   import type { SavedSyncData } from "$lib/storage";
-  import { camelToSnakeCase } from "$lib/tools";
   import "@fontsource/open-sans/latin";
+  import { noCase, snakeCase } from "change-case";
   import { Icon } from "svelte-icons-pack";
   import { FaSolidArrowLeft } from "svelte-icons-pack/fa";
   import { twMerge } from "tailwind-merge";
@@ -17,7 +17,9 @@
     enableFunErr: false,
   });
 
-  const savedSyncData = Object.entries(savedSyncDataInit);
+  const savedSyncData = Object.entries(savedSyncDataInit)
+    .filter(([_, val]) => typeof val === "boolean")
+    .map((data) => data as [string, boolean]);
 
   const settingNames = {
     disCreateWf: "Disable Create WF Button",
@@ -43,8 +45,6 @@
 <h2>AEM Fixes Settings</h2>
 
 {#each savedSyncData as [name, value], idx}
-  {@debug name, value}
-
   <div
     class={twMerge(
       "flex flex-row gap-3",
@@ -55,7 +55,7 @@
       >{settingNames[name as keyof typeof settingNames]}<Input
         onchange={() => saveSyncData(name, value)}
         checked={value}
-        postHogEvent="{camelToSnakeCase(name)}_setting_clicked"
+        postHogEvent="{noCase(snakeCase(name))}_setting_clicked"
         type="checkbox"
       /></label
     >

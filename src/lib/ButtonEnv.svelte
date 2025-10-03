@@ -1,5 +1,6 @@
 <script lang="ts">
   import { sendMessage, type ProtocolMap } from "$lib/messaging";
+  import { pascalCase } from "change-case";
   import type { HTMLButtonAttributes } from "svelte/elements";
   import { twMerge } from "tailwind-merge";
   import { Button } from ".";
@@ -19,7 +20,9 @@
     | "indigo"
     | "blue";
 
-  interface Props extends HTMLButtonAttributes, Partial<PostHogProps> {
+  interface Props
+    extends Omit<HTMLButtonAttributes, "id">,
+      Partial<PostHogProps> {
     variant: VariantType;
     btnSubject?: keyof ProtocolMap;
     btnSendAs?: "tab" | "runtime";
@@ -27,16 +30,18 @@
   }
 
   const {
-    btnEnv = "live",
     class: className,
     variant,
     btnSendAs,
+    btnEnv,
     btnSubject,
     children,
     onclick,
     onauxclick,
     ...restProps
   }: Props = $props();
+
+  const id = btnEnv ? btnSubject + pascalCase(btnEnv) : btnSubject;
 
   const variantList: Record<VariantType, string> = {
     red: "bg-red-600 shadow-red-600/50",
@@ -79,8 +84,8 @@
       btnSubject,
       {
         newTab: type !== "click",
-        env: btnEnv,
         tabs: activeTabs,
+        env: btnEnv,
       },
       tabId,
     );
@@ -96,6 +101,7 @@
     variantClass,
     className?.toString(),
   )}
+  {id}
 >
   {@render children?.()}
 </Button>

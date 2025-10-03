@@ -25,13 +25,13 @@
   }
 
   const matchWorkflow = regexWorkflow.exec(location.href);
-  if (!matchWorkflow) {
+  if (!matchWorkflow?.length) {
     throw new Error("Regex not matched workflow");
   }
 
   const [, , market, localLanguageLeft, localLanguageRight] = matchWorkflow;
 
-  let marketFixed = fixMarket(market.toLowerCase());
+  let marketFixed = fixMarket(market);
 
   // ?? will prevent undefined appear in string
   let localLanguage = (localLanguageLeft ?? localLanguageRight).toLowerCase();

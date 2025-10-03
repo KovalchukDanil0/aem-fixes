@@ -2,18 +2,18 @@ import posthog, {
   type PostHogConfig,
 } from "posthog-js/dist/module.no-external";
 import { v7 as uuidv7 } from "uuid";
-import type { SavedLocalData } from "./storage";
+import type { SavedSyncData } from "./storage";
 
 async function getSharedDistinctId() {
   const { posthog_distinct_id } =
-    await browser.storage.local.get<SavedLocalData>("posthog_distinct_id");
+    await browser.storage.local.get<SavedSyncData>("posthog_distinct_id");
   if (posthog_distinct_id) {
     return posthog_distinct_id;
   }
 
   // Generate new distinct ID and store it
   const distinctId = uuidv7();
-  await browser.storage.local.set<SavedLocalData>({
+  await browser.storage.local.set<SavedSyncData>({
     posthog_distinct_id: distinctId,
   });
   return distinctId;

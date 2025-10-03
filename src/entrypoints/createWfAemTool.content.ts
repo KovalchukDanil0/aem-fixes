@@ -55,8 +55,8 @@ export default defineContentScript({
   async main() {
     const { wfTitle, wfName } = await browser.storage.local.get<SavedLocalData>(
       {
-        wfTitle: "",
-        wfName: "",
+        wfTitle: null,
+        wfName: null,
       },
     );
     if (!wfTitle || !wfName) {

@@ -56,17 +56,19 @@ export function fixMarket(market: string): string {
   const marketsFixAuthor = ["gb", "en", "gl"];
   const marketsFixPerf = ["uk", "uk", "mothersite"];
 
-  const idxAuthor = marketsFixAuthor.indexOf(market);
+  const marketLower = market.toLowerCase();
+
+  const idxAuthor = marketsFixAuthor.indexOf(marketLower);
   if (idxAuthor >= 0) {
     return marketsFixPerf[idxAuthor];
   }
 
-  const idxPerf = marketsFixPerf.indexOf(market);
+  const idxPerf = marketsFixPerf.indexOf(marketLower);
   if (idxPerf >= 0) {
     return marketsFixAuthor[idxPerf];
   }
 
-  return market;
+  return marketLower;
 }
 
 export function fixLocalLanguage(
@@ -163,9 +165,10 @@ async function determineEnv(
   market: string,
   localLanguage: string,
   urlPart: string,
-  beta: boolean,
 ) {
   let newUrl: string;
+
+  const beta = isMarketInBeta(market);
 
   if (isAuthor) {
     if (env === "cf#" || env === "editor.html") {
@@ -222,9 +225,7 @@ function makeLive(market: string, localLanguage: string, urlPart: string) {
     localLanguage += ".";
   }
 
-  return `https://www.${
-    localLanguage ?? ""
-  }${topLevelDomain}.${market}${britain}${urlPart}`;
+  return `https://www.${localLanguage}${topLevelDomain}.${market}${britain}${urlPart}`;
 }
 
 function makePerfProd(
@@ -241,9 +242,7 @@ function makePerfProd(
 
   const domainPerfProd = isPerf ? domainPerf : domainProd;
 
-  return `https://${domainPerfProd}${betaString(beta)}-${market}${
-    localLanguage ?? ""
-  }.${domain}.${topLevelDomain}.com${urlPart}`;
+  return `https://${domainPerfProd}${betaString(beta)}-${market}${localLanguage}.${domain}.${topLevelDomain}.com${urlPart}`;
 }
 
 async function makeAuthor(
@@ -292,60 +291,50 @@ function makeRealAuthorLink(wrongLink: string, isTouch: boolean): string {
   }${wrongLink}.html`;
 }
 
-export async function convertLink(env: EnvTypes, url: URL): Promise<string> {
-  let market = "";
-  let localLanguage = "";
-  let urlPart: string;
-  let isAuthor = false;
-
-  urlPart = url.pathname + url.search + url.hash;
+export async function convertLink(
+  env: EnvTypes,
+  { pathname, search, hash, href }: URL,
+): Promise<string> {
+  let urlPart = pathname + search + hash;
   if (urlPart === "/") {
     urlPart = "";
   }
 
-  const matchLive = regexLive.exec(url.href);
+  // Try live regex first
+  const matchLive = regexLive.exec(href);
   if (matchLive) {
     const [, localLanguageTemp, topLevelDomain, domain] = matchLive;
+    const market = domain || topLevelDomain;
+    const localLanguage = domain ? topLevelDomain : localLanguageTemp;
 
-    market = domain || topLevelDomain;
-    localLanguage = domain ? topLevelDomain : localLanguageTemp;
+    return determineEnv(env, href, false, market, localLanguage, urlPart);
   }
 
-  const matchPerfProd = regexPerfProd.exec(url.href);
+  // Try perf/prod regex
+  const matchPerfProd = regexPerfProd.exec(href);
   if (matchPerfProd) {
     const [, , topLevelDomain, domain] = matchPerfProd;
 
     const isUk = domain === "uk";
 
-    market = isUk ? domain : topLevelDomain;
-    localLanguage = isUk ? topLevelDomain : domain;
+    const market = isUk ? domain : topLevelDomain;
+    const localLanguage = isUk ? topLevelDomain : domain;
+
+    return determineEnv(env, href, false, market, localLanguage, urlPart);
   }
 
-  const matchAuthor = regexAuthor.exec(url.href);
+  // Try author regex
+  const matchAuthor = regexAuthor.exec(href);
   if (matchAuthor) {
-    market = matchAuthor[4];
-    localLanguage = fixLocalLanguage(matchAuthor[5], market);
+    const market = matchAuthor[4];
+    const localLanguage = fixLocalLanguage(matchAuthor[5], market);
 
     // fix resource resolver not working if link not ending with html
-    url.hash = "";
-    url.search = "";
+    urlPart = pathname;
 
-    isAuthor = true;
+    return determineEnv(env, href, true, market, localLanguage, urlPart);
   }
 
-  if (!market) {
-    throw new Error(`${url} doesn't match any of the env`);
-  }
-
-  const beta = isMarketInBeta(market);
-
-  return determineEnv(
-    env,
-    url.href,
-    isAuthor,
-    market,
-    localLanguage,
-    urlPart,
-    beta,
-  );
+  // No regex matched
+  throw new Error(`${href} doesn't match any of the env`);
 }

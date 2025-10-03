@@ -1,10 +1,6 @@
 import livePerfUrl from "$assets/livePerf.scss?url";
 import { convertLink } from "$lib/convertLink";
-import {
-  onMessage,
-  registerBackgroundService,
-  sendMessage,
-} from "$lib/messaging";
+import { onMessage, sendMessage } from "$lib/messaging";
 import { initPosthog } from "$lib/posthog";
 import {
   fullAuthorPath,
@@ -20,8 +16,8 @@ let posthog: PostHog | null = null;
 
 function toEnvironment(
   activeTabs: Browser.tabs.Tab[],
-  env: EnvTypes,
   newTab: boolean,
+  env: EnvTypes,
   url?: string,
 ) {
   activeTabs.forEach(async ({ url: tabUrl, index, id }) => {
@@ -174,19 +170,21 @@ function handleOpenInTouchUI(
 
 function handleToEnvironment(
   patternTab: Browser.tabs.Tab,
-  env: EnvTypes,
   linkUrl: string | undefined,
+  env: EnvTypes,
 ) {
-  toEnvironment([patternTab], env, true, linkUrl);
+  toEnvironment([patternTab], true, env, linkUrl);
 }
 
 export default defineBackground({
   type: "module",
   main() {
-    registerBackgroundService();
-
     onMessage("toEnvironment", ({ data: { tabs: msgTabs, env, newTab } }) => {
-      toEnvironment(msgTabs, env, newTab);
+      if (!env) {
+        return;
+      }
+
+      toEnvironment(msgTabs, newTab, env);
     });
 
     onMessage("openInTree", ({ data: { tabs: msgTabs, url } }) => {
@@ -262,19 +260,19 @@ export default defineBackground({
             handleOpenInTouchUI(selectionText, patternTab);
             break;
           case "toLive":
-            handleToEnvironment(patternTab, "live", linkUrl);
+            handleToEnvironment(patternTab, linkUrl, "live");
             break;
           case "toPerf":
-            handleToEnvironment(patternTab, "perf", linkUrl);
+            handleToEnvironment(patternTab, linkUrl, "perf");
             break;
           case "toProd":
-            handleToEnvironment(patternTab, "prod", linkUrl);
+            handleToEnvironment(patternTab, linkUrl, "prod");
             break;
           case "toTouch":
-            handleToEnvironment(patternTab, "editor.html", linkUrl);
+            handleToEnvironment(patternTab, linkUrl, "editor.html");
             break;
           case "toClassic":
-            handleToEnvironment(patternTab, "cf#", linkUrl);
+            handleToEnvironment(patternTab, linkUrl, "cf#");
             break;
           case "checkTag": {
             const pageTag = await determinePageTag(linkUrl);
@@ -304,16 +302,16 @@ export default defineBackground({
 
       switch (command as CommandEnvs) {
         case "toLive":
-          toEnvironment([tab], "live", false);
+          toEnvironment([tab], false, "live");
           break;
         case "toPerf":
-          toEnvironment([tab], "perf", false);
+          toEnvironment([tab], false, "perf");
           break;
         case "toProd":
-          toEnvironment([tab], "prod", false);
+          toEnvironment([tab], false, "prod");
           break;
         case "toAuthor":
-          toEnvironment([tab], "editor.html", false);
+          toEnvironment([tab], false, "editor.html");
           break;
         default:
           throw new Error(`command was not found ${command}`);

@@ -4,17 +4,11 @@
   import { onMessage, sendMessage } from "$lib/messaging";
   import { initPosthog } from "$lib/posthog";
   import { fullAuthorPath, propertiesPath, regexAuthor } from "$lib/storage";
+  import { initTour } from "$lib/tour";
   import "@fontsource/open-sans/latin";
   import ky from "ky";
   import { Icon } from "svelte-icons-pack";
   import { FaBrandsGithub, FaSolidWrench } from "svelte-icons-pack/fa";
-
-  interface AlertType {
-    text: string;
-    color: ColorProps;
-  }
-
-  const regexCopyContent = /\/content.+(?=\.html)/;
 
   const [{ url, index: tabIndex, id: tabId, status }] =
     await browser.tabs.query({
@@ -25,20 +19,44 @@
   let pageLoaded = $state(false);
   let environment = $state<EnvTypes | null>(null);
 
-  let alertBanner = $state<AlertType | null>(null);
-
-  const setEnvironment = (env: EnvTypes) => (environment = env);
+  if (status === "complete" && tabId) {
+    pageLoaded = true;
+    await fetchEnvironment(tabId);
+  }
 
   async function fetchEnvironment(tabId: number) {
     environment = await sendMessage("getEnvironment", {}, tabId).catch(
       () => null,
     );
   }
+</script>
 
-  if (status === "complete" && tabId) {
-    pageLoaded = true;
-    await fetchEnvironment(tabId);
+<script lang="ts">
+  interface AlertType {
+    text: string;
+    color: ColorProps;
   }
+
+  const regexCopyContent = /\/content.+(?=\.html)/;
+
+  let alertBanner = $state<AlertType | null>(null);
+
+  const setEnvironment = (env: EnvTypes) => (environment = env);
+
+  $effect(() => {
+    if (!environment) {
+      return;
+    }
+
+    initTour().drive();
+  });
+
+  onMount(async () => {
+    await initPosthog({
+      capture_pageview: false,
+      autocapture: true,
+    });
+  });
 
   browser.tabs.onUpdated.addListener(async (updatedTabId, changeInfo) => {
     if (updatedTabId !== tabId) {
@@ -65,14 +83,13 @@
       return;
     }
 
-    const [content] = regexCopyContent.exec(url) ?? "";
+    const [content] = regexCopyContent.exec(url) ?? [];
     if (!content) {
       throw new Error(`copied content is ${content}`);
     }
 
-    navigator.clipboard.writeText(content);
-
     alertBanner = { text: `${content} copied to clipboard`, color: "info" };
+    navigator.clipboard.writeText(content);
   }
 
   function openPropertiesTouchUI() {
@@ -86,11 +103,6 @@
       index: tabIndex + 1,
     });
   }
-
-  await initPosthog({
-    capture_pageview: false,
-    autocapture: true,
-  });
 </script>
 
 <div class="flex size-full grow flex-col items-center justify-center gap-5">
