@@ -1,4 +1,4 @@
-interface TourProps {
+export interface TourProps {
   toEnvironmentLive: boolean;
   toEnvironmentPerf: boolean;
   toEnvironmentProd: boolean;
@@ -13,7 +13,7 @@ interface SyncData {
   enableFilterFix: boolean;
   enableFunErr: boolean;
   posthog_distinct_id: string;
-  tourSettings: TourProps | true;
+  tourSettings: TourProps | null;
 }
 export type SavedSyncData = Partial<SyncData>;
 

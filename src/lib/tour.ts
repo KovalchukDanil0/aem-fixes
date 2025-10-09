@@ -1,7 +1,26 @@
-import { driver } from "driver.js";
+import { driver, type DriveStep } from "driver.js";
 import "driver.js/dist/driver.css";
+import type { SavedSyncData, TourProps } from "./storage";
 
-export function initTour() {
+const driverSteps: Record<keyof TourProps, DriveStep> = {
+  toEnvironmentCf: {},
+  toEnvironmentEditorHtml: {},
+  toEnvironmentLive: {},
+  toEnvironmentPerf: {},
+  toEnvironmentProd: {},
+};
+
+export async function initTour() {
+  const { tourSettings } =
+    await browser.storage.sync.get<SavedSyncData>("tourSettings");
+  if (!tourSettings) {
+    return;
+  }
+
+  const test = Object.keys(tourSettings).map(
+    (key) => driverSteps[key as keyof TourProps],
+  );
+
   return driver({
     showProgress: true,
     steps: [
@@ -74,7 +93,7 @@ export function initTour() {
       },
     ],
     onDestroyed() {
-      alert("gg");
+      browser.storage.sync.set<SavedSyncData>({ tourSettings: null });
     },
   });
 }
