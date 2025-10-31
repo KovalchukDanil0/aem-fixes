@@ -31,4 +31,4 @@ export async function initPosthog(config: Partial<PostHogConfig>) {
   });
 }
 
-export default posthog;
+export { default } from "posthog-js/dist/module.no-external";

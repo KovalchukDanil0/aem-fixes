@@ -14,9 +14,9 @@ import ky from "ky";
 import { mount } from "svelte";
 
 const url =
-  window.location !== window.parent.location
-    ? window.parent.location.href
-    : window.location.href;
+  globalThis.location === globalThis.parent.location
+    ? globalThis.location.href
+    : globalThis.parent.location.href;
 
 const getRealPerfUrl = () =>
   document.querySelector<HTMLMetaElement>("head > meta[name='og:url']")
@@ -95,7 +95,7 @@ export default defineContentScript({
   allFrames: true,
   runAt: "document_end",
   async main() {
-    const inIframe = window.self !== window.top;
+    const inIframe = globalThis.self !== globalThis.top;
 
     if (inIframe) {
       onMessage("getRealUrl", getRealPerfUrl);

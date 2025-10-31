@@ -31,21 +31,25 @@ export const aemToolsMatch = [import.meta.env.VITE_AEM_TOOLS_MATCH];
 export const damTreeMatch = [import.meta.env.VITE_DAM_TREE_MATCH];
 export const findReplaceMatch = [import.meta.env.VITE_FIND_REPLACE_MATCH];
 
-export const regexWorkflow = RegExp(import.meta.env.VITE_REGEX_WORKFLOW);
-export const regexDAMTree = RegExp(import.meta.env.VITE_REGEX_DAM_TREE);
-export const regexLive = RegExp(import.meta.env.VITE_REGEX_LIVE);
-export const regexPerfProd = RegExp(import.meta.env.VITE_REGEX_PERF_PROD);
-export const regexAuthor = RegExp(import.meta.env.VITE_REGEX_AUTHOR);
-export const regexDetermineBeta = RegExp(
+export const regexWorkflow = new RegExp(import.meta.env.VITE_REGEX_WORKFLOW);
+export const regexDAMTree = new RegExp(import.meta.env.VITE_REGEX_DAM_TREE);
+export const regexLive = new RegExp(import.meta.env.VITE_REGEX_LIVE);
+export const regexPerfProd = new RegExp(import.meta.env.VITE_REGEX_PERF_PROD);
+export const regexAuthor = new RegExp(import.meta.env.VITE_REGEX_AUTHOR);
+export const regexDetermineBeta = new RegExp(
   import.meta.env.VITE_REGEX_DETERMINE_BETA,
 );
-export const regexFastAuthor = RegExp(import.meta.env.VITE_REGEX_FAST_AUTHOR);
-export const regexFixSiteWide = RegExp(
+export const regexFastAuthor = new RegExp(
+  import.meta.env.VITE_REGEX_FAST_AUTHOR,
+);
+export const regexFixSiteWide = new RegExp(
   import.meta.env.VITE_REGEX_FIX_SITE_WIDE,
 );
-export const regexWFTitle = RegExp(import.meta.env.VITE_REGEX_WF_TITLE);
-export const regexImagePicker = RegExp(import.meta.env.VITE_REGEX_IMAGE_PICKER);
-export const regexHTMLExist = RegExp(import.meta.env.VITE_REGEX_HTML_EXIST);
+export const regexWFTitle = new RegExp(import.meta.env.VITE_REGEX_WF_TITLE);
+export const regexImagePicker = new RegExp(
+  import.meta.env.VITE_REGEX_IMAGE_PICKER,
+);
+export const regexHTMLExist = new RegExp(import.meta.env.VITE_REGEX_HTML_EXIST);
 export const domain = import.meta.env.VITE_DOMAIN;
 export const pathToResolver = import.meta.env.VITE_PATH_TO_RESOLVER;
 export const pathToReferences = import.meta.env.VITE_PATH_TO_REFERENCES;

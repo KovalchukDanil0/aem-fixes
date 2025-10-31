@@ -4,10 +4,10 @@ export default defineContentScript({
   matches: damTreeMatch,
   runAt: "document_end",
   main() {
-    window.addEventListener(
+    globalThis.addEventListener(
       "hashchange",
       async function hasChange(): Promise<void> {
-        const url: string = window.location.href;
+        const url: string = globalThis.location.href;
 
         const matchDamTree = regexDAMTree.exec(url);
         if (!matchDamTree) {
@@ -17,7 +17,7 @@ export default defineContentScript({
         const [, linkPart, mavPart] = matchDamTree;
 
         if (mavPart === "mavs") {
-          window.open(`https://${fullAuthorPath}/editor.html${linkPart}`);
+          globalThis.open(`https://${fullAuthorPath}/editor.html${linkPart}`);
         }
       },
       false,

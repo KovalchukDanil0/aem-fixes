@@ -12,7 +12,7 @@ function addBetaToLink(link: HTMLAnchorElement) {
 function addWorkflowId() {
   const sectionSelector = ".page.section > .configSection > div a";
 
-  const getLinksInWF: NodeListOf<HTMLAnchorElement> =
+  const linksInWF: NodeListOf<HTMLAnchorElement> =
     document.querySelectorAll(sectionSelector);
 
   const workflowID = location.href.replace(/.+\/(.+)\.html.*$/, "$1");
@@ -25,7 +25,10 @@ function addWorkflowId() {
   }
 
   workflowTitleInput.value = workflowID;
-  getLinksInWF.forEach((link) => addBetaToLink(link));
+
+  for (const link of linksInWF) {
+    addBetaToLink(link);
+  }
 
   const requestButton = document.querySelector<HTMLButtonElement>(
     "#start-request-workflow",

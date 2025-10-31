@@ -14,14 +14,14 @@ import type { PostHog } from "posthog-js/dist/module.no-external";
 
 let posthog: PostHog | null = null;
 
-function toEnvironment(
+async function toEnvironment(
   activeTabs: Browser.tabs.Tab[],
   newTab: boolean,
   env: EnvTypes,
   url?: string,
 ) {
-  activeTabs.forEach(async ({ url: tabUrl, index, id }) => {
-    tabUrl = url ?? tabUrl;
+  for (const activeTab of activeTabs) {
+    const tabUrl = url ?? activeTab.url;
     if (!tabUrl) {
       throw new Error("url is undefined");
     }
@@ -37,14 +37,14 @@ function toEnvironment(
       },
     );
 
-    if (!newTab && id) {
-      browser.tabs.update(id, {
+    if (!newTab && activeTab.id) {
+      browser.tabs.update(activeTab.id, {
         url: newUrl,
       });
     } else {
-      browser.tabs.create({ index: index + 1, url: newUrl });
+      browser.tabs.create({ index: activeTab.index + 1, url: newUrl });
     }
-  });
+  }
 }
 
 const changeContentInTab = async function (
@@ -61,7 +61,7 @@ const changeContentInTab = async function (
   });
 
   const url = `${urlPattern}#${content}`;
-  if (patternTabs.length !== 0) {
+  if (patternTabs.length) {
     const tab = patternTabs[0];
 
     if (!tab.id) {
@@ -218,9 +218,9 @@ export default defineBackground({
     });
 
     browser.runtime.onInstalled.addListener(() => {
-      Object.entries(menus).forEach(([id, props]) =>
-        browser.contextMenus.create({ id, ...props }),
-      );
+      for (const [id, props] of Object.entries(menus)) {
+        browser.contextMenus.create({ id, ...props });
+      }
 
       const parentId = browser.contextMenus.create({
         title: "To Environment",
@@ -228,9 +228,9 @@ export default defineBackground({
         id: "toEnvironment",
       });
 
-      Object.entries(menusWithParent).forEach(([id, { title, contexts }]) =>
-        browser.contextMenus.create({ parentId, id, title, contexts }),
-      );
+      for (const [id, { title, contexts }] of Object.entries(menusWithParent)) {
+        browser.contextMenus.create({ parentId, id, title, contexts });
+      }
     });
 
     browser.contextMenus.onClicked.addListener(

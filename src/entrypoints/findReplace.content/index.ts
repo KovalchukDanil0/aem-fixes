@@ -28,7 +28,7 @@ async function fixOldLinks() {
   const oldLinks: NodeListOf<HTMLElement> = findReplaceBody.querySelectorAll(
     "div > div > div > div > div > span",
   );
-  oldLinks.forEach((link) => {
+  for (const link of oldLinks) {
     const url = link.textContent;
     if (!url) {
       throw new Error("link is null");
@@ -36,7 +36,7 @@ async function fixOldLinks() {
 
     link.textContent = null;
     mount(FindReplaceLink, { target: link, props: { url } });
-  });
+  }
 }
 
 export default defineContentScript({

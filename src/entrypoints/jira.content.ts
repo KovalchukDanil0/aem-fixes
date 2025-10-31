@@ -137,9 +137,8 @@ function textToWFPath(
 }
 
 function ticketNumber(ticketNumElm: HTMLElement): string {
-  const ticketNum: string | undefined = ticketNumElm
-    .getAttribute("data-issue-key")
-    ?.match(/ESM-\w+/gm)?.[0];
+  const ticketNum: string | undefined =
+    ticketNumElm.dataset.issueKey?.match(/ESM-\w+/gm)?.[0];
 
   const labels: NodeListOf<HTMLSpanElement> = document.querySelectorAll(
     "#wrap-labels > div > ul > li > a > span",
@@ -190,7 +189,7 @@ function aemToolsCreateWF() {
     return;
   }
 
-  window.open(`https://${fullAuthorPath}/${workflowPath}/${WFPath}`);
+  globalThis.open(`https://${fullAuthorPath}/${workflowPath}/${WFPath}`);
 }
 
 function fixSorting() {

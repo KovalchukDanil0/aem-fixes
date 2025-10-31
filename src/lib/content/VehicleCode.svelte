@@ -8,7 +8,7 @@
   const { code, ...restProps }: Props = $props();
 </script>
 
-<a {...restProps} class="carCodeElm" href="?vehicleCode={code}">
+<a {...restProps} class="carCodeElm" href="?{code}">
   {code}
 </a>
 

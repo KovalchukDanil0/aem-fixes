@@ -7,7 +7,7 @@
     const links = document.querySelectorAll<HTMLAnchorElement>(
       "body > div.wrapper-conf div.configSubSection div.page.section div.configValue > a",
     );
-    links.forEach(({ href }) => window.open(href));
+    links.forEach(({ href }) => globalThis.open(href));
   }
 </script>
 

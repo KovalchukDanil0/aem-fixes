@@ -156,13 +156,11 @@ async function vehicleCodeInit() {
 
   const wizardConfig = await waitForElm("span.configuration", wizardWindowElm);
 
-  const config = `${wizardConfig.getAttribute(
-    "data-nameplate-service",
-  )}/${wizardConfig.getAttribute(
-    "data-campaign-code",
-  )}/${wizardConfig.getAttribute("data-site-id")}/${wizardConfig.getAttribute(
-    "data-event-type",
-  )}?locale=${wizardConfig.getAttribute("data-culture-code")}`;
+  const config = `${wizardConfig.dataset.nameplateService}/${
+    wizardConfig.dataset.campaignCode
+  }/${wizardConfig.dataset.siteId}/${wizardConfig.dataset.eventType}?locale=${
+    wizardConfig.dataset.cultureCode
+  }`;
 
   const cookieValue = await sendMessage("getCookie", undefined);
 
@@ -202,8 +200,11 @@ function findVehicleCode(
   const allCars = wizardVehicleSelector?.querySelectorAll(
     "div.vehicle-list > figure > div > figcaption > a:not(#carCode)",
   );
+  if (!allCars) {
+    return;
+  }
 
-  allCars?.forEach((carElm) => {
+  for (const carElm of allCars) {
     const carName = carElm.textContent?.trim();
 
     const carObj = getCarByName(vehicleConfig.data[idx].eventItem, carName);
@@ -214,11 +215,11 @@ function findVehicleCode(
       let modelCode = carObj.wersCode;
       let versionCode: string;
 
-      if (!modelCode) {
+      if (modelCode) {
+        versionCode = carObj.wersDerivCode;
+      } else {
         modelCode = carObj.modelCode;
         versionCode = carObj.derivativeCode;
-      } else {
-        versionCode = carObj.wersDerivCode;
       }
 
       let fullCode = modelCode;
@@ -231,7 +232,7 @@ function findVehicleCode(
         props: { code: fullCode },
       });
     }
-  });
+  }
 }
 
 async function findShowroomCode() {
@@ -239,7 +240,9 @@ async function findShowroomCode() {
     return;
   }
 
-  const showroomElm = document.querySelector("#acc-showroom > span");
+  const showroomElm = document.querySelector<HTMLElement>(
+    "#acc-showroom > span",
+  );
   if (!showroomElm) {
     await sendMessage("showMessage", {
       text: "Please make sure you are on showroom page",
@@ -249,7 +252,7 @@ async function findShowroomCode() {
     return;
   }
 
-  const config = showroomElm.getAttribute("data-bsl-url");
+  const config = showroomElm.dataset.bslUrl;
   if (!config) {
     throw new Error("showroom config `data-bsl-url` is null");
   }
@@ -295,7 +298,7 @@ const getNextGenCarByName = (
 
 async function nextGenCodes() {
   const element = await waitForElm(".host-container.tdb-root");
-  const dataJson = element.getAttribute("data-json-path");
+  const dataJson = element.dataset.jsonPath;
   if (!dataJson) {
     throw new Error("data is undefined, cannot get data-json-path attribute");
   }
@@ -326,7 +329,7 @@ async function nextGenCodes() {
     ".vehicle-card-container",
   );
 
-  carEntries?.forEach((car) => {
+  for (const car of carEntries) {
     const carName = car.querySelector("div.card-details > h3");
 
     if (!carName?.textContent) {
@@ -338,13 +341,16 @@ async function nextGenCodes() {
       carName.textContent,
     );
 
-    const fullCode = `?vehicleCode=${vehicleCode}&nameplateId=${NamePlateID}`;
+    const fullCode = new URLSearchParams({
+      vehicleCode,
+      nameplateId: NamePlateID,
+    });
 
     mount(VehicleCode, {
       target: car,
-      props: { code: fullCode },
+      props: { code: fullCode.toString() },
     });
-  });
+  }
 }
 
 const determineEnvironment = (): EnvTypes | undefined => {

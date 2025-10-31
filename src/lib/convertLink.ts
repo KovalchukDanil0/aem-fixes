@@ -131,7 +131,7 @@ async function getPerfRealUrl(url: string): Promise<string> {
 
   if (!regexAuthor.test(url)) {
     const regexDeleteEnv = /\/(?:editor\.html|cf#)/gm;
-    const toEnvUrl = url.replace(regexDeleteEnv, "");
+    const toEnvUrl = url.replaceAll(regexDeleteEnv, "");
 
     const htmlResponse = await ky
       .get(toEnvUrl, {
@@ -181,8 +181,8 @@ async function determineEnv(
         matchFastAuthor;
 
       newUrl = `${linkDomain}${
-        authorPart !== "author" ? "author" : ""
-      }${authorEnv}${env}/${linkContent}${htmlPart !== "html" ? ".html" : ""}`;
+        authorPart === "author" ? "" : "author"
+      }${authorEnv}${env}/${linkContent}${htmlPart === "html" ? "" : ".html"}`;
 
       return newUrl;
     }
@@ -192,13 +192,13 @@ async function determineEnv(
 
   switch (env) {
     case "live":
-      newUrl = makeLive(market, localLanguage, urlPart);
+      newUrl = makeLive(market, urlPart, localLanguage);
       break;
     case "perf":
-      newUrl = makePerfProd(true, market, localLanguage, urlPart, beta);
+      newUrl = makePerfProd(true, market, urlPart, beta, localLanguage);
       break;
     case "prod":
-      newUrl = makePerfProd(false, market, localLanguage, urlPart, beta);
+      newUrl = makePerfProd(false, market, urlPart, beta, localLanguage);
       break;
     case "editor.html":
       newUrl = await makeAuthor(true, market, beta, urlPart, localLanguage);
@@ -213,7 +213,7 @@ async function determineEnv(
   return newUrl;
 }
 
-function makeLive(market: string, localLanguage: string, urlPart: string) {
+function makeLive(market: string, urlPart: string, localLanguage?: string) {
   let britain = "";
   if (market === "uk") {
     britain = "uk";
@@ -225,15 +225,15 @@ function makeLive(market: string, localLanguage: string, urlPart: string) {
     localLanguage += ".";
   }
 
-  return `https://www.${localLanguage}${topLevelDomain}.${market}${britain}${urlPart}`;
+  return `https://www.${localLanguage ?? ""}${topLevelDomain}.${market}${britain}${urlPart}`;
 }
 
 function makePerfProd(
   isPerf: boolean,
   market: string,
-  localLanguage: string,
   urlPart: string,
   beta: boolean,
+  localLanguage?: string,
 ) {
   if (market === "uk" || market === "gb") {
     market = "co";
@@ -242,7 +242,7 @@ function makePerfProd(
 
   const domainPerfProd = isPerf ? domainPerf : domainProd;
 
-  return `https://${domainPerfProd}${betaString(beta)}-${market}${localLanguage}.${domain}.${topLevelDomain}.com${urlPart}`;
+  return `https://${domainPerfProd}${betaString(beta)}-${market}${localLanguage ?? ""}.${domain}.${topLevelDomain}.com${urlPart}`;
 }
 
 async function makeAuthor(

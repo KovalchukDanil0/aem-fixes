@@ -47,8 +47,6 @@
     if (!environment) {
       return;
     }
-
-    initTour().drive();
   });
 
   onMount(async () => {
@@ -56,6 +54,9 @@
       capture_pageview: false,
       autocapture: true,
     });
+
+    const tour = await initTour();
+    tour?.drive();
   });
 
   browser.tabs.onUpdated.addListener(async (updatedTabId, changeInfo) => {
