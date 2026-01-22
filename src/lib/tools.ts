@@ -3,13 +3,17 @@ export function waitForElm<T extends HTMLElement>(
   parent: Element = document.body,
 ): Promise<T> {
   return new Promise((resolve) => {
-    if (parent.querySelector(selector)) {
-      return resolve(parent.querySelector(selector) as T);
+    const result = parent.querySelector<T>(selector);
+    if (result) {
+      resolve(result);
+      return;
     }
 
     const observer = new MutationObserver(() => {
-      if (parent.querySelector(selector)) {
-        resolve(parent.querySelector(selector) as T);
+      const result = parent.querySelector<T>(selector);
+      if (result) {
+        resolve(result);
+
         observer.disconnect();
       }
     });

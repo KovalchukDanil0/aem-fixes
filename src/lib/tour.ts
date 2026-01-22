@@ -93,7 +93,7 @@ export async function initTour() {
       },
     ],
     onDestroyed() {
-      browser.storage.sync.set<SavedSyncData>({ tourSettings: null });
+      await browser.storage.sync.set<SavedSyncData>({ tourSettings: null });
     },
   });
 }

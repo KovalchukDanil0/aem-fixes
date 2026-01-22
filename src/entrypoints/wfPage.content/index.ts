@@ -6,7 +6,7 @@ import { mount } from "svelte";
 import "./style.scss";
 
 function addBetaToLink(link: HTMLAnchorElement) {
-  link.href = link.href.replace(regexDetermineBeta, `$1/${"editor.html"}$2`);
+  link.href = link.href.replace(regexDetermineBeta, `$1/editor.html$2`);
 }
 
 function addWorkflowId() {
@@ -99,10 +99,10 @@ export default defineContentScript({
   matches: wfPageMatch,
   runAt: "document_end",
   allFrames: true,
-  main() {
+  async main() {
     addWorkflowId();
     usefulLinks();
     openAllPagesButton();
-    checkNodes();
+    await checkNodes();
   },
 });

@@ -47,11 +47,11 @@ function createWFButton() {
   });
 }
 
-function selectorTextNoSpaces(selector: string): string | undefined {
-  return document.querySelector(selector)?.textContent?.trim();
+function selectorTextNoSpaces(selector: string) {
+  return document.querySelector(selector)?.textContent.trim();
 }
 
-function belgium(localLanguage: string, title: string): string | undefined {
+function belgium(localLanguage: string, title: string) {
   let fullPath: string | undefined = "BE";
 
   switch (localLanguage) {
@@ -69,7 +69,7 @@ function belgium(localLanguage: string, title: string): string | undefined {
   return fullPath;
 }
 
-function switzerland(localLanguage: string, title: string): string | undefined {
+function switzerland(localLanguage: string, title: string) {
   let fullPath: string | undefined = "CH";
 
   switch (localLanguage) {
@@ -90,13 +90,16 @@ function switzerland(localLanguage: string, title: string): string | undefined {
   return fullPath;
 }
 
-function wfPathFromTitle(title: string): string | undefined {
+function wfPathFromTitle(title: string) {
   const matchWFTitle = regexWFTitle.exec(title);
   if (!matchWFTitle) {
     throw new Error("Regex not matched WF Title");
   }
 
   const [, market, localLanguage] = matchWFTitle;
+  if (!market) {
+    return;
+  }
 
   const pathFromTitle = localLanguage
     ? `${market}/${market}${localLanguage}`
@@ -113,14 +116,9 @@ function wfPathFromTitle(title: string): string | undefined {
   return wfPath;
 }
 
-const getMarketWFPath = (market: string): string | undefined =>
-  marketMap[market];
+const getMarketWFPath = (market: string) => marketMap[market];
 
-function textToWFPath(
-  market: string,
-  localLanguage: string,
-  title: string,
-): string | undefined {
+function textToWFPath(market: string, localLanguage: string, title: string) {
   if (market === secretWord("Belgium")) {
     return belgium(localLanguage, title);
   }
@@ -136,16 +134,18 @@ function textToWFPath(
   return wfPathFromTitle(title);
 }
 
-function ticketNumber(ticketNumElm: HTMLElement): string {
-  const ticketNum: string | undefined =
-    ticketNumElm.dataset.issueKey?.match(/ESM-\w+/gm)?.[0];
+function ticketNumber(ticketNumElm: HTMLElement) {
+  const ticketNum = ticketNumElm.dataset.issueKey?.match(/ESM-\w+/gm)?.[0];
+  if (!ticketNum) {
+    return;
+  }
 
   const labels: NodeListOf<HTMLSpanElement> = document.querySelectorAll(
     "#wrap-labels > div > ul > li > a > span",
   );
 
   const embargo = Array.from(labels).some(({ textContent: labelText }) =>
-    labelText?.includes("embargo"),
+    labelText.includes("embargo"),
   )
     ? "-EMBARGO"
     : "";
@@ -154,12 +154,12 @@ function ticketNumber(ticketNumElm: HTMLElement): string {
     "#opsbar-transitions_more > span",
   );
 
-  const fix = ticketStatus?.textContent?.includes("deployment") ? "-FIX" : "";
+  const fix = ticketStatus?.textContent.includes("deployment") ? "-FIX" : "";
 
   return ticketNum + embargo + fix;
 }
 
-function aemToolsCreateWF() {
+async function aemToolsCreateWF() {
   const ticketNumElm = document.querySelector<HTMLElement>(
     "#parent_issue_summary",
   );
@@ -175,11 +175,11 @@ function aemToolsCreateWF() {
 
   if (!ticketMarket || !ticketLocalLanguage || !wfTitle) {
     throw new Error(
-      `ticketMarket = ${ticketMarket} or ticketLocalLanguage = ${ticketLocalLanguage} or WFTitle = ${wfTitle} is undefined`,
+      `ticketMarket or ticketLocalLanguage or WFTitle is undefined`,
     );
   }
 
-  browser.storage.local.set<SavedLocalData>({
+  await browser.storage.local.set<SavedLocalData>({
     wfName: ticketNumber(ticketNumElm),
     wfTitle,
   });

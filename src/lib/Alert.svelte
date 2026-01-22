@@ -14,14 +14,14 @@
     green: "bg-green-700",
     red: "bg-red-700",
   };
-  const variantClass = variant ? variantList[variant] : null;
+  const variantClass = () => (variant ? variantList[variant] : null);
 </script>
 
 <div
   {...restProps}
   class={twMerge(
     "w-2/3 rounded-xl p-3 text-center text-lg text-white",
-    variantClass,
+    variantClass(),
     className?.toString(),
   )}
 >

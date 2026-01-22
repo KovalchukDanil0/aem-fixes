@@ -11,7 +11,7 @@
   {#if pages.length !== 0}
     {#each pages.toSorted( ({ path }, { path: pathToCompare }) => path.localeCompare(pathToCompare), ) as { path }}
       {@const href =
-        path.replace(regexDetermineBeta, `$1/${"editor.html"}$2`) + ".html"}
+        path.replace(regexDetermineBeta, `$1/editor.html$2`) + ".html"}
 
       <a {href} target="_blank" rel="noreferrer">{path}</a>
     {/each}

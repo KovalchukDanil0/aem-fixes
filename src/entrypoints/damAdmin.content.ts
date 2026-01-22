@@ -6,7 +6,7 @@ export default defineContentScript({
   main() {
     globalThis.addEventListener(
       "hashchange",
-      async function hasChange(): Promise<void> {
+      function hasChange() {
         const url: string = globalThis.location.href;
 
         const matchDamTree = regexDAMTree.exec(url);
@@ -16,7 +16,7 @@ export default defineContentScript({
 
         const [, linkPart, mavPart] = matchDamTree;
 
-        if (mavPart === "mavs") {
+        if (mavPart === "mavs" && linkPart) {
           globalThis.open(`https://${fullAuthorPath}/editor.html${linkPart}`);
         }
       },

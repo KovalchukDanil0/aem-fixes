@@ -10,16 +10,14 @@
 
   const regexRemoveCommas = /.+(ESM-\d\d\d\d\d\d?).+/;
 
-  const blockingTicketReplaced = blockingTicket.replace(
-    regexRemoveCommas,
-    "$1",
-  );
+  const blockingTicketReplaced = () =>
+    blockingTicket.replace(regexRemoveCommas, "$1");
 </script>
 
 <a
   {...restProps}
   class="showTicket"
-  href="https://{jiraFullPath}{blockingTicketReplaced}#view-subtasks"
+  href="https://{jiraFullPath}{blockingTicketReplaced()}#view-subtasks"
   target="_blank"
   rel="noreferrer"
 >

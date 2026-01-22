@@ -34,7 +34,7 @@
   let marketFixed = fixMarket(market);
 
   // ?? will prevent undefined appear in string
-  let localLanguage = (localLanguageLeft ?? localLanguageRight).toLowerCase();
+  let localLanguage = (localLanguageLeft ?? localLanguageRight)?.toLowerCase();
 
   const wrongMarkets = ["da", "cs", "el"];
   const ifWrongMarket = !!wrongMarkets.some(

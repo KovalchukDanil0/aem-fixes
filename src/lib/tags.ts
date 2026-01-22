@@ -59,16 +59,16 @@ export function getPageTag(dom: Document) {
     dom.children as Element[],
   );
   if (!analyticsPropertiesElm) {
-    return {};
+    return;
   }
 
   const [jsonData] =
-    /{.+}/.exec((analyticsPropertiesElm.children[0] as Text).data) ?? [];
+    /{.+}/.exec((analyticsPropertiesElm.firstChild as Text).data) ?? [];
   if (!jsonData) {
-    return {};
+    return;
   }
 
-  return JSON.parse(jsonData) as Partial<AnalyticsJson>;
+  return JSON.parse(jsonData) as AnalyticsJson;
 }
 
 export async function determinePageTag(url?: string) {
@@ -83,14 +83,14 @@ export async function determinePageTag(url?: string) {
   const html = await ky.get<string>(url).text();
   const dom = parseDocument(html);
 
-  const { "page.pageName": pageName } = getPageTag(dom);
+  const { "page.pageName": pageName } = getPageTag(dom) ?? {};
   if (!pageName) {
     return;
   }
 
   const pageTag = pageName.toLowerCase().trim();
 
-  return Object.entries(tagsTable).find(([_, value]) => {
+  return Object.entries(tagsTable).find(([, value]) => {
     if (Array.isArray(value)) {
       return value.some((v) => pageTag === v);
     }

@@ -12,7 +12,6 @@
   const savedSyncDataInit = await browser.storage.sync.get<SavedSyncData>({
     disCreateWf: false,
     disMothersiteCheck: false,
-    enableAutoLogin: false,
     enableFilterFix: false,
     enableFunErr: false,
   });
@@ -21,12 +20,13 @@
     .filter(([_, val]) => typeof val === "boolean")
     .map((data) => data as [string, boolean]);
 
-  const settingNames = {
+  const settingNames: Record<keyof SavedSyncData, string> = {
     disCreateWf: "Disable Create WF Button",
     disMothersiteCheck: "Disable Mothersite Check",
-    enableAutoLogin: "Enable Auto Login",
     enableFilterFix: "Enable Filter Fix in Jira",
     enableFunErr: "Enable Funny Errors",
+    posthog_distinct_id: "",
+    tourSettings: "",
   };
 
   function saveSyncData(data: string, value: boolean) {

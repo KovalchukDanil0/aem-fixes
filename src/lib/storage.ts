@@ -9,7 +9,6 @@ export interface TourProps {
 interface SyncData {
   disCreateWf: boolean;
   disMothersiteCheck: boolean;
-  enableAutoLogin: boolean;
   enableFilterFix: boolean;
   enableFunErr: boolean;
   posthog_distinct_id: string;
@@ -32,7 +31,7 @@ export const damTreeMatch = [import.meta.env.VITE_DAM_TREE_MATCH];
 export const findReplaceMatch = [import.meta.env.VITE_FIND_REPLACE_MATCH];
 
 export const regexWorkflow = new RegExp(import.meta.env.VITE_REGEX_WORKFLOW);
-export const regexDAMTree = new RegExp(import.meta.env.VITE_REGEX_DAM_TREE);
+export const regexDAMTree = new RegExp(import.meta.env.VITE_REGEX_DAM_TREE_URL);
 export const regexLive = new RegExp(import.meta.env.VITE_REGEX_LIVE);
 export const regexPerfProd = new RegExp(import.meta.env.VITE_REGEX_PERF_PROD);
 export const regexAuthor = new RegExp(import.meta.env.VITE_REGEX_AUTHOR);
@@ -81,5 +80,4 @@ export const loadSavedData = async () =>
     disMothersiteCheck: false,
     enableFunErr: false,
     enableFilterFix: false,
-    enableAutoLogin: false,
   });

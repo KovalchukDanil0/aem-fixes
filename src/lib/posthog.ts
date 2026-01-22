@@ -4,6 +4,8 @@ import posthog, {
 import { v7 as uuidv7 } from "uuid";
 import type { SavedSyncData } from "./storage";
 
+export const analyticEvents = ["guide_link_clicked"];
+
 async function getSharedDistinctId() {
   const { posthog_distinct_id } =
     await browser.storage.local.get<SavedSyncData>("posthog_distinct_id");

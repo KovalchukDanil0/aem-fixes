@@ -10,24 +10,21 @@
   import { Icon } from "svelte-icons-pack";
   import { FaBrandsGithub, FaSolidWrench } from "svelte-icons-pack/fa";
 
-  const [{ url, index: tabIndex, id: tabId, status }] =
-    await browser.tabs.query({
-      active: true,
-      currentWindow: true,
-    });
+  const [tab] = await browser.tabs.query({
+    active: true,
+    currentWindow: true,
+  });
 
   let pageLoaded = $state(false);
-  let environment = $state<EnvTypes | null>(null);
+  let environment = $state<EnvTypes | null>();
 
-  if (status === "complete" && tabId) {
+  if (tab?.status === "complete" && tab?.id) {
     pageLoaded = true;
-    await fetchEnvironment(tabId);
+    await fetchEnvironment(tab.id);
   }
 
   async function fetchEnvironment(tabId: number) {
-    environment = await sendMessage("getEnvironment", {}, tabId).catch(
-      () => null,
-    );
+    environment = await sendMessage("getEnvironment", {}, tabId);
   }
 </script>
 
@@ -60,7 +57,7 @@
   });
 
   browser.tabs.onUpdated.addListener(async (updatedTabId, changeInfo) => {
-    if (updatedTabId !== tabId) {
+    if (updatedTabId !== tab?.id) {
       return;
     }
 
@@ -80,11 +77,11 @@
   });
 
   function copyContent() {
-    if (!url) {
+    if (!tab?.url) {
       return;
     }
 
-    const [content] = regexCopyContent.exec(url) ?? [];
+    const [content] = regexCopyContent.exec(tab.url) ?? [];
     if (!content) {
       throw new Error(`copied content is ${content}`);
     }
@@ -94,14 +91,17 @@
   }
 
   function openPropertiesTouchUI() {
-    const newUrl = url?.replace(
+    const newUrl = tab?.url?.replace(
       regexAuthor,
       `https://${fullAuthorPath}/${propertiesPath}`,
     );
 
+    if (!tab?.index) {
+      return;
+    }
     browser.tabs.create({
       url: newUrl,
-      index: tabIndex + 1,
+      index: tab.index + 1,
     });
   }
 </script>
@@ -262,8 +262,8 @@
         >{alertBanner.text}</Alert
       >
     {/if}
-  {:else if url}
-    <h2>{new URL(url).host}<br />Not Allowed</h2>
+  {:else if tab?.url}
+    <h2>{new URL(tab.url).host}<br />Not Allowed</h2>
     <div class="flex flex-col gap-3">
       <p>I think it's</p>
       <div class="flex flex-row gap-3">

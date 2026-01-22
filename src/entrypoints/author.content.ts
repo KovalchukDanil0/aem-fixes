@@ -18,9 +18,19 @@ const url =
     ? globalThis.location.href
     : globalThis.parent.location.href;
 
-const getRealPerfUrl = () =>
-  document.querySelector<HTMLMetaElement>("head > meta[name='og:url']")
-    ?.content;
+function getRealPerfUrl() {
+  let alias = document.querySelector<HTMLMetaElement>(
+    "head > meta[name='og:url']",
+  )?.content;
+  if (!alias) {
+    const realAuthorLink = document.querySelector<HTMLLinkElement>(
+      "head > link[rel='canonical']",
+    )?.href;
+    alias = `https://${fullAuthorPath}${realAuthorLink}`;
+  }
+
+  return alias;
+}
 
 function catErrors() {
   let textContent = document.querySelector(
@@ -75,10 +85,7 @@ async function checkReferences() {
         Accept: "application/json",
       },
     })
-    .json<ReferencesConfig>()
-    .catch(({ message }: Error) => {
-      throw new Error(`cannot reach ref config page - ${message}`);
-    });
+    .json<ReferencesConfig>();
 
   const container = document.body.insertBefore(
     document.createElement("span"),
@@ -96,15 +103,12 @@ export default defineContentScript({
   runAt: "document_end",
   async main() {
     const inIframe = globalThis.self !== globalThis.top;
-
     if (inIframe) {
       onMessage("getRealUrl", getRealPerfUrl);
 
       onMessage("getEnvironment", () => (isTouch(url) ? "editor.html" : "cf#"));
       onMessage("checkReferences", checkReferences);
-    }
-
-    if (!inIframe) {
+    } else {
       return;
     }
 
@@ -114,6 +118,6 @@ export default defineContentScript({
       catErrors();
     }
 
-    ticketFinder();
+    await ticketFinder();
   },
 });

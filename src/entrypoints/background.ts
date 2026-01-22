@@ -27,13 +27,15 @@ async function toEnvironment(
     }
 
     const newUrl = await convertLink(env, new URL(tabUrl)).catch(
-      async (error: Error) => {
-        await sendMessage("showMessage", {
-          color: "error",
-          text: `ERROR - ${error.message}`,
-        });
+      async (error: unknown) => {
+        if (error instanceof Error) {
+          await sendMessage("showMessage", {
+            color: "error",
+            text: `ERROR - ${error.message}`,
+          });
 
-        throw new Error(error.message);
+          throw new Error(error.message);
+        }
       },
     );
 
@@ -48,8 +50,8 @@ async function toEnvironment(
 }
 
 const changeContentInTab = async function (
-  content: string | undefined,
   urlPattern: string,
+  content?: string,
 ) {
   if (!content) {
     throw new Error("Tab content is undefined");
@@ -64,11 +66,11 @@ const changeContentInTab = async function (
   if (patternTabs.length) {
     const tab = patternTabs[0];
 
-    if (!tab.id) {
+    if (!tab) {
       return;
     }
 
-    browser.tabs.update(tab.id, {
+    await browser.tabs.update(tab.id, {
       highlighted: true,
       url,
     });
@@ -77,13 +79,16 @@ const changeContentInTab = async function (
       active: true,
       currentWindow: true,
     });
-    browser.tabs.create({ index: tab.index + 1, url });
+    if (!tab?.index) {
+      return;
+    }
+    await browser.tabs.create({ index: tab.index + 1, url });
   }
 };
 
-const openInTree = function (authorUrl?: string) {
+const openInTree = async function (authorUrl?: string) {
   authorUrl = authorUrl?.replace(regexAuthor, "$3");
-  changeContentInTab(authorUrl, `https://${fullAuthorPath}/siteadmin`);
+  await changeContentInTab(`https://${fullAuthorPath}/siteadmin`, authorUrl);
 };
 
 const menus: Record<
@@ -133,26 +138,23 @@ const menusWithParent: Record<
 
 type CommandEnvs = "toLive" | "toPerf" | "toProd" | "toAuthor";
 
-function handleOpenInDAM(srcUrl: string | undefined) {
+async function handleOpenInDAM(srcUrl?: string) {
   const imagePath = srcUrl?.replace(regexImagePicker, "$1");
-  changeContentInTab(imagePath, `https://${fullAuthorPath}/damadmin`);
+  await changeContentInTab(`https://${fullAuthorPath}/damadmin`, imagePath);
 }
 
-function handleOpenInAEM(
-  selectionText: string | undefined,
-  linkUrl: string | undefined,
-) {
+async function handleOpenInAEM(selectionText?: string, linkUrl?: string) {
   const newLinkUrl = selectionText
     ? `https://${fullAuthorPath}${selectionText}.html`
     : linkUrl;
-  openInTree(newLinkUrl);
+  await openInTree(newLinkUrl);
 }
 
-function handleOpenInTouchUI(
-  selectionText: string | undefined,
+async function handleOpenInTouchUI(
   patternTab: Browser.tabs.Tab,
+  selectionText?: string,
 ) {
-  let content: string | undefined = selectionText;
+  let content = selectionText;
   if (!content) {
     throw new Error("openInTouchUI content is undefined");
   }
@@ -162,38 +164,60 @@ function handleOpenInTouchUI(
   }
 
   const newUrl = `https://${fullAuthorPath}/editor.html${content}`;
-  browser.tabs.create({
+  await browser.tabs.create({
     url: newUrl,
     index: patternTab.index + 1,
   });
 }
 
-function handleToEnvironment(
+async function handleToEnvironment(
   patternTab: Browser.tabs.Tab,
-  linkUrl: string | undefined,
   env: EnvTypes,
+  linkUrl?: string,
 ) {
-  toEnvironment([patternTab], true, env, linkUrl);
+  await toEnvironment([patternTab], true, env, linkUrl);
+}
+
+async function checkTag(url?: string, tabId?: number) {
+  if (!url || !tabId) {
+    return;
+  }
+
+  const pageTag = await determinePageTag(url);
+  if (!pageTag) {
+    return;
+  }
+
+  await sendMessage(
+    "getUrlPageTag",
+    {
+      pageTag,
+    },
+    tabId,
+  );
 }
 
 export default defineBackground({
   type: "module",
   main() {
-    onMessage("toEnvironment", ({ data: { tabs: msgTabs, env, newTab } }) => {
-      if (!env) {
-        return;
-      }
+    onMessage(
+      "toEnvironment",
+      async ({ data: { tabs: msgTabs, env, newTab } }) => {
+        if (!env) {
+          return;
+        }
 
-      toEnvironment(msgTabs, newTab, env);
-    });
+        await toEnvironment(msgTabs, newTab, env);
+      },
+    );
 
-    onMessage("openInTree", ({ data: { tabs: msgTabs, url } }) => {
+    onMessage("openInTree", async ({ data: { tabs: msgTabs, url } }) => {
       const urlToOpen = url ?? msgTabs?.at(-1)?.url;
-      openInTree(urlToOpen);
+      await openInTree(urlToOpen);
     });
 
     onMessage("getCookie", async ({ sender }) => {
-      const senderTabUrl = sender.tab.url;
+      const senderTabUrl: string | undefined = sender.tab.url;
       if (!senderTabUrl) {
         return;
       }
@@ -206,13 +230,13 @@ export default defineBackground({
     });
 
     onMessage("injectMothersiteCss", async ({ sender }) => {
-      const tabId = sender.tab.id;
+      const tabId: number | undefined = sender.tab.id;
       if (!tabId) {
         return;
       }
 
-      browser.scripting.insertCSS({
-        target: { tabId: sender.tab.id },
+      await browser.scripting.insertCSS({
+        target: { tabId },
         files: [livePerfUrl],
       });
     });
@@ -251,67 +275,55 @@ export default defineBackground({
 
         switch (menuItemId) {
           case "openInDAM":
-            handleOpenInDAM(srcUrl);
+            await handleOpenInDAM(srcUrl);
             break;
           case "openInAEM":
-            handleOpenInAEM(selectionText, linkUrl);
+            await handleOpenInAEM(selectionText, linkUrl);
             break;
           case "openInTouchUI":
-            handleOpenInTouchUI(selectionText, patternTab);
+            await handleOpenInTouchUI(patternTab, selectionText);
             break;
           case "toLive":
-            handleToEnvironment(patternTab, linkUrl, "live");
+            await handleToEnvironment(patternTab, "live", linkUrl);
             break;
           case "toPerf":
-            handleToEnvironment(patternTab, linkUrl, "perf");
+            await handleToEnvironment(patternTab, "perf", linkUrl);
             break;
           case "toProd":
-            handleToEnvironment(patternTab, linkUrl, "prod");
+            await handleToEnvironment(patternTab, "prod", linkUrl);
             break;
           case "toTouch":
-            handleToEnvironment(patternTab, linkUrl, "editor.html");
+            await handleToEnvironment(patternTab, "editor.html", linkUrl);
             break;
           case "toClassic":
-            handleToEnvironment(patternTab, linkUrl, "cf#");
+            await handleToEnvironment(patternTab, "cf#", linkUrl);
             break;
-          case "checkTag": {
-            const pageTag = await determinePageTag(linkUrl);
-            if (!pageTag) {
-              return;
-            }
-
-            sendMessage(
-              "getUrlPageTag",
-              {
-                pageTag,
-              },
-              patternTab.id,
-            );
+          case "checkTag":
+            await checkTag(linkUrl, patternTab.id);
             break;
-          }
           default:
             break;
         }
       },
     );
 
-    browser.commands.onCommand.addListener((command: string, tab) => {
+    browser.commands.onCommand.addListener(async (command: string, tab) => {
       if (!tab) {
         return;
       }
 
       switch (command as CommandEnvs) {
         case "toLive":
-          toEnvironment([tab], false, "live");
+          await toEnvironment([tab], false, "live");
           break;
         case "toPerf":
-          toEnvironment([tab], false, "perf");
+          await toEnvironment([tab], false, "perf");
           break;
         case "toProd":
-          toEnvironment([tab], false, "prod");
+          await toEnvironment([tab], false, "prod");
           break;
         case "toAuthor":
-          toEnvironment([tab], false, "editor.html");
+          await toEnvironment([tab], false, "editor.html");
           break;
         default:
           throw new Error(`command was not found ${command}`);

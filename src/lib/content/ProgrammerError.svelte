@@ -8,12 +8,13 @@
 
   const { githubPath, memesData, ...restProps }: Props = $props();
 
-  const generateRandom = (maxLimit: number): number =>
+  const generateRandom = (maxLimit: number) =>
     Math.floor(Math.random() * maxLimit);
 
-  const { length } = Object.keys(memesData);
+  const memesLength = () => Object.keys(memesData).length;
 
-  const { path: memeImage } = memesData[generateRandom(length - 1)];
+  const memeImage = () =>
+    memesData[generateRandom(memesLength() - 1)] ?? { path: "" };
 
   const alt = "Programmer Meme";
 </script>
@@ -21,7 +22,7 @@
 <img
   {...restProps}
   {alt}
-  src={githubPath + memeImage}
+  src={githubPath + memeImage().path}
   draggable="false"
   title={alt}
   class="completed"

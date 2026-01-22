@@ -21,8 +21,7 @@
     | "blue";
 
   interface Props
-    extends Omit<HTMLButtonAttributes, "id">,
-      Partial<PostHogProps> {
+    extends Omit<HTMLButtonAttributes, "id">, Partial<PostHogProps> {
     variant: VariantType;
     btnSubject?: keyof ProtocolMap;
     btnSendAs?: "tab" | "runtime";
@@ -41,7 +40,7 @@
     ...restProps
   }: Props = $props();
 
-  const id = btnEnv ? btnSubject + pascalCase(btnEnv) : btnSubject;
+  const id = () => (btnEnv ? btnSubject + pascalCase(btnEnv) : btnSubject);
 
   const variantList: Record<VariantType, string> = {
     red: "bg-red-600 shadow-red-600/50",
@@ -57,7 +56,7 @@
     indigo: "bg-indigo-600 shadow-indigo-600/50",
     blue: "bg-blue-600 shadow-blue-600/50",
   };
-  const variantClass = variantList[variant];
+  const variantClass = () => variantList[variant];
 
   async function buttonOnClick({
     type,
@@ -77,8 +76,7 @@
       currentWindow: true,
     });
 
-    const [{ id: tabId }] =
-      btnSendAs === "tab" ? activeTabs : [{ id: undefined }];
+    const [tab] = btnSendAs === "tab" ? activeTabs : [];
 
     await sendMessage(
       btnSubject,
@@ -87,7 +85,8 @@
         tabs: activeTabs,
         env: btnEnv,
       },
-      tabId,
+      // ?. will prevent an error
+      tab?.id,
     );
   }
 </script>
@@ -98,10 +97,10 @@
   onauxclick={onauxclick ?? buttonOnClick}
   class={twMerge(
     "flex h-13 flex-row gap-1 rounded-xl border-none px-5 py-3 text-center text-xl text-white shadow-lg transition-all hover:scale-105 focus:invert active:invert",
-    variantClass,
+    variantClass(),
     className?.toString(),
   )}
-  {id}
+  id={id()}
 >
   {@render children?.()}
 </Button>

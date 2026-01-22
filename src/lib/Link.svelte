@@ -25,7 +25,7 @@
     green: "bg-green-700",
     red: "bg-red-700",
   };
-  const variantClass = variantList[variant as keyof typeof variantList];
+  const variantClass = () => variantList[variant as keyof typeof variantList];
 
   function posthogCapture() {
     if (!postHogEvent) {
@@ -41,7 +41,7 @@
   class={twMerge(
     variantClass && [
       "rounded-xl border-none px-5 py-2.5 text-xl text-white",
-      variantClass,
+      variantClass(),
     ],
     className?.toString(),
   )}

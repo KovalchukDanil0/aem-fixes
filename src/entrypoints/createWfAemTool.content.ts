@@ -7,9 +7,6 @@ async function createWF(wfName: string, wfTitle: string) {
   const panelContentElm = await waitForElm<HTMLElement>(
     "#cq-miscadmin-grid > div",
   );
-  if (!panelContentElm) {
-    throw new Error("panel content element wasn't found");
-  }
 
   await waitForElm(
     "div.x-grid3-row-first > table > tbody > tr > td.x-grid3-td-title > div",
@@ -63,6 +60,6 @@ export default defineContentScript({
       return;
     }
 
-    createWF(wfName, wfTitle);
+    await createWF(wfName, wfTitle);
   },
 });

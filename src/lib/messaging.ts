@@ -4,10 +4,6 @@ interface MessageCommon {
   url?: string;
 }
 
-interface MessageRealPerf extends MessageCommon {
-  html: Document | null;
-}
-
 interface MessageTabs extends MessageCommon {
   tabs?: Browser.tabs.Tab[];
 }
@@ -25,7 +21,7 @@ interface MessageAlert extends MessageCommon {
 
 export interface ProtocolMap {
   getEnvironment(data: MessageCommon): EnvTypes | null;
-  getRealUrl(data: MessageRealPerf): string | undefined;
+  getRealUrl(): string | undefined;
 
   toEnvironment(data: MessageEnv): void;
   showMessage(data: MessageAlert): void;

@@ -10,9 +10,6 @@ async function fixOldLinks() {
     "div.find-replace-links.ng-scope > div.content.ng-scope.last-concatenated";
 
   const findReplaceBody = await waitForElm(findReplaceBodySelector);
-  if (!findReplaceBody) {
-    return;
-  }
 
   const { length: invalidLinksCount } = findReplaceBody.querySelectorAll(
     "div.one-link > div.is-invalid",
@@ -43,7 +40,7 @@ export default defineContentScript({
   matches: findReplaceMatch,
   runAt: "document_end",
   allFrames: true,
-  async main() {
+  main() {
     const validateButton = document.querySelector(
       "div.find-replace-links.ng-scope > div.content.first > div.root-path-selection > button:nth-child(4)",
     );

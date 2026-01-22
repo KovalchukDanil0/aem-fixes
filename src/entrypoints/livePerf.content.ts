@@ -111,7 +111,7 @@ async function checkMothersite(fromPopup: boolean) {
     "[href*='mothersite']",
   ).length;
 
-  const text = `MOTHERSITE LINKS ON THIS PAGE - ${mothersiteLinks}`;
+  const text = `MOTHERSITE LINKS ON THIS PAGE - ${mothersiteLinks.toString()}`;
 
   if (fromPopup) {
     await sendMessage("showMessage", {
@@ -130,8 +130,8 @@ async function checkMothersite(fromPopup: boolean) {
   }
 }
 
-const getCarByName = (data: CarProps[], value?: string): CarProps | undefined =>
-  data.find(({ desc }) => desc === value);
+const getCarByName = (data?: CarProps[], value?: string) =>
+  data?.find(({ desc }) => desc === value);
 
 async function vehicleCodeInit() {
   const wizardWindowElm = document.querySelector<HTMLDivElement>(
@@ -154,15 +154,27 @@ async function vehicleCodeInit() {
     "div.category-buttons > div.category-buttons-container",
   );
 
-  const wizardConfig = await waitForElm("span.configuration", wizardWindowElm);
+  const {
+    dataset: { nameplateService, campaignCode, siteId, eventType, cultureCode },
+  } = await waitForElm("span.configuration", wizardWindowElm);
+  if (
+    !nameplateService ||
+    !campaignCode ||
+    !siteId ||
+    !eventType ||
+    !cultureCode
+  ) {
+    return;
+  }
 
-  const config = `${wizardConfig.dataset.nameplateService}/${
-    wizardConfig.dataset.campaignCode
-  }/${wizardConfig.dataset.siteId}/${wizardConfig.dataset.eventType}?locale=${
-    wizardConfig.dataset.cultureCode
-  }`;
+  const config = `${nameplateService}/${
+    campaignCode
+  }/${siteId}/${eventType}?locale=${cultureCode}`;
 
   const cookieValue = await sendMessage("getCookie", undefined);
+  if (!cookieValue) {
+    return;
+  }
 
   const vehicleConfigResponse = await ky
     .get(config, {
@@ -175,11 +187,10 @@ async function vehicleCodeInit() {
 
   const butContChildren = buttonContainer?.children;
   if (butContChildren) {
-    for (let index = 0; index < butContChildren.length; index++) {
-      const but = butContChildren[index];
-      but.addEventListener("click", () =>
-        findVehicleCode(vehicleConfigResponse, wizardVehicleSelector, index),
-      );
+    for (const [idx, but] of Array.from(butContChildren).entries()) {
+      but.addEventListener("click", () => {
+        findVehicleCode(vehicleConfigResponse, wizardVehicleSelector, idx);
+      });
     }
   }
 
@@ -205,9 +216,9 @@ function findVehicleCode(
   }
 
   for (const carElm of allCars) {
-    const carName = carElm.textContent?.trim();
+    const carName = carElm.textContent.trim();
 
-    const carObj = getCarByName(vehicleConfig.data[idx].eventItem, carName);
+    const carObj = getCarByName(vehicleConfig.data[idx]?.eventItem, carName);
 
     if (carElm.parentElement && carObj) {
       carElm.id = "carCode";
@@ -290,11 +301,8 @@ async function findShowroomCode() {
   });
 }
 
-const getNextGenCarByName = (
-  data: Segment[],
-  value: string,
-  idx = 0,
-): Segment => data.filter(({ NamePlate }) => NamePlate === value)[idx];
+const getNextGenCarByName = (value: string, data?: Segment[], idx = 0) =>
+  data?.filter(({ NamePlate }) => NamePlate === value)[idx];
 
 async function nextGenCodes() {
   const element = await waitForElm(".host-container.tdb-root");
@@ -336,14 +344,18 @@ async function nextGenCodes() {
       throw new Error("car name is undefined");
     }
 
-    const { VehicleCode: vehicleCode, NamePlateID } = getNextGenCarByName(
-      DemoVehicleModels[0].Segments,
-      carName.textContent,
-    );
+    const { VehicleCode: vehicleCode, NamePlateID: nameplateId } =
+      getNextGenCarByName(
+        carName.textContent,
+        DemoVehicleModels[0]?.Segments,
+      ) ?? {};
+    if (!vehicleCode || !nameplateId) {
+      return;
+    }
 
     const fullCode = new URLSearchParams({
       vehicleCode,
-      nameplateId: NamePlateID,
+      nameplateId,
     });
 
     mount(VehicleCode, {
@@ -372,25 +384,25 @@ export default defineContentScript({
     onMessage("getEnvironment", determineEnvironment);
     onMessage("showShowroomConfig", findShowroomCode);
     onMessage("checkMothersite", () => checkMothersite(true));
-    onMessage("getUrlPageTag", ({ data: { pageTag } }) =>
-      alert(pageTag + "\nearly beta!!!"),
-    );
+    onMessage("getUrlPageTag", ({ data: { pageTag } }) => {
+      alert(pageTag + "\nearly beta!!!");
+    });
 
     if (!isMothersite()) {
-      sendMessage("injectMothersiteCss");
+      await sendMessage("injectMothersiteCss");
     }
 
     const { disMothersiteCheck, enableFunErr } = await loadSavedData();
 
     if (!disMothersiteCheck) {
-      checkMothersite(false);
+      await checkMothersite(false);
     }
 
     if (enableFunErr) {
-      randomProgrammerMemes();
+      await randomProgrammerMemes();
     }
 
-    vehicleCodeInit();
-    nextGenCodes();
+    await vehicleCodeInit();
+    await nextGenCodes();
   },
 });
