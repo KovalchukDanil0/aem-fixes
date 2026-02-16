@@ -9,7 +9,7 @@
 
 <div {...restProps} class="referencesBanner">
   {#if pages.length !== 0}
-    {#each pages.toSorted( ({ path }, { path: pathToCompare }) => path.localeCompare(pathToCompare), ) as { path }}
+    {#each pages.toSorted( ({ path }, { path: pathToCompare }) => path.localeCompare(pathToCompare), ) as { path } (path)}
       {@const href =
         path.replace(regexDetermineBeta, `$1/editor.html$2`) + ".html"}
 

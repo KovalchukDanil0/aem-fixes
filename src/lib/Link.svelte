@@ -1,17 +1,20 @@
 <script lang="ts">
   import type { HTMLAnchorAttributes } from "svelte/elements";
-  import { twMerge } from "tailwind-merge";
   import posthog from "./posthog";
   import type { PostHogProps } from "./types";
+  import { mergeClass } from "./utils";
 
-  type VariantType = "green" | "red";
+  type ColorVariant = "green" | "red";
+  type Variant = "rounded";
 
   interface Props extends HTMLAnchorAttributes, Partial<PostHogProps> {
-    variant?: VariantType;
+    color?: ColorVariant;
+    variant?: Variant;
   }
 
   const {
     class: className,
+    color,
     variant,
     onclick,
     onauxclick,
@@ -20,12 +23,6 @@
     postHogConfig,
     ...restProps
   }: Props = $props();
-
-  const variantList: Record<VariantType, string> = {
-    green: "bg-green-700",
-    red: "bg-red-700",
-  };
-  const variantClass = () => variantList[variant as keyof typeof variantList];
 
   function posthogCapture() {
     if (!postHogEvent) {
@@ -38,13 +35,7 @@
 
 <a
   {...restProps}
-  class={twMerge(
-    variantClass && [
-      "rounded-xl border-none px-5 py-2.5 text-xl text-white",
-      variantClass(),
-    ],
-    className?.toString(),
-  )}
+  class={mergeClass(variant && [color ?? "", variant], className?.toString())}
   onclick={(ev) => {
     onclick?.(ev);
     posthogCapture();
@@ -56,3 +47,34 @@
 >
   {@render children?.()}
 </a>
+
+<style lang="scss">
+  a {
+    cursor: pointer;
+    color: white;
+
+    padding-top: 0.625rem;
+    padding-bottom: 0.625rem;
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
+    border-radius: 0.75rem;
+    border-style: none;
+    font-size: 1.25rem;
+    line-height: 1.75rem;
+
+    &.icon {
+      display: flex;
+      flex-direction: row;
+      gap: 0.25rem;
+      align-items: center;
+    }
+
+    &.green {
+      background-color: green;
+    }
+
+    &.red {
+      background-color: red;
+    }
+  }
+</style>

@@ -12,7 +12,11 @@
 
 <div {...restProps} bind:this={currentElement} class="alertBanner">
   <h2>{text}</h2>
-  <button onclick={() => currentElement.remove()}>X</button>
+  <button
+    onclick={() => {
+      currentElement.remove();
+    }}>X</button
+  >
 </div>
 
 <style lang="scss">

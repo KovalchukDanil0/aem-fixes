@@ -1,4 +1,3 @@
-import tailwindcss from "@tailwindcss/vite";
 import { ViteImageOptimizer } from "vite-plugin-image-optimizer";
 import { defineConfig } from "wxt";
 
@@ -6,7 +5,7 @@ const email = "danilkovalchuk0@gmail.com";
 
 export default defineConfig({
   vite: () => ({
-    plugins: [tailwindcss(), ViteImageOptimizer()],
+    plugins: [ViteImageOptimizer()],
     optimizeDeps: {
       esbuildOptions: {
         target: "esnext",

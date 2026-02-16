@@ -3,8 +3,6 @@
   import posthog from "./posthog";
   import type { PostHogProps } from "./types";
 
-  type VariantType = "green" | "red";
-
   type Props = HTMLInputAttributes & Partial<PostHogProps>;
 
   const {

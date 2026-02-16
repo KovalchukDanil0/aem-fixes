@@ -7,7 +7,7 @@
 <div {...props} role="status">
   <svg
     aria-hidden="true"
-    class="h-8 w-8 animate-spin fill-blue-600 text-gray-200 dark:text-gray-600"
+    class="spinner"
     viewBox="0 0 100 101"
     fill="none"
     xmlns="http://www.w3.org/2000/svg"
@@ -23,3 +23,33 @@
   </svg>
   <span class="sr-only">Loading...</span>
 </div>
+
+<style lang="scss">
+  @keyframes spin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  svg.spinner {
+    width: 2rem;
+    height: 2rem;
+    color: #e5e7eb;
+    animation: spin 1s linear infinite;
+  }
+
+  span.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+  }
+</style>

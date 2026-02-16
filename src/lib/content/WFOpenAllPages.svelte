@@ -11,6 +11,6 @@
   }
 </script>
 
-<button {...restProps} onclick={openAllPages} type="button">
+<button {...restProps} onclick={openAllPages} figure="button">
   OPEN ALL PAGES
 </button>

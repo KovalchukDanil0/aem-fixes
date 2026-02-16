@@ -1,0 +1,15 @@
+@use "$assets/colors" as *;
+
+$height: 14rem;
+
+body {
+  align-items: center;
+  gap: 1.25rem;
+  text-align: center;
+  background-color: $primary-color;
+
+  position: relative;
+  min-height: $height;
+  height: $height;
+  width: 48rem;
+}

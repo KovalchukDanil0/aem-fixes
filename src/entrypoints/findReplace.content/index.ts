@@ -1,7 +1,7 @@
 import "$assets/authorCustom.scss";
 import { FindReplaceLink, InvalidLinks } from "$lib/content";
 import { findReplaceMatch } from "$lib/storage";
-import { waitForElm } from "$lib/tools";
+import { waitForElm } from "$lib/utils";
 import { mount } from "svelte";
 import "./style.scss";
 

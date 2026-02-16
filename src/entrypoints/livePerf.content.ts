@@ -13,7 +13,7 @@ import {
   loadSavedData,
   regexAuthor,
 } from "$lib/storage";
-import { waitForElm } from "$lib/tools";
+import { waitForElm } from "$lib/utils";
 import ky from "ky";
 import { mount } from "svelte";
 

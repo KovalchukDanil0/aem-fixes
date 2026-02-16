@@ -37,7 +37,7 @@
   let localLanguage = (localLanguageLeft ?? localLanguageRight)?.toLowerCase();
 
   const wrongMarkets = ["da", "cs", "el"];
-  const ifWrongMarket = !!wrongMarkets.some(
+  const ifWrongMarket = wrongMarkets.some(
     (wrongMarket) => marketFixed === wrongMarket,
   );
 

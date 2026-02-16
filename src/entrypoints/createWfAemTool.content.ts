@@ -1,5 +1,5 @@
 import { aemToolsMatch, type SavedLocalData } from "$lib/storage";
-import { waitForElm } from "$lib/tools";
+import { waitForElm } from "$lib/utils";
 
 async function createWF(wfName: string, wfTitle: string) {
   await browser.storage.local.remove<SavedLocalData>(["wfName", "wfTitle"]);

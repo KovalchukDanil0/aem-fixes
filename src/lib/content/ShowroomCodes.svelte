@@ -7,7 +7,7 @@
 </script>
 
 <div {...restProps} class="showroomCodes">
-  {#each Object.values(showroomConfig) as { name, code }}
+  {#each Object.values(showroomConfig) as { name, code } (code)}
     <h2>{name}</h2>
     <h3>{code}</h3>
   {/each}

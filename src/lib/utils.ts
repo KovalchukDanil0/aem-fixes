@@ -24,3 +24,11 @@ export function waitForElm<T extends HTMLElement>(
     });
   });
 }
+
+export const mergeClass = (
+  ...args: Array<string | string[] | null | boolean | undefined>
+) =>
+  args
+    .filter((item) => !!item)
+    .flat()
+    .join(" ");

@@ -17,10 +17,14 @@ export default ts.config([
       },
       parserOptions: {
         projectService: true,
+        extraFileExtensions: [".svelte"],
       },
     },
     rules: {
       "no-undef": "off",
+
+      "@typescript-eslint/no-base-to-string": "warn",
+
       "@typescript-eslint/no-explicit-any": "error",
       "@typescript-eslint/use-unknown-in-catch-callback-variable": "error",
       "@typescript-eslint/no-unsafe-argument": "error",

@@ -1,29 +1,35 @@
 <script lang="ts">
   import type { HTMLAttributes } from "svelte/elements";
-  import { twMerge } from "tailwind-merge";
+  import { mergeClass } from "./utils";
 
-  type VariantType = "green" | "red";
+  type Variant = "green" | "red";
 
   interface Props extends HTMLAttributes<EventTarget> {
-    variant?: VariantType;
+    variant?: Variant;
   }
 
-  const { variant, children, class: className, ...restProps }: Props = $props();
-
-  const variantList: Record<VariantType, string> = {
-    green: "bg-green-700",
-    red: "bg-red-700",
-  };
-  const variantClass = () => (variant ? variantList[variant] : null);
+  const { class: className, variant, children, ...restProps }: Props = $props();
 </script>
 
-<div
-  {...restProps}
-  class={twMerge(
-    "w-2/3 rounded-xl p-3 text-center text-lg text-white",
-    variantClass(),
-    className?.toString(),
-  )}
->
+<div {...restProps} class={mergeClass(variant, className?.toString())}>
   {@render children?.()}
 </div>
+
+<style lang="scss">
+  div {
+    padding: 0.75rem;
+    border-radius: 0.75rem;
+    width: 66.666667%;
+    font-size: 1.125rem;
+    line-height: 1.75rem;
+    text-align: center;
+
+    &.green {
+      background-color: green;
+    }
+
+    &.red {
+      background-color: red;
+    }
+  }
+</style>
