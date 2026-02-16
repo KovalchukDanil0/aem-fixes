@@ -53,14 +53,10 @@
     cursor: pointer;
     color: white;
 
-    padding-top: 0.625rem;
-    padding-bottom: 0.625rem;
-    padding-left: 1.25rem;
-    padding-right: 1.25rem;
     border-radius: 0.75rem;
     border-style: none;
-    font-size: 1.25rem;
-    line-height: 1.75rem;
+    font-size: 1rem;
+    line-height: 1.5rem;
 
     &.icon {
       display: flex;
