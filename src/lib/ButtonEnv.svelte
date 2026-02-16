@@ -21,7 +21,9 @@
     | "blue";
 
   interface Props
-    extends Omit<HTMLButtonAttributes, "id">, Partial<PostHogProps> {
+    extends
+      Omit<HTMLButtonAttributes, "id" | "onclick" | "onauxclick">,
+      Partial<PostHogProps> {
     variant: VariantType;
     btnSubject?: keyof ProtocolMap;
     btnSendAs?: "tab" | "runtime";
@@ -35,8 +37,6 @@
     btnEnv,
     btnSubject,
     children,
-    onclick,
-    onauxclick,
     ...restProps
   }: Props = $props();
 
@@ -93,8 +93,8 @@
 
 <Button
   {...restProps}
-  onclick={onclick ?? buttonOnClick}
-  onauxclick={onauxclick ?? buttonOnClick}
+  onclick={buttonOnClick}
+  onauxclick={buttonOnClick}
   class={twMerge(
     "flex h-13 flex-row gap-1 rounded-xl border-none px-5 py-3 text-center text-xl text-white shadow-lg transition-all hover:scale-105 focus:invert active:invert",
     variantClass(),

@@ -106,17 +106,17 @@
   }
 </script>
 
-<div class="flex size-full grow flex-col items-center justify-center gap-5">
+<div class="popup">
   {#if !pageLoaded}
     <Spinner />
     {#await ky
       .get("https://thefact.space/random")
       .json<{ text: string }>() then { text: randomFact }}
-      <p class="text-shadow-lg/20">{randomFact}</p>
+      <p class="hint">{randomFact}</p>
     {/await}
   {:else if environment}
     {#if environment === "jira"}
-      <div class="flex items-center justify-center">
+      <div class="box-center">
         <ButtonEnv
           variant="red"
           btnSubject="createWF"
@@ -125,7 +125,7 @@
         >
       </div>
     {:else}
-      <div class="hidden items-center justify-center gap-2 has-[button]:flex">
+      <div class="box-hide-no-content">
         {#if environment !== "live"}
           <ButtonEnv
             variant="green"
@@ -192,9 +192,7 @@
         {/if}
       </div>
 
-      <div
-        class="hidden flex-wrap items-center justify-center gap-2 has-[button]:flex"
-      >
+      <div class="box-hide-no-content wrap">
         {#if environment === "cf#" || environment === "editor.html"}
           <ButtonEnv
             variant="yellow"
@@ -316,3 +314,41 @@
     See Guide
   </Link>
 </div>
+
+<style lang="scss">
+  div.popup {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    justify-content: center;
+    align-items: center;
+  }
+
+  p.hint {
+    text-shadow:
+      1px 1px 2px gray,
+      0 0 1em white,
+      0 0 0.2em gray;
+  }
+
+  div.box-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  div.box-hide-no-content {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+
+    &:has(*:is(button)) {
+      display: flex;
+    }
+  }
+
+  div.wrap {
+    flex-wrap: wrap;
+  }
+</style>
