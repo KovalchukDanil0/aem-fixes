@@ -25,7 +25,7 @@
 </div>
 
 <style lang="scss">
-  @use "$assets/colors" as *;
+  @use "$assets/variables" as *;
 
   @keyframes spin {
     from {

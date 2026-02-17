@@ -5,7 +5,7 @@
   import { mergeClass } from "./utils";
 
   type ColorVariant = "green" | "red";
-  type Variant = "rounded";
+  type Variant = "icon";
 
   interface Props extends HTMLAnchorAttributes, Partial<PostHogProps> {
     color?: ColorVariant;

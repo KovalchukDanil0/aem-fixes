@@ -1,4 +1,4 @@
-type ColorProps = "info" | "success" | "warning" | "error";
+type ColorProps = "green" | "red";
 
 interface ShowroomCode {
   data: Record<

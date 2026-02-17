@@ -1,13 +1,9 @@
-@use "$assets/colors" as *;
+@use "$assets/variables" as *;
 
 body {
   align-items: center;
   gap: 1.25rem;
   text-align: center;
   background-color: $primary-color;
-
   position: relative;
-  min-height: 14rem;
-  height: auto;
-  width: 48rem;
 }

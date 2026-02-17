@@ -59,7 +59,7 @@
       throw new Error(`copied content is undefined`);
     }
 
-    alertBanner = { text: `${content} copied to clipboard`, color: "info" };
+    alertBanner = { text: `${content} copied to clipboard`, color: "green" };
     await navigator.clipboard.writeText(content);
   }
 
@@ -95,7 +95,7 @@
     {#if environment === "jira"}
       <div class="box-center">
         <ButtonEnv
-          variant="black"
+          color="rich-black"
           btnSubject="createWF"
           btnSendAs="tab"
           postHogEvent="jira_created_wf">Create WF</ButtonEnv
@@ -105,7 +105,7 @@
       <div class="box-hide-no-content">
         {#if environment !== "live"}
           <ButtonEnv
-            variant="gray"
+            color="deep-space-blue"
             btnEnv="live"
             btnSubject="toEnvironment"
             btnSendAs="runtime"
@@ -118,7 +118,7 @@
 
         {#if environment !== "perf"}
           <ButtonEnv
-            variant="light-blue"
+            color="light-blue"
             btnEnv="perf"
             btnSubject="toEnvironment"
             btnSendAs="runtime"
@@ -131,7 +131,7 @@
 
         {#if environment !== "prod"}
           <ButtonEnv
-            variant="rich-black"
+            color="rich-black"
             btnEnv="prod"
             btnSubject="toEnvironment"
             btnSendAs="runtime"
@@ -144,7 +144,7 @@
 
         {#if environment !== "cf#"}
           <ButtonEnv
-            variant="sky-blue"
+            color="air-force-blue"
             btnEnv="cf#"
             btnSubject="toEnvironment"
             btnSendAs="runtime"
@@ -157,7 +157,7 @@
 
         {#if environment !== "editor.html"}
           <ButtonEnv
-            variant="black"
+            color="sky-blue"
             btnEnv="editor.html"
             btnSubject="toEnvironment"
             btnSendAs="runtime"
@@ -172,16 +172,16 @@
       <div class="box-hide-no-content wrap">
         {#if environment === "cf#" || environment === "editor.html"}
           <Button
-            variant="gray"
-            shape="rounded"
+            color="air-force-blue"
+            rounded="big"
             onclick={copyContent}
             postHogEvent="page_link_copied"
             postHogConfig={{ environment }}>Copy Content</Button
           >
 
           <Button
-            variant="light-blue"
-            shape="rounded"
+            color="deep-space-blue"
+            rounded="big"
             onclick={openPropertiesTouchUI}
             postHogEvent="page_properties_opened"
             postHogConfig={{ environment }}
@@ -190,7 +190,8 @@
           </Button>
 
           <ButtonEnv
-            variant="rich-black"
+            color="light-blue"
+            rounded="big"
             btnSubject="openInTree"
             btnSendAs="runtime"
             postHogEvent="page_opened_in_tree"
@@ -200,7 +201,8 @@
           </ButtonEnv>
 
           <ButtonEnv
-            variant="sky-blue"
+            color="rich-black"
+            rounded="big"
             btnSubject="checkReferences"
             btnSendAs="tab"
             postHogEvent="page_checked_references"
@@ -212,7 +214,8 @@
 
         {#if environment === "live" || environment === "perf" || environment === "prod"}
           <ButtonEnv
-            variant="black"
+            color="sky-blue"
+            rounded="big"
             btnSubject="checkMothersite"
             btnSendAs="tab"
             postHogEvent="mothersite_links_checked"
@@ -222,7 +225,8 @@
           </ButtonEnv>
 
           <ButtonEnv
-            variant="gray"
+            color="deep-space-blue"
+            rounded="big"
             btnSubject="showShowroomConfig"
             btnSendAs="tab"
             postHogEvent="showroom_config_showed"
@@ -235,30 +239,40 @@
     {/if}
 
     {#if alertBanner}
-      <Alert variant="green" class="">{alertBanner.text}</Alert>
+      <Alert variant={alertBanner.color}>{alertBanner.text}</Alert>
     {/if}
   {:else if tab?.url}
     <h2>{new URL(tab.url).host}<br />Not Allowed</h2>
-    <div class="flex flex-col gap-3">
+    <div class="rescue-banner">
       <p>I think it's</p>
-      <div class="flex flex-row gap-3">
+      <div class="rescue-banner-buttons">
         <Button
+          color="gray"
+          rounded="small"
           onclick={() => setEnvironment("live")}
           postHogEvent="page_should_be_live">live</Button
         >
         <Button
+          color="gray"
+          rounded="small"
           onclick={() => setEnvironment("perf")}
           postHogEvent="page_should_be_perf">perf</Button
         >
         <Button
+          color="gray"
+          rounded="small"
           onclick={() => setEnvironment("prod")}
           postHogEvent="page_should_be_prod">prod</Button
         >
         <Button
+          color="gray"
+          rounded="small"
           onclick={() => setEnvironment("cf#")}
           postHogEvent="page_should_be_classic">classic</Button
         >
         <Button
+          color="gray"
+          rounded="small"
           onclick={() => setEnvironment("editor.html")}
           postHogEvent="page_should_be_touch">touch ui</Button
         >
@@ -270,7 +284,7 @@
 </div>
 
 <style lang="scss">
-  @use "$assets/colors" as *;
+  @use "$assets/variables" as *;
 
   div.buttons-container {
     display: flex;
@@ -302,5 +316,17 @@
 
   div.wrap {
     flex-wrap: wrap;
+  }
+
+  div.rescue-banner {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+
+    &-buttons {
+      display: flex;
+      flex-direction: row;
+      gap: 0.75rem;
+    }
   }
 </style>

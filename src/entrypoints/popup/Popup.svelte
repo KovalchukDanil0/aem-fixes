@@ -2,6 +2,7 @@
   import "$assets/main.scss";
   import { initPosthog } from "$lib/posthog";
   import { initTour } from "$lib/tour";
+  import { onMount } from "svelte";
   import ButtonsContainer from "./ButtonsContainer.svelte";
   import Planet from "./planet.svg?component";
   import StarryBackground from "./StarryBackground.svelte";

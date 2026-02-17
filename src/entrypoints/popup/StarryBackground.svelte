@@ -16,19 +16,21 @@
 </script>
 
 <div class="sky">
-  {#each stars as star}
+  {#each stars as { duration, left, top, size }}
     <div
       class="star"
-      style:width="{star.size}px"
-      style:height="{star.size}px"
-      style:left="{star.left}vw"
-      style:top="{star.top}vh"
-      style:animation-duration="{star.duration}s"
+      style:width="{size}px"
+      style:height="{size}px"
+      style:left="{left}vw"
+      style:top="{top}vh"
+      style:animation-duration="{duration}s"
     ></div>
   {/each}
 </div>
 
 <style lang="scss">
+  @use "$assets/variables" as *;
+
   @keyframes twinkle {
     0%,
     100% {
@@ -42,7 +44,7 @@
   div.sky {
     position: fixed;
     inset: 0;
-    background: black;
+    background: $primary-color;
     overflow: hidden;
     z-index: -90;
 

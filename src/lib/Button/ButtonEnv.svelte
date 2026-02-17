@@ -2,21 +2,27 @@
   import { sendMessage, type ProtocolMap } from "$lib/messaging";
   import { pascalCase } from "change-case";
   import type { HTMLButtonAttributes } from "svelte/elements";
-  import { Button, type ColorVariant } from ".";
+  import { Button, type ButtonProps } from ".";
   import type { PostHogProps } from "../types";
 
   interface Props
     extends
-      Omit<HTMLButtonAttributes, "id" | "onclick" | "onauxclick">,
+      ButtonProps,
+      Omit<HTMLButtonAttributes, "id" | "onclick" | "onauxclick" | "color">,
       Partial<PostHogProps> {
-    variant: ColorVariant;
     btnSubject?: keyof ProtocolMap;
     btnSendAs?: "tab" | "runtime";
     btnEnv?: EnvTypes;
   }
 
-  const { btnSendAs, btnEnv, btnSubject, children, ...restProps }: Props =
-    $props();
+  const {
+    rounded = "medium",
+    btnSendAs,
+    btnEnv,
+    btnSubject,
+    children,
+    ...restProps
+  }: Props = $props();
 
   const id = () =>
     btnEnv ? (btnSubject ?? "") + pascalCase(btnEnv) : btnSubject;
@@ -55,10 +61,10 @@
 
 <Button
   {...restProps}
+  {rounded}
   onclick={buttonOnClick}
   onauxclick={buttonOnClick}
   id={id()}
-  shape="rounded"
 >
   {@render children?.()}
 </Button>

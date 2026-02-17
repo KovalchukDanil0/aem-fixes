@@ -35,21 +35,22 @@
   await initPosthog({ capture_pageview: false, autocapture: true });
 </script>
 
-<Link
-  href="/popup.html"
-  class="flex flex-row items-center gap-1"
-  postHogEvent="back_to_popup_link_clicked"><ArrowLeft />Back</Link
->
+<Link href="/popup.html" postHogEvent="back_to_popup_link_clicked">
+  <ArrowLeft />
+</Link>
+
+<p>Sorry a bit ugly here, looking for inspiration</p>
+
 <h2>AEM Fixes Settings</h2>
 
 {#each savedSyncData as [name, value], idx}
   <div
     class={mergeClass(
-      "flex flex-row gap-3",
+      "saved-data",
       savedSyncData.length - 1 === idx && "animate-glitch",
     )}
   >
-    <label class="flex flex-row gap-1 select-none"
+    <label class="saved-data-entry"
       >{settingNames[name as keyof typeof settingNames]}<Input
         onchange={() => {
           saveSyncData(name, value);
@@ -61,3 +62,48 @@
     >
   </div>
 {/each}
+
+<style lang="scss">
+  @keyframes glitch {
+    0% {
+      transform: translate(0, 0);
+    }
+
+    20% {
+      transform: translate(-2px, -2px);
+    }
+
+    40% {
+      transform: translate(2px, 2px);
+    }
+
+    60% {
+      transform: translate(-2px, 2px);
+    }
+
+    80% {
+      transform: translate(2px, -2px);
+    }
+
+    100% {
+      transform: translate(0, 0);
+    }
+  }
+
+  div.animate-glitch {
+    animation: glitch 1s infinite;
+  }
+
+  div.saved-data {
+    display: flex;
+    flex-direction: row;
+    gap: 0.75rem;
+
+    &-entry {
+      display: flex;
+      flex-direction: row;
+      gap: 0.25rem;
+      user-select: none;
+    }
+  }
+</style>

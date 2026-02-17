@@ -16,6 +16,8 @@
 </div>
 
 <style lang="scss">
+  @use "$assets/variables" as *;
+
   div {
     padding: 0.75rem;
     border-radius: 0.75rem;
@@ -25,11 +27,13 @@
     text-align: center;
 
     &.green {
-      background-color: green;
+      background-color: #748e54;
+      color: $secondary-color;
     }
 
     &.red {
-      background-color: red;
+      background-color: #7b2d26;
+      color: $secondary-color;
     }
   }
 </style>

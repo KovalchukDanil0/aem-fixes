@@ -30,7 +30,7 @@ async function toEnvironment(
       async (error: unknown) => {
         if (error instanceof Error) {
           await sendMessage("showMessage", {
-            color: "error",
+            color: "red",
             text: `ERROR - ${error.message}`,
           });
 
@@ -241,7 +241,7 @@ export default defineBackground({
       });
     });
 
-    browser.runtime.onInstalled.addListener(() => {
+    browser.runtime.onInstalled.addListener((_details) => {
       for (const [id, props] of Object.entries(menus)) {
         browser.contextMenus.create({ id, ...props });
       }

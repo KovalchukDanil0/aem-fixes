@@ -1,5 +1,6 @@
 @use "normalize.css/normalize.css";
 @use "@fontsource/open-sans/latin";
+@use "$assets/variables" as *;
 
 body {
   display: flex;
@@ -7,7 +8,10 @@ body {
   overflow-y: scroll;
   flex-direction: column;
   justify-content: center;
+
+  width: $popup-width;
   height: auto;
+  min-height: $popup-min-height;
 
   font-family: Open Sans;
 }
@@ -30,36 +34,6 @@ textarea {
 
 /* @layer base {
 
-}
-
-@theme {
-  --animate-glitch: glitch 1s infinite;
-
-  @keyframes glitch {
-    0% {
-      transform: translate(0, 0);
-    }
-
-    20% {
-      transform: translate(-2px, -2px);
-    }
-
-    40% {
-      transform: translate(2px, 2px);
-    }
-
-    60% {
-      transform: translate(-2px, 2px);
-    }
-
-    80% {
-      transform: translate(2px, -2px);
-    }
-
-    100% {
-      transform: translate(0, 0);
-    }
-  }
 }
 
 body {

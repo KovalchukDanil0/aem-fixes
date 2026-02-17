@@ -115,7 +115,7 @@ async function checkMothersite(fromPopup: boolean) {
 
   if (fromPopup) {
     await sendMessage("showMessage", {
-      color: mothersiteLinks === 0 ? "success" : "error",
+      color: mothersiteLinks === 0 ? "green" : "red",
       text,
     });
     return;
@@ -257,7 +257,7 @@ async function findShowroomCode() {
   if (!showroomElm) {
     await sendMessage("showMessage", {
       text: "Please make sure you are on showroom page",
-      color: "error",
+      color: "red",
     });
 
     return;
@@ -278,7 +278,7 @@ async function findShowroomCode() {
     .catch(async () => {
       await sendMessage("showMessage", {
         text: "Please log in to AEM account, or try to refresh page",
-        color: "error",
+        color: "red",
       });
 
       return { data: null };
