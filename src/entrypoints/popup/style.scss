@@ -1,7 +1,5 @@
 @use "$assets/colors" as *;
 
-$height: 14rem;
-
 body {
   align-items: center;
   gap: 1.25rem;
@@ -9,7 +7,7 @@ body {
   background-color: $primary-color;
 
   position: relative;
-  min-height: $height;
-  height: $height;
+  min-height: 14rem;
+  height: auto;
   width: 48rem;
 }

@@ -17,6 +17,7 @@
   "devDependencies": {
     "@eslint/js": "10.0.1",
     "@fontsource/open-sans": "5.2.7",
+    "@hazycora/vite-plugin-svelte-svg": "^2.4.3",
     "@lucide/svelte": "^0.564.0",
     "@tsconfig/svelte": "5.0.7",
     "@types/chrome": "0.1.36",

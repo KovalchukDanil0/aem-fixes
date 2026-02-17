@@ -270,6 +270,8 @@
 </div>
 
 <style lang="scss">
+  @use "$assets/colors" as *;
+
   div.buttons-container {
     display: flex;
     flex-direction: column;
@@ -280,9 +282,9 @@
 
   p.hint {
     text-shadow:
-      1px 1px 2px gray,
-      0 0 1em white,
-      0 0 0.2em gray;
+      1px 1px 2px $tertiary-color-2,
+      0 0 1em $secondary-color,
+      0 0 0.2em $tertiary-color-2;
   }
 
   div.box-center {

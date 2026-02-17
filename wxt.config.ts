@@ -1,3 +1,4 @@
+import svelteSVG from "@hazycora/vite-plugin-svelte-svg";
 import { ViteImageOptimizer } from "vite-plugin-image-optimizer";
 import { defineConfig } from "wxt";
 
@@ -5,7 +6,10 @@ const email = "danilkovalchuk0@gmail.com";
 
 export default defineConfig({
   vite: () => ({
-    plugins: [ViteImageOptimizer()],
+    plugins: [
+      svelteSVG({ requireSuffix: false, svgoConfig: {} }),
+      ViteImageOptimizer(),
+    ],
     optimizeDeps: {
       esbuildOptions: {
         target: "esnext",

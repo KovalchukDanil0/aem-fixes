@@ -3,9 +3,9 @@
   import { Input, Link } from "$lib";
   import { initPosthog } from "$lib/posthog";
   import type { SavedSyncData } from "$lib/storage";
+  import { mergeClass } from "$lib/utils";
   import { ArrowLeft } from "@lucide/svelte";
   import { noCase, snakeCase } from "change-case";
-  import { twMerge } from "tailwind-merge";
   import "./style.scss";
 
   const savedSyncDataInit = await browser.storage.sync.get<SavedSyncData>({
@@ -44,7 +44,7 @@
 
 {#each savedSyncData as [name, value], idx}
   <div
-    class={twMerge(
+    class={mergeClass(
       "flex flex-row gap-3",
       savedSyncData.length - 1 === idx && "animate-glitch",
     )}

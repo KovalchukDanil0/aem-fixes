@@ -3,7 +3,7 @@
   import { initPosthog } from "$lib/posthog";
   import { initTour } from "$lib/tour";
   import ButtonsContainer from "./ButtonsContainer.svelte";
-  import Planet from "./Planet.svelte";
+  import Planet from "./planet.svg?component";
   import StarryBackground from "./StarryBackground.svelte";
   import "./style.scss";
   import UsefulLinks from "./UsefulLinks.svelte";
@@ -17,6 +17,8 @@
     const tour = await initTour();
     tour?.drive();
   });
+
+  const hours = new Date().getHours();
 </script>
 
 <main>
@@ -25,7 +27,10 @@
     <UsefulLinks />
   </div>
   <div class="background">
-    <Planet />
+    <Planet
+      width="50%"
+      style="bottom: {-hours + 5}rem; left: 0; position: absolute;"
+    />
 
     <StarryBackground />
   </div>
@@ -52,9 +57,9 @@
 
   div.background {
     position: absolute;
-    bottom: 0;
-    left: 0;
     overflow: hidden;
+    width: 100%;
+    height: 100%;
     z-index: -100;
   }
 </style>

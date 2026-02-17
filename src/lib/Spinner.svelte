@@ -25,6 +25,8 @@
 </div>
 
 <style lang="scss">
+  @use "$assets/colors" as *;
+
   @keyframes spin {
     from {
       transform: rotate(0deg);
@@ -37,7 +39,8 @@
   svg.spinner {
     width: 2rem;
     height: 2rem;
-    color: #e5e7eb;
+    color: $secondary-color;
+    fill: $tertiary-color-2;
     animation: spin 1s linear infinite;
   }
 
