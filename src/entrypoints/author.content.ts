@@ -1,4 +1,4 @@
-import { ErrorMessage, ReferencesBanner, WFShowTicket } from "$lib/content";
+import { ErrorMessage, ReferencesBanner, WFShowTicket } from "$lib";
 import { onMessage } from "$lib/messaging";
 import {
   authorMatch,

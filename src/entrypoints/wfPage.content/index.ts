@@ -1,5 +1,5 @@
 import "$assets/authorCustom.scss";
-import { WFOpenAllPages, WFUsefulLinks } from "$lib/content";
+import { WFOpenAllPages, WFUsefulLinks } from "$lib";
 import { regexDetermineBeta, wfPageMatch } from "$lib/storage";
 import { waitForElm } from "$lib/utils";
 import { mount } from "svelte";

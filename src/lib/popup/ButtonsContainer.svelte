@@ -1,29 +1,29 @@
-<script lang="ts" module>
+<script lang="ts">
   import { Alert, Button, ButtonEnv, Spinner } from "$lib";
   import { onMessage, sendMessage } from "$lib/messaging";
   import { fullAuthorPath, propertiesPath, regexAuthor } from "$lib/storage";
   import ky from "ky";
+  import { mergeClass } from "../utils";
+
+  interface Props {
+    tab?: Browser.tabs.Tab;
+  }
 
   interface AlertType {
     text: string;
     color: ColorProps;
   }
 
-  const [tab] = await browser.tabs.query({
-    active: true,
-    currentWindow: true,
-  });
+  let { tab }: Props = $props();
 
   const regexCopyContent = /\/content.+(?=\.html)/;
 
+  let fadeOutHandle: NodeJS.Timeout | null = null;
+
+  let fadeOut = $state(false);
   let pageLoaded = $state(false);
   let environment = $state<EnvTypes | null>(null);
   let alertBanner = $state<AlertType>();
-
-  if (tab?.status === "complete" && tab.id) {
-    pageLoaded = true;
-    await fetchEnvironment(tab.id);
-  }
 
   const setEnvironment = (env: EnvTypes) => (environment = env);
 
@@ -43,10 +43,29 @@
     }
   });
 
+  function toggleFadeOut() {
+    if (!fadeOutHandle) {
+      fadeOutHandle = setTimeout(() => {
+        fadeOut = true;
+        fadeOutHandle = null;
+      }, 10 * 1000);
+      return;
+    }
+
+    clearTimeout(fadeOutHandle);
+
+    fadeOut = false;
+    fadeOutHandle = null;
+    toggleFadeOut();
+  }
+
   async function fetchEnvironment(tabId: number) {
     environment = await sendMessage("getEnvironment", {}, tabId).catch(
       () => null,
     );
+
+    // exposes beautiful view to the sky
+    toggleFadeOut();
   }
 
   async function copyContent() {
@@ -81,9 +100,20 @@
   onMessage("showMessage", ({ data: { text, color } }) => {
     alertBanner = { text, color };
   });
+
+  $effect(() => {
+    if (tab?.status === "complete" && tab.id) {
+      pageLoaded = true;
+      fetchEnvironment(tab.id);
+    }
+  });
 </script>
 
-<div class="buttons-container">
+<div
+  class={mergeClass("buttons-container", fadeOut && "fade-out")}
+  onmousemove={toggleFadeOut}
+  role="button"
+>
   {#if !pageLoaded}
     <Spinner />
     {#await ky
@@ -292,6 +322,13 @@
     gap: 1.25rem;
     justify-content: center;
     align-items: center;
+    opacity: 1;
+
+    transition: opacity 2s ease-out;
+
+    &.fade-out {
+      opacity: 0;
+    }
   }
 
   p.hint {

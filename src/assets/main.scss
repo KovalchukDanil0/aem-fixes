@@ -8,12 +8,17 @@ body {
   overflow-y: scroll;
   flex-direction: column;
   justify-content: center;
+  box-sizing: border-box;
 
   width: $popup-width;
   height: auto;
   min-height: $popup-min-height;
 
   font-family: Open Sans;
+}
+
+main {
+  display: contents;
 }
 
 p,

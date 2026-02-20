@@ -99,7 +99,7 @@
 
       &-air-force-blue {
         background-color: $tertiary-color-5;
-        color: black;
+        color: $primary-color;
       }
     }
 

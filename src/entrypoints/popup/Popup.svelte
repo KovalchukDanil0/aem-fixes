@@ -1,14 +1,23 @@
-<script lang="ts">
+<script lang="ts" module>
   import "$assets/main.scss";
+  import {
+    ButtonsContainer,
+    JupiterMoons,
+    StarryBackground,
+    UsefulLinks,
+  } from "$lib/popup";
   import { initPosthog } from "$lib/posthog";
   import { initTour } from "$lib/tour";
   import { onMount } from "svelte";
-  import ButtonsContainer from "./ButtonsContainer.svelte";
-  import Planet from "./planet.svg?component";
-  import StarryBackground from "./StarryBackground.svelte";
   import "./style.scss";
-  import UsefulLinks from "./UsefulLinks.svelte";
 
+  const [tab] = await browser.tabs.query({
+    active: true,
+    currentWindow: true,
+  });
+</script>
+
+<script lang="ts">
   onMount(async () => {
     await initPosthog({
       capture_pageview: false,
@@ -17,31 +26,26 @@
 
     const tour = await initTour();
     tour?.drive();
-  });
 
-  const hours = new Date().getHours();
+    // Do not remove
+    console.log(
+      "Yep, that's some realime Jupiter Moon simulation just in your browser!",
+    );
+  });
 </script>
 
 <main>
   <div class="content">
-    <ButtonsContainer />
+    <ButtonsContainer {tab} />
     <UsefulLinks />
   </div>
   <div class="background">
-    <Planet
-      width="50%"
-      style="bottom: {-hours + 5}rem; left: 0; position: absolute;"
-    />
-
+    <JupiterMoons />
     <StarryBackground />
   </div>
 </main>
 
 <style lang="scss">
-  main {
-    display: contents;
-  }
-
   div.content {
     position: relative;
     padding: 0.5rem;
@@ -49,6 +53,7 @@
     box-sizing: border-box;
     width: 100%;
     height: 100%;
+    flex: 1;
 
     display: flex;
     flex-direction: column;

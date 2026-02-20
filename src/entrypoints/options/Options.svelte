@@ -35,33 +35,35 @@
   await initPosthog({ capture_pageview: false, autocapture: true });
 </script>
 
-<Link href="/popup.html" postHogEvent="back_to_popup_link_clicked">
-  <ArrowLeft />
-</Link>
+<main>
+  <Link href="/popup.html" postHogEvent="back_to_popup_link_clicked">
+    <ArrowLeft />
+  </Link>
 
-<p>Sorry a bit ugly here, looking for inspiration</p>
+  <p>Sorry a bit ugly here, looking for inspiration</p>
 
-<h2>AEM Fixes Settings</h2>
+  <h2>AEM Fixes Settings</h2>
 
-{#each savedSyncData as [name, value], idx}
-  <div
-    class={mergeClass(
-      "saved-data",
-      savedSyncData.length - 1 === idx && "animate-glitch",
-    )}
-  >
-    <label class="saved-data-entry"
-      >{settingNames[name as keyof typeof settingNames]}<Input
-        onchange={() => {
-          saveSyncData(name, value);
-        }}
-        checked={value}
-        postHogEvent="{noCase(snakeCase(name))}_setting_clicked"
-        type="checkbox"
-      /></label
+  {#each savedSyncData as [name, value], idx}
+    <div
+      class={mergeClass(
+        "saved-data",
+        savedSyncData.length - 1 === idx && "animate-glitch",
+      )}
     >
-  </div>
-{/each}
+      <label class="saved-data-entry"
+        >{settingNames[name as keyof typeof settingNames]}<Input
+          onchange={() => {
+            saveSyncData(name, value);
+          }}
+          checked={value}
+          postHogEvent="{noCase(snakeCase(name))}_setting_clicked"
+          type="checkbox"
+        /></label
+      >
+    </div>
+  {/each}
+</main>
 
 <style lang="scss">
   @keyframes glitch {
