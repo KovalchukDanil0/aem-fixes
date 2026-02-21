@@ -109,6 +109,7 @@
   });
 </script>
 
+<!-- svelte-ignore a11y_interactive_supports_focus -->
 <div
   class={mergeClass("buttons-container", fadeOut && "fade-out")}
   onmousemove={toggleFadeOut}
